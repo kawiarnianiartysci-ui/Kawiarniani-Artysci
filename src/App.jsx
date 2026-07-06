@@ -917,7 +917,7 @@ export default function App() {
       <>
       {/* Baner ze zdjęciem */}
       <div style={{ position:"relative", width:"100%", height:"clamp(260px, 42vw, 420px)", overflow:"hidden" }}>
-        <img src={HERO_PHOTO} alt="Wspólne malowanie przy kawie" style={{ width:"100%", height:"100%", objectFit:"cover", objectPosition:"center 30%", display:"block" }} />
+        <img src={HERO_PHOTO} alt="Wspólne malowanie przy kawie" style={{ width:"100%", height:"100%", objectFit:"cover", objectPosition:"center 75%", display:"block" }} />
         <div style={{ position:"absolute", inset:0, background:"linear-gradient(180deg, rgba(26,26,26,0) 40%, rgba(26,26,26,0.75) 100%)" }} />
         <div style={{ position:"absolute", left:0, right:0, bottom:0, padding:"0 16px 28px", maxWidth:1160, margin:"0 auto" }}>
           <h1 style={{ fontFamily:"'Montserrat', system-ui, sans-serif", fontSize:"clamp(30px,4.5vw,52px)", fontWeight:300, margin:0, lineHeight:1.1, color:"#FFF", textShadow:"0 2px 12px rgba(0,0,0,0.35)" }}>{COPY.heroTitle}</h1>
