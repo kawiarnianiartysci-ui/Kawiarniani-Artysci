@@ -275,6 +275,17 @@ const globalCSS = `
   @keyframes slideUp { from { transform: translateY(100%); opacity:0; } to { transform: translateY(0); opacity:1; } }
   @keyframes fadeIn  { from { opacity: 0; } to { opacity: 1; } }
   a { color: inherit; }
+  .tile-grid { display:flex; flex-wrap:wrap; justify-content:center; gap:14px; }
+  .tile-card { width: calc((100% - 56px) / 5); }
+  @media (max-width: 980px) {
+    .tile-card { width: calc((100% - 28px) / 3); }
+  }
+  @media (max-width: 640px) {
+    .tile-card { width: calc((100% - 14px) / 2); }
+  }
+  @media (max-width: 420px) {
+    .tile-card { width: 100%; }
+  }
   @media (max-width: 480px) {
     .search-segment { padding: 6px 10px !important; }
     .search-segment > div:first-child { font-size: 9px !important; }
@@ -592,8 +603,8 @@ function WorkshopCard({ w, isSelected, onToggle, onProfile }) {
 
 // ══ Formularz zapytania ══════════════════════════════════════
 
-function InquiryModal({ restaurant, variant, workshop, groupSize, prefilledDate, onClose }) {
-  const [form, setForm] = useState({ name:"", email:"", phone:"", date: prefilledDate || "", message:"" });
+function InquiryModal({ restaurant, variant, workshop, groupSize, prefilledDate, prefilledTime, onClose }) {
+  const [form, setForm] = useState({ name:"", email:"", phone:"", date: prefilledDate || "", time: prefilledTime || "", message:"" });
   const [sent, setSent] = useState(false);
   const [sending, setSending] = useState(false);
   const [error, setError] = useState("");
@@ -611,7 +622,7 @@ function InquiryModal({ restaurant, variant, workshop, groupSize, prefilledDate,
       restaurant_name: restaurant?.name || "",
       artist_name: workshop ? `${workshop.name} (${workshop.artist})` : "",
       group_size: groupSize,
-      date: form.date,
+      date: form.time ? `${form.date}, ${form.time}` : form.date,
       message: form.message,
     }, { publicKey: EMAILJS_PUBLIC_KEY })
       .then(() => { setSending(false); setSent(true); setTimeout(onClose, 3000); })
@@ -640,13 +651,22 @@ function InquiryModal({ restaurant, variant, workshop, groupSize, prefilledDate,
               { k:"name",  l:"Imię i nazwisko *", t:"text",  p:"Anna Kowalska"      },
               { k:"email", l:"Email *",            t:"email", p:"anna@email.com"     },
               { k:"phone", l:"Telefon",            t:"tel",   p:"+48 500 000 000"   },
-              { k:"date",  l:"Preferowana data",   t:"date",  p:""                  },
             ].map(f => (
               <div key={f.k} style={{ marginBottom:14 }}>
                 <label style={lbl}>{f.l}</label>
                 <input type={f.t} placeholder={f.p} value={form[f.k]} onChange={set(f.k)} style={inp} />
               </div>
             ))}
+            <div style={{ display:"flex", gap:10, marginBottom:14 }}>
+              <div style={{ flex:"1 1 150px" }}>
+                <label style={lbl}>Preferowana data</label>
+                <input type="date" value={form.date} onChange={set("date")} style={inp} />
+              </div>
+              <div style={{ flex:"1 1 110px" }}>
+                <label style={lbl}>Godzina</label>
+                <input type="time" value={form.time} onChange={set("time")} style={inp} />
+              </div>
+            </div>
             <div style={{ marginBottom:22 }}>
               <label style={lbl}>Wiadomość / specjalne życzenia</label>
               <textarea rows={3} placeholder="Okazja, szczególne wymagania, pytania..." value={form.message} onChange={set("message")} style={{ ...inp, resize:"vertical" }} />
@@ -763,7 +783,7 @@ export default function App() {
 
       {/* Nagłówek */}
       <header style={{ background:C.card, padding:"14px 28px", display:"flex", justifyContent:"space-between", alignItems:"center", flexWrap:"wrap", gap:12, borderBottom:`1px solid ${C.border}` }}>
-        <div style={{ display:"flex", alignItems:"center", gap:12 }}>
+        <div style={{ display:"flex", alignItems:"center", gap:12, marginLeft:"clamp(4px, 3vw, 44px)" }}>
           <div style={{ width:58, height:58, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
             <img src={LOGO_IMG} alt={COPY.siteName} style={{ width:58, height:58, objectFit:"contain" }} />
           </div>
@@ -774,12 +794,12 @@ export default function App() {
         </div>
 
         {/* Przełącznik trybu */}
-        <div style={{ display:"flex", background:C.tagBg, borderRadius:10, padding:3, gap:3 }}>
+        <div style={{ display:"flex", background:C.tagBg, borderRadius:12, padding:5, gap:5 }}>
           {[
             { id:"client", label:"Planuję event" },
             { id:"b2b",    label:"Współpraca" },
           ].map(m => (
-            <button key={m.id} onClick={() => setMode(m.id)} style={{ padding:"7px 14px", borderRadius:8, border:"none", background: mode===m.id ? C.primary : "transparent", color: mode===m.id ? "#FFF" : C.muted, fontSize:12, fontWeight: mode===m.id ? 600 : 400, cursor:"pointer", transition:"all 0.15s", whiteSpace:"nowrap" }}>
+            <button key={m.id} onClick={() => setMode(m.id)} style={{ padding:"12px 26px", borderRadius:9, border:"none", background: mode===m.id ? C.primary : "transparent", color: mode===m.id ? "#FFF" : C.muted, fontSize:15, fontWeight: mode===m.id ? 600 : 500, cursor:"pointer", transition:"all 0.15s", whiteSpace:"nowrap" }}>
               {m.label}
             </button>
           ))}
@@ -805,7 +825,7 @@ export default function App() {
 
       {/* Pasek wyszukiwania — pigułka z 3 rozwijanymi sekcjami, pod zdjęciem */}
       <div style={{ background:C.card, padding:"22px 16px", borderBottom:`1px solid ${C.border}`, position:"relative" }} onClick={() => setOpenField(null)}>
-        <div style={{ maxWidth:680, margin:"0 auto", position:"relative" }}>
+        <div style={{ maxWidth:820, margin:"0 auto", position:"relative" }}>
           <div className="search-bar" style={{ display:"flex", alignItems:"stretch", background:"#FFF", border:`1px solid ${C.border}`, borderRadius:999, boxShadow:"0 4px 18px rgba(0,0,0,0.07)", padding:5, gap:0 }} onClick={e => e.stopPropagation()}>
 
             {/* Segment: Liczba osób */}
@@ -902,14 +922,16 @@ export default function App() {
         {/* Restauracje */}
         <section id="restauracje" style={{ marginBottom:42 }}>
           <SectionTitle title="Wybierz restaurację" count={filteredR.length} />
-          <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fill, minmax(240px,1fr))", gap:14 }}>
+          <div className="tile-grid">
             {filteredR.map(r => (
-              <RestaurantCard key={r.id} r={r}
-                isSelected={selectedR === r.id}
-                selectedVariantId={selectedR === r.id ? selectedVariant : null}
-                onToggle={() => handleToggleR(r.id)}
-                onVariantSelect={vid => setSelectedVariant(vid)}
-                onProfile={() => setProfileItem({ item:r, type:"restaurant" })} />
+              <div key={r.id} className="tile-card">
+                <RestaurantCard r={r}
+                  isSelected={selectedR === r.id}
+                  selectedVariantId={selectedR === r.id ? selectedVariant : null}
+                  onToggle={() => handleToggleR(r.id)}
+                  onVariantSelect={vid => setSelectedVariant(vid)}
+                  onProfile={() => setProfileItem({ item:r, type:"restaurant" })} />
+              </div>
             ))}
           </div>
         </section>
@@ -917,12 +939,14 @@ export default function App() {
         {/* Warsztaty */}
         <section style={{ marginBottom: hasSelection ? 130 : 42 }}>
           <SectionTitle title="Wybierz warsztat" count={WORKSHOPS.length} />
-          <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fill, minmax(240px,1fr))", gap:14 }}>
+          <div className="tile-grid">
             {WORKSHOPS.map(w => (
-              <WorkshopCard key={w.id} w={w}
-                isSelected={selectedW === w.id}
-                onToggle={() => setSelectedW(selectedW===w.id ? null : w.id)}
-                onProfile={() => setProfileItem({ item:w, type:"workshop" })} />
+              <div key={w.id} className="tile-card">
+                <WorkshopCard w={w}
+                  isSelected={selectedW === w.id}
+                  onToggle={() => setSelectedW(selectedW===w.id ? null : w.id)}
+                  onProfile={() => setProfileItem({ item:w, type:"workshop" })} />
+              </div>
             ))}
           </div>
         </section>
@@ -966,7 +990,7 @@ export default function App() {
           onClose={() => setProfileItem(null)} />
       )}
       {showInquiry && (
-        <InquiryModal restaurant={restaurant} variant={variant} workshop={workshop} groupSize={groupSize} prefilledDate={selectedDate} onClose={() => setShowInquiry(false)} />
+        <InquiryModal restaurant={restaurant} variant={variant} workshop={workshop} groupSize={groupSize} prefilledDate={selectedDate} prefilledTime={selectedTime} onClose={() => setShowInquiry(false)} />
       )}
     </div>
   );
