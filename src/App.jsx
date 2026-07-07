@@ -1,4 +1,10 @@
 import { useState, useEffect } from "react";
+import emailjs from "@emailjs/browser";
+
+// ══ EmailJS — konfiguracja wysyłki zapytań ══════════════════════
+const EMAILJS_SERVICE_ID  = "service_hzlvg3y";
+const EMAILJS_TEMPLATE_ID = "template_qljprda";
+const EMAILJS_PUBLIC_KEY  = "BM7FzyHsOpiRR8BR_";
 
 // ══════════════════════════════════════════════════════════════
 // 🖼️  ZDJĘCIA — zakodowane w formacie base64, żeby działały od razu
@@ -591,13 +597,27 @@ function WorkshopCard({ w, isSelected, onToggle, onProfile }) {
 function InquiryModal({ restaurant, variant, workshop, groupSize, prefilledDate, onClose }) {
   const [form, setForm] = useState({ name:"", email:"", phone:"", date: prefilledDate || "", message:"" });
   const [sent, setSent] = useState(false);
+  const [sending, setSending] = useState(false);
+  const [error, setError] = useState("");
   const set = k => e => setForm({ ...form, [k]: e.target.value });
   const inp = { width:"100%", padding:"11px 13px", border:`1px solid ${C.border}`, borderRadius:8, fontSize:14, color:C.text, background:"#FAFAF8" };
   const lbl = { display:"block", fontSize:11, fontWeight:600, color:C.muted, marginBottom:5, letterSpacing:"0.08em" };
 
   const send = () => {
     if (!form.name || !form.email) { alert("Podaj imię i adres email."); return; }
-    setSent(true); setTimeout(onClose, 3000);
+    setSending(true); setError("");
+    emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, {
+      from_name: form.name,
+      from_email: form.email,
+      phone: form.phone,
+      restaurant_name: restaurant?.name || "",
+      artist_name: workshop ? `${workshop.name} (${workshop.artist})` : "",
+      group_size: groupSize,
+      date: form.date,
+      message: form.message,
+    }, { publicKey: EMAILJS_PUBLIC_KEY })
+      .then(() => { setSending(false); setSent(true); setTimeout(onClose, 3000); })
+      .catch(() => { setSending(false); setError("Nie udało się wysłać zapytania. Spróbuj ponownie."); });
   };
 
   return (
@@ -633,8 +653,9 @@ function InquiryModal({ restaurant, variant, workshop, groupSize, prefilledDate,
               <label style={lbl}>Wiadomość / specjalne życzenia</label>
               <textarea rows={3} placeholder="Okazja, szczególne wymagania, pytania..." value={form.message} onChange={set("message")} style={{ ...inp, resize:"vertical" }} />
             </div>
-            <button onClick={send} style={{ width:"100%", background:C.primary, color:"#FFF", border:"none", borderRadius:9, padding:16, fontSize:15, fontWeight:600, cursor:"pointer" }}>
-              Wyślij zapytanie →
+            {error && <p style={{ color:"#C0392B", fontSize:12, marginBottom:12 }}>{error}</p>}
+            <button onClick={send} disabled={sending} style={{ width:"100%", background:C.primary, color:"#FFF", border:"none", borderRadius:9, padding:16, fontSize:15, fontWeight:600, cursor: sending ? "default" : "pointer", opacity: sending ? 0.7 : 1 }}>
+              {sending ? "Wysyłanie..." : "Wyślij zapytanie →"}
             </button>
             <p style={{ fontSize:11, color:"#C0BEB9", textAlign:"center", marginTop:12, marginBottom:0 }}>Odpowiadamy w ciągu 24 godz.</p>
           </>
@@ -650,12 +671,26 @@ function InquiryModal({ restaurant, variant, workshop, groupSize, prefilledDate,
 function B2BInquiryModal({ artist, onClose }) {
   const [form, setForm] = useState({ restaurant:"", name:"", email:"", date:"", message:"" });
   const [sent, setSent] = useState(false);
+  const [sending, setSending] = useState(false);
+  const [error, setError] = useState("");
   const set = k => e => setForm({ ...form, [k]: e.target.value });
   const inp = { width:"100%", padding:"11px 13px", border:`1px solid ${C.border}`, borderRadius:8, fontSize:14, color:C.text, background:"#FAFAF8" };
   const lbl = { display:"block", fontSize:11, fontWeight:600, color:C.muted, marginBottom:5, letterSpacing:"0.08em" };
   const send = () => {
     if (!form.restaurant || !form.email) { alert("Podaj nazwę lokalu i email."); return; }
-    setSent(true); setTimeout(onClose, 3000);
+    setSending(true); setError("");
+    emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, {
+      from_name: form.name || form.restaurant,
+      from_email: form.email,
+      phone: "",
+      restaurant_name: form.restaurant,
+      artist_name: artist ? `${artist.name} (${artist.artist})` : "",
+      group_size: "",
+      date: form.date,
+      message: form.message,
+    }, { publicKey: EMAILJS_PUBLIC_KEY })
+      .then(() => { setSending(false); setSent(true); setTimeout(onClose, 3000); })
+      .catch(() => { setSending(false); setError("Nie udało się wysłać zapytania. Spróbuj ponownie."); });
   };
   return (
     <div onClick={e => e.target===e.currentTarget && onClose()} style={{ position:"fixed", inset:0, background:"rgba(0,0,0,0.6)", display:"flex", alignItems:"center", justifyContent:"center", zIndex:500, padding:16 }}>
@@ -690,7 +725,8 @@ function B2BInquiryModal({ artist, onClose }) {
               <label style={lbl}>Opis eventu / pytania</label>
               <textarea rows={3} placeholder="Rodzaj eventu, liczba uczestników, szczegóły..." value={form.message} onChange={set("message")} style={{ ...inp, resize:"vertical" }} />
             </div>
-            <button onClick={send} style={{ width:"100%", background:C.primary, color:"#FFF", border:"none", borderRadius:9, padding:16, fontSize:15, fontWeight:600, cursor:"pointer" }}>Wyślij zapytanie o współpracę →</button>
+            {error && <p style={{ color:"#C0392B", fontSize:12, marginBottom:12 }}>{error}</p>}
+            <button onClick={send} disabled={sending} style={{ width:"100%", background:C.primary, color:"#FFF", border:"none", borderRadius:9, padding:16, fontSize:15, fontWeight:600, cursor: sending ? "default" : "pointer", opacity: sending ? 0.7 : 1 }}>{sending ? "Wysyłanie..." : "Wyślij zapytanie o współpracę →"}</button>
             <p style={{ fontSize:11, color:"#C0BEB9", textAlign:"center", marginTop:12, marginBottom:0 }}>Odpowiadamy w ciągu 24 godz. · Kawiarniani Artyści pośredniczy w kontakcie</p>
           </>
         )}
