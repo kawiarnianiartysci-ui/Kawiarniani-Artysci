@@ -828,29 +828,76 @@ export default function App() {
           <div className="search-bar" style={{ display:"flex", alignItems:"stretch", background:"#FFF", border:`1px solid ${C.border}`, borderRadius:999, boxShadow:"0 4px 18px rgba(0,0,0,0.07)", padding:5, gap:0 }} onClick={e => e.stopPropagation()}>
 
             {/* Segment: Liczba osób */}
-            <div className="search-segment" onClick={() => setOpenField(openField === "people" ? null : "people")} style={{ flex:1, padding:"8px 20px", borderRadius:999, cursor:"pointer", background: openField==="people" ? C.tagBg : "transparent" }}>
+            <div className="search-segment" onClick={() => setOpenField(openField === "people" ? null : "people")} style={{ flex:1, padding:"8px 20px", borderRadius:999, cursor:"pointer", background: openField==="people" ? C.tagBg : "transparent", position:"relative" }}>
               <div style={{ fontSize:10, fontWeight:700, color:C.text, letterSpacing:"0.02em" }}>Liczba osób</div>
               <div style={{ fontSize:13, color:C.muted, marginTop:2 }}>{groupSize} osób</div>
+
+              {/* Rozwinięta zawartość: Liczba osób */}
+              {openField === "people" && (
+                <div className="modal-fade" onClick={e => e.stopPropagation()} style={{ position:"absolute", top:"calc(100% + 8px)", left:0, background:"#FFF", border:`1px solid ${C.border}`, borderRadius:14, boxShadow:"0 10px 32px rgba(0,0,0,0.14)", padding:20, minWidth:220, zIndex:50, cursor:"default" }}>
+                  <div style={{ fontSize:12, color:C.muted, marginBottom:10 }}>Grupa od 5 do 20 osób</div>
+                  <div style={{ display:"flex", alignItems:"center", gap:16, justifyContent:"center" }}>
+                    <button onClick={() => setGroupSize(Math.max(5, groupSize-1))} style={{ width:36, height:36, borderRadius:"50%", border:`1px solid ${C.border}`, background:"transparent", cursor:"pointer", fontSize:18, color:C.primary }}>−</button>
+                    <span style={{ fontSize:22, fontWeight:600, color:C.primary, minWidth:30, textAlign:"center" }}>{groupSize}</span>
+                    <button onClick={() => setGroupSize(Math.min(20, groupSize+1))} style={{ width:36, height:36, borderRadius:"50%", border:`1px solid ${C.border}`, background:"transparent", cursor:"pointer", fontSize:18, color:C.primary }}>+</button>
+                  </div>
+                </div>
+              )}
             </div>
 
             <div className="search-divider" style={{ width:1, background:C.border, margin:"8px 0" }} />
 
             {/* Segment: Data eventu */}
-            <div className="search-segment" onClick={() => setOpenField(openField === "date" ? null : "date")} style={{ flex:1, padding:"8px 20px", borderRadius:999, cursor:"pointer", background: openField==="date" ? C.tagBg : "transparent" }}>
+            <div className="search-segment" onClick={() => setOpenField(openField === "date" ? null : "date")} style={{ flex:1, padding:"8px 20px", borderRadius:999, cursor:"pointer", background: openField==="date" ? C.tagBg : "transparent", position:"relative" }}>
               <div style={{ fontSize:10, fontWeight:700, color:C.text, letterSpacing:"0.02em" }}>Data eventu</div>
               <div style={{ fontSize:13, color: selectedDate ? C.primary : C.muted, marginTop:2, fontWeight: selectedDate ? 600 : 400, whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis" }}>
                 {selectedDate ? `${new Date(selectedDate).toLocaleDateString("pl-PL", { day:"numeric", month:"long", year:"numeric" })}${selectedTime ? ", " + selectedTime : ""}` : "Wybierz termin"}
               </div>
+
+              {/* Rozwinięta zawartość: Data eventu */}
+              {openField === "date" && (
+                <div className="modal-fade" onClick={e => e.stopPropagation()} style={{ position:"absolute", top:"calc(100% + 8px)", left:0, background:"#FFF", border:`1px solid ${C.border}`, borderRadius:14, boxShadow:"0 10px 32px rgba(0,0,0,0.14)", padding:20, minWidth:280, zIndex:50, cursor:"default" }}>
+                  <div style={{ display:"flex", gap:10, flexWrap:"wrap" }}>
+                    <input
+                      type="date"
+                      value={selectedDate}
+                      onChange={e => setSelectedDate(e.target.value)}
+                      min={new Date().toISOString().split("T")[0]}
+                      style={{ border:`1px solid ${C.border}`, borderRadius:8, background:"#FAFAF8", fontSize:14, color:C.primary, fontFamily:"'Montserrat', system-ui, sans-serif", fontWeight:500, padding:"9px 11px", flex:"1 1 150px", minWidth:0 }}
+                    />
+                    <input
+                      type="time"
+                      value={selectedTime}
+                      onChange={e => setSelectedTime(e.target.value)}
+                      style={{ border:`1px solid ${C.border}`, borderRadius:8, background:"#FAFAF8", fontSize:14, color:C.primary, fontFamily:"'Montserrat', system-ui, sans-serif", fontWeight:500, padding:"9px 11px", flex:"1 1 110px", minWidth:0 }}
+                    />
+                  </div>
+                  {(selectedDate || selectedTime) && (
+                    <button onClick={() => { setSelectedDate(""); setSelectedTime(""); }} style={{ marginTop:10, background:"none", border:"none", cursor:"pointer", color:C.muted, fontSize:12, padding:0, textDecoration:"underline" }}>Wyczyść termin</button>
+                  )}
+                </div>
+              )}
             </div>
 
             <div className="search-divider" style={{ width:1, background:C.border, margin:"8px 0" }} />
 
             {/* Segment: Okazja */}
-            <div className="search-segment" onClick={() => setOpenField(openField === "occasion" ? null : "occasion")} style={{ flex:1, padding:"8px 20px", borderRadius:999, cursor:"pointer", background: openField==="occasion" ? C.tagBg : "transparent" }}>
+            <div className="search-segment" onClick={() => setOpenField(openField === "occasion" ? null : "occasion")} style={{ flex:1, padding:"8px 20px", borderRadius:999, cursor:"pointer", background: openField==="occasion" ? C.tagBg : "transparent", position:"relative" }}>
               <div style={{ fontSize:10, fontWeight:700, color:C.text, letterSpacing:"0.02em" }}>Okazja</div>
               <div style={{ fontSize:13, color:C.muted, marginTop:2, whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis" }}>
                 {OCCASIONS.find(o => o.id === occasion)?.label ?? "Wszystkie"}
               </div>
+
+              {/* Rozwinięta zawartość: Okazja */}
+              {openField === "occasion" && (
+                <div className="modal-fade" onClick={e => e.stopPropagation()} style={{ position:"absolute", top:"calc(100% + 8px)", right:0, background:"#FFF", border:`1px solid ${C.border}`, borderRadius:14, boxShadow:"0 10px 32px rgba(0,0,0,0.14)", padding:8, minWidth:230, zIndex:50, cursor:"default" }}>
+                  {OCCASIONS.map(o => (
+                    <div key={o.id} onClick={() => { setOccasion(o.id); setOpenField(null); }} style={{ padding:"10px 14px", borderRadius:9, cursor:"pointer", fontSize:14, background: occasion===o.id ? C.tagBg : "transparent", color: occasion===o.id ? C.primary : C.text, fontWeight: occasion===o.id ? 600 : 400 }}>
+                      {o.label}
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
 
             <button
@@ -860,54 +907,6 @@ export default function App() {
               Szukaj
             </button>
           </div>
-
-          {/* Rozwinięta zawartość: Liczba osób */}
-          {openField === "people" && (
-            <div className="modal-fade" onClick={e => e.stopPropagation()} style={{ position:"absolute", top:"calc(100% + 8px)", left:0, background:"#FFF", border:`1px solid ${C.border}`, borderRadius:14, boxShadow:"0 10px 32px rgba(0,0,0,0.14)", padding:20, minWidth:220, zIndex:50 }}>
-              <div style={{ fontSize:12, color:C.muted, marginBottom:10 }}>Grupa od 5 do 20 osób</div>
-              <div style={{ display:"flex", alignItems:"center", gap:16, justifyContent:"center" }}>
-                <button onClick={() => setGroupSize(Math.max(5, groupSize-1))} style={{ width:36, height:36, borderRadius:"50%", border:`1px solid ${C.border}`, background:"transparent", cursor:"pointer", fontSize:18, color:C.primary }}>−</button>
-                <span style={{ fontSize:22, fontWeight:600, color:C.primary, minWidth:30, textAlign:"center" }}>{groupSize}</span>
-                <button onClick={() => setGroupSize(Math.min(20, groupSize+1))} style={{ width:36, height:36, borderRadius:"50%", border:`1px solid ${C.border}`, background:"transparent", cursor:"pointer", fontSize:18, color:C.primary }}>+</button>
-              </div>
-            </div>
-          )}
-
-          {/* Rozwinięta zawartość: Data eventu */}
-          {openField === "date" && (
-            <div className="modal-fade" onClick={e => e.stopPropagation()} style={{ position:"absolute", top:"calc(100% + 8px)", left:"50%", transform:"translateX(-50%)", background:"#FFF", border:`1px solid ${C.border}`, borderRadius:14, boxShadow:"0 10px 32px rgba(0,0,0,0.14)", padding:20, minWidth:300, zIndex:50 }}>
-              <div style={{ display:"flex", gap:10, flexWrap:"wrap" }}>
-                <input
-                  type="date"
-                  autoFocus
-                  value={selectedDate}
-                  onChange={e => setSelectedDate(e.target.value)}
-                  min={new Date().toISOString().split("T")[0]}
-                  style={{ border:`1px solid ${C.border}`, borderRadius:8, background:"#FAFAF8", fontSize:14, color:C.primary, fontFamily:"'Montserrat', system-ui, sans-serif", fontWeight:500, padding:"9px 11px", flex:"1 1 150px", minWidth:0 }}
-                />
-                <input
-                  type="time"
-                  value={selectedTime}
-                  onChange={e => setSelectedTime(e.target.value)}
-                  style={{ border:`1px solid ${C.border}`, borderRadius:8, background:"#FAFAF8", fontSize:14, color:C.primary, fontFamily:"'Montserrat', system-ui, sans-serif", fontWeight:500, padding:"9px 11px", flex:"1 1 110px", minWidth:0 }}
-                />
-              </div>
-              {(selectedDate || selectedTime) && (
-                <button onClick={() => { setSelectedDate(""); setSelectedTime(""); }} style={{ marginTop:10, background:"none", border:"none", cursor:"pointer", color:C.muted, fontSize:12, padding:0, textDecoration:"underline" }}>Wyczyść termin</button>
-              )}
-            </div>
-          )}
-
-          {/* Rozwinięta zawartość: Okazja */}
-          {openField === "occasion" && (
-            <div className="modal-fade" onClick={e => e.stopPropagation()} style={{ position:"absolute", top:"calc(100% + 8px)", right:0, background:"#FFF", border:`1px solid ${C.border}`, borderRadius:14, boxShadow:"0 10px 32px rgba(0,0,0,0.14)", padding:8, minWidth:230, zIndex:50 }}>
-              {OCCASIONS.map(o => (
-                <div key={o.id} onClick={() => { setOccasion(o.id); setOpenField(null); }} style={{ padding:"10px 14px", borderRadius:9, cursor:"pointer", fontSize:14, background: occasion===o.id ? C.tagBg : "transparent", color: occasion===o.id ? C.primary : C.text, fontWeight: occasion===o.id ? 600 : 400 }}>
-                  {o.label}
-                </div>
-              ))}
-            </div>
-          )}
         </div>
       </div>
 
