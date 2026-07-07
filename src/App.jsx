@@ -665,7 +665,7 @@ function InquiryModal({ restaurant, variant, workshop, groupSize, prefilledDate,
 
 // ══ Główna aplikacja ════════════════════════════════════════
 
-const ARTIST_FORM_URL     = "#";
+const ARTIST_FORM_URL     = "https://docs.google.com/forms/d/e/1FAIpQLSf1rSqcKIau2nNEU03Gc62pn5sT6wO35MbF6l4w5icxMdAmug/viewform?usp=header";
 const RESTAURANT_FORM_URL = "#";
 
 // Widok "Współpraca" — informacje o procesie + linki do formularzy zgłoszeniowych
