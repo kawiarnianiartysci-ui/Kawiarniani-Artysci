@@ -286,11 +286,11 @@ const globalCSS = `
   @media (max-width: 420px) {
     .tile-card { width: 100%; }
   }
-  @media (max-width: 480px) {
-    .search-segment { padding: 6px 10px !important; }
-    .search-segment > div:first-child { font-size: 9px !important; }
-    .search-segment > div:last-child { font-size: 12px !important; }
-    .search-btn { padding: 0 14px !important; height: 40px !important; font-size: 12px !important; }
+  @media (max-width: 620px) {
+    .search-bar { flex-direction: column; align-items: stretch !important; border-radius: 20px !important; padding: 10px !important; }
+    .search-segment { padding: 10px 14px !important; }
+    .search-divider { width: 100% !important; height: 1px !important; margin: 2px 0 !important; align-self: stretch; }
+    .search-btn { width: 100%; height: 46px !important; padding: 0 20px !important; font-size: 14px !important; margin-top: 6px; }
   }
 `;
 
@@ -794,15 +794,14 @@ export default function App() {
         </div>
 
         {/* Przełącznik trybu */}
-        <div style={{ display:"flex", background:C.tagBg, borderRadius:12, padding:5, gap:5 }}>
-          {[
-            { id:"client", label:"Planuję event" },
-            { id:"b2b",    label:"Współpraca" },
-          ].map(m => (
-            <button key={m.id} onClick={() => setMode(m.id)} style={{ padding:"12px 26px", borderRadius:9, border:"none", background: mode===m.id ? C.primary : "transparent", color: mode===m.id ? "#FFF" : C.muted, fontSize:15, fontWeight: mode===m.id ? 600 : 500, cursor:"pointer", transition:"all 0.15s", whiteSpace:"nowrap" }}>
-              {m.label}
-            </button>
-          ))}
+        <div style={{ display:"flex", alignItems:"center", background:C.tagBg, borderRadius:999, padding:4 }}>
+          <button onClick={() => setMode("client")} style={{ padding:"9px 26px", borderRadius:999, border:"none", background: mode==="client" ? C.primary : "transparent", color: mode==="client" ? "#FFF" : C.muted, fontSize:14, fontWeight: mode==="client" ? 600 : 500, cursor:"pointer", transition:"all 0.15s", whiteSpace:"nowrap" }}>
+            Planuję event
+          </button>
+          <div style={{ width:1, alignSelf:"stretch", background:C.border, margin:"10px 2px" }} />
+          <button onClick={() => setMode("b2b")} style={{ padding:"9px 26px", borderRadius:999, border:"none", background: mode==="b2b" ? C.primary : "transparent", color: mode==="b2b" ? "#FFF" : C.muted, fontSize:14, fontWeight: mode==="b2b" ? 600 : 500, cursor:"pointer", transition:"all 0.15s", whiteSpace:"nowrap" }}>
+            Współpraca
+          </button>
         </div>
 
         <div style={{ fontSize:10, color:C.muted, textAlign:"right", fontWeight:300 }}>Ceny orientacyjne<br/>aktualizacja: czerwiec 2026</div>
