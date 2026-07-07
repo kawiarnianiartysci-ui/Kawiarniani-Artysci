@@ -45,8 +45,6 @@ const COPY = {
   tagline:     "Eventy grupowe · Poznań i okolice",
   heroTitle:   "Zaplanuj niezapomniane spotkanie.",
   heroSubtitle:"Wybierz restaurację, pakiet i warsztat — my zajmiemy się resztą. Dla grup 5–20 osób.",
-  joinCTA:     "Prowadzisz restaurację lub warsztaty? Napisz do nas →",
-  joinEmail:   "kontakt@kawiarnianiartsci.pl",
 };
 
 // ══════════════════════════════════════════════════════════════
@@ -667,207 +665,52 @@ function InquiryModal({ restaurant, variant, workshop, groupSize, prefilledDate,
 
 // ══ Główna aplikacja ════════════════════════════════════════
 
-// Formularz kontaktowy dla restauratora → artysta
-function B2BInquiryModal({ artist, onClose }) {
-  const [form, setForm] = useState({ restaurant:"", name:"", email:"", date:"", message:"" });
-  const [sent, setSent] = useState(false);
-  const [sending, setSending] = useState(false);
-  const [error, setError] = useState("");
-  const set = k => e => setForm({ ...form, [k]: e.target.value });
-  const inp = { width:"100%", padding:"11px 13px", border:`1px solid ${C.border}`, borderRadius:8, fontSize:14, color:C.text, background:"#FAFAF8" };
-  const lbl = { display:"block", fontSize:11, fontWeight:600, color:C.muted, marginBottom:5, letterSpacing:"0.08em" };
-  const send = () => {
-    if (!form.restaurant || !form.email) { alert("Podaj nazwę lokalu i email."); return; }
-    setSending(true); setError("");
-    emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, {
-      from_name: form.name || form.restaurant,
-      from_email: form.email,
-      phone: "",
-      restaurant_name: form.restaurant,
-      artist_name: artist ? `${artist.name} (${artist.artist})` : "",
-      group_size: "",
-      date: form.date,
-      message: form.message,
-    }, { publicKey: EMAILJS_PUBLIC_KEY })
-      .then(() => { setSending(false); setSent(true); setTimeout(onClose, 3000); })
-      .catch(() => { setSending(false); setError("Nie udało się wysłać zapytania. Spróbuj ponownie."); });
-  };
-  return (
-    <div onClick={e => e.target===e.currentTarget && onClose()} style={{ position:"fixed", inset:0, background:"rgba(0,0,0,0.6)", display:"flex", alignItems:"center", justifyContent:"center", zIndex:500, padding:16 }}>
-      <div style={{ background:"#FFF", borderRadius:16, padding:32, maxWidth:460, width:"100%", maxHeight:"90vh", overflowY:"auto" }}>
-        {sent ? (
-          <div style={{ textAlign:"center", padding:"32px 0" }}>
-            <div style={{ width:64, height:64, borderRadius:"50%", background:C.primary, color:"#FFF", fontSize:30, display:"flex", alignItems:"center", justifyContent:"center", margin:"0 auto 16px" }}>✓</div>
-            <div style={{ fontFamily:"'Montserrat', system-ui, sans-serif", fontSize:28, fontWeight:400, marginBottom:10 }}>Zapytanie wysłane!</div>
-            <p style={{ color:C.muted, fontSize:14, lineHeight:1.65, margin:0 }}>Skontaktujemy się z Tobą i artystą w ciągu 24 godzin.</p>
-          </div>
-        ) : (
-          <>
-            <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", marginBottom:22 }}>
-              <div>
-                <div style={{ fontFamily:"'Montserrat', system-ui, sans-serif", fontSize:26, fontWeight:400, marginBottom:4 }}>Zapytaj o współpracę</div>
-                <p style={{ fontSize:12, color:C.muted, margin:0 }}>Artysta: {artist?.name} · {artist?.artist}</p>
-              </div>
-              <button onClick={onClose} style={{ background:"none", border:"none", fontSize:20, cursor:"pointer", color:C.muted, padding:4, lineHeight:1 }}>✕</button>
-            </div>
-            {[
-              { k:"restaurant", l:"Nazwa restauracji / kawiarni *", t:"text",  p:"np. Restauracja Żuk"   },
-              { k:"name",       l:"Imię i nazwisko",                t:"text",  p:"Anna Kowalska"          },
-              { k:"email",      l:"Email kontaktowy *",             t:"email", p:"kontakt@restauracja.pl" },
-              { k:"date",       l:"Proponowany termin",             t:"date",  p:""                       },
-            ].map(f => (
-              <div key={f.k} style={{ marginBottom:14 }}>
-                <label style={lbl}>{f.l}</label>
-                <input type={f.t} placeholder={f.p} value={form[f.k]} onChange={set(f.k)} style={inp} />
-              </div>
-            ))}
-            <div style={{ marginBottom:22 }}>
-              <label style={lbl}>Opis eventu / pytania</label>
-              <textarea rows={3} placeholder="Rodzaj eventu, liczba uczestników, szczegóły..." value={form.message} onChange={set("message")} style={{ ...inp, resize:"vertical" }} />
-            </div>
-            {error && <p style={{ color:"#C0392B", fontSize:12, marginBottom:12 }}>{error}</p>}
-            <button onClick={send} disabled={sending} style={{ width:"100%", background:C.primary, color:"#FFF", border:"none", borderRadius:9, padding:16, fontSize:15, fontWeight:600, cursor: sending ? "default" : "pointer", opacity: sending ? 0.7 : 1 }}>{sending ? "Wysyłanie..." : "Wyślij zapytanie o współpracę →"}</button>
-            <p style={{ fontSize:11, color:"#C0BEB9", textAlign:"center", marginTop:12, marginBottom:0 }}>Odpowiadamy w ciągu 24 godz. · Kawiarniani Artyści pośredniczy w kontakcie</p>
-          </>
-        )}
-      </div>
-    </div>
-  );
-}
+const ARTIST_FORM_URL     = "#";
+const RESTAURANT_FORM_URL = "#";
 
-// Widok B2B — katalog artystów dla restauratorów
-function B2BView({ onSwitchMode }) {
-  const [b2bInquiry, setB2bInquiry] = useState(null); // artist object
-  const activeWorkshops = WORKSHOPS.filter(w => !w.comingSoon);
-  const soonWorkshops   = WORKSHOPS.filter(w => w.comingSoon);
+// Widok "Współpraca" — informacje o procesie + linki do formularzy zgłoszeniowych
+function PartnersView() {
+  const steps = [
+    { n:"1", t:"Klient wybiera lokal i artystę", d:"Na stronie klient wybiera restaurację/kawiarnię oraz warsztat, który chce zorganizować u siebie." },
+    { n:"2", t:"Artysta akceptuje termin", d:"Artysta dostaje zapytanie z proponowaną datą i liczbą osób — potwierdza je lub proponuje zmianę." },
+    { n:"3", t:"Restauracja czeka na potwierdzenie", d:"Lokal od razu widzi zapytanie klienta i czeka na akceptację ze strony artysty, zanim event zostanie ostatecznie ustalony." },
+  ];
 
   return (
-    <div>
-      {/* Info bar */}
-      <div style={{ background:"#F7F5EF", borderBottom:`1px solid ${C.border}`, padding:"12px 28px", display:"flex", alignItems:"center", gap:10 }}>
-        <span style={{ fontSize:13, color:C.muted }}>Widok dla restauratorów i właścicieli kawiarni — przeglądasz profile artystów dostępnych do współpracy.</span>
-        <span style={{ fontSize:11, background:"#E8E4DC", borderRadius:10, padding:"2px 8px", color:"#888" }}>Beta</span>
+    <div style={{ maxWidth:760, margin:"0 auto", padding:"56px 16px 80px" }}>
+      <div style={{ textAlign:"center", marginBottom:44 }}>
+        <h1 style={{ fontFamily:"'Montserrat', system-ui, sans-serif", fontSize:"clamp(28px,4vw,42px)", fontWeight:300, margin:"0 0 14px", lineHeight:1.15 }}>
+          Współpraca dla artystów i restauracji
+        </h1>
+        <p style={{ fontSize:15, color:C.muted, fontWeight:300, margin:"0 auto", maxWidth:560, lineHeight:1.7 }}>
+          Kawiarniani Artyści łączy lokale gastronomiczne z artystami prowadzącymi warsztaty. Tak wygląda cały proces:
+        </p>
       </div>
 
-      <div style={{ maxWidth:1160, margin:"0 auto", padding:"36px 16px" }}>
-
-        {/* Nagłówek B2B */}
-        <div style={{ marginBottom:36 }}>
-          <h1 style={{ fontFamily:"'Montserrat', system-ui, sans-serif", fontSize:"clamp(30px,4vw,48px)", fontWeight:300, margin:"0 0 10px", lineHeight:1.1 }}>
-            Znajdź artystę do swojego lokalu.
-          </h1>
-          <p style={{ fontSize:15, color:C.muted, fontWeight:300, margin:0, maxWidth:520, lineHeight:1.65 }}>
-            Przeglądaj profile artystów i organizatorów warsztatów. Wyślij zapytanie — Kawiarniani Artyści dopasuje szczegóły i zajmie się całą organizacją.
-          </p>
-        </div>
-
-        {/* Aktywni artyści */}
-        <div style={{ marginBottom:42 }}>
-          <div style={{ display:"flex", alignItems:"baseline", gap:10, marginBottom:18 }}>
-            <h2 style={{ fontFamily:"'Montserrat', system-ui, sans-serif", fontSize:26, fontWeight:400, margin:0 }}>Dostępni artyści</h2>
-            <span style={{ fontSize:12, color:C.muted }}>{activeWorkshops.length} profile</span>
-          </div>
-          <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fill, minmax(280px,1fr))", gap:16 }}>
-            {activeWorkshops.map(w => (
-              <div key={w.id} className="card-h" style={{ background:C.card, borderRadius:14, overflow:"hidden", boxShadow:"0 1px 5px rgba(0,0,0,0.07)" }}>
-                {/* Biały nagłówek z nazwą — spójny z profilem w widoku klienta */}
-                <div style={{ background:C.card, padding:"22px 20px 16px", position:"relative", textAlign:"center", borderBottom:`1px solid ${C.border}` }}>
-                  <div style={{ position:"absolute", top:0, left:0, right:0, height:5, background:w.gradientBg }} />
-                  {w.logo && (
-                    <div style={{ width:60, height:60, margin:"0 auto 10px" }}>
-                      <img src={w.logo} alt={w.name} style={{ width:"100%", height:"100%", objectFit:"contain" }} />
-                    </div>
-                  )}
-                  <div style={{ fontFamily:"'Montserrat', system-ui, sans-serif", fontSize:20, fontWeight:400, color:C.text, marginBottom:2 }}>{w.name}</div>
-                  <div style={{ fontSize:11, color:C.muted, letterSpacing:"0.1em" }}>{w.artist}</div>
-                </div>
-                {/* Body */}
-                <div style={{ padding:"18px 20px 10px" }}>
-
-                  {/* Zdjęcia — na górze części informacyjnej, tak jak w profilu klienta */}
-                  {w.photos ? (
-                    <PhotoGallery photos={w.photos} />
-                  ) : w.photo ? (
-                    <div style={{ borderRadius:10, overflow:"hidden", marginBottom:14 }}>
-                      <img src={w.photo} alt={w.name} style={{ width:"100%", height:140, objectFit:"cover", display:"block" }} />
-                    </div>
-                  ) : null}
-
-                  {/* Szczegóły warsztatu */}
-                  <div style={{ display:"flex", gap:8, marginBottom:14, flexWrap:"wrap" }}>
-                    <span style={{ fontSize:11, padding:"3px 9px", borderRadius:10, background:C.tagBg, color:C.muted }}>{w.duration}</span>
-                    <span style={{ fontSize:11, padding:"3px 9px", borderRadius:10, background:C.tagBg, color:C.muted }}>{w.pricePerPerson} zł/os.</span>
-                  </div>
-
-                  <p style={{ fontSize:13, color:C.muted, margin:"0 0 14px", lineHeight:1.6, fontWeight:300 }}>{w.bio}</p>
-
-                  {/* Social media — spójne przyciski jak w profilu klienta */}
-                  {(w.website && w.website !== "#" || w.instagramUrl || w.facebookUrl) && (
-                    <div style={{ display:"flex", gap:8, flexWrap:"wrap", marginBottom:16 }}>
-                      {w.website && w.website !== "#" && (
-                        <a href={w.website} target="_blank" rel="noreferrer" style={{ fontSize:12, padding:"7px 13px", borderRadius:9, background:C.tagBg, color:C.text, textDecoration:"none", fontWeight:500 }}>Strona www</a>
-                      )}
-                      {w.instagramUrl && (
-                        <a href={w.instagramUrl} target="_blank" rel="noreferrer" style={{ fontSize:12, padding:"7px 13px", borderRadius:9, background:C.tagBg, color:C.text, textDecoration:"none", fontWeight:500 }}>Instagram</a>
-                      )}
-                      {w.facebookUrl && (
-                        <a href={w.facebookUrl} target="_blank" rel="noreferrer" style={{ fontSize:12, padding:"7px 13px", borderRadius:9, background:C.tagBg, color:C.text, textDecoration:"none", fontWeight:500 }}>Facebook</a>
-                      )}
-                      {w.email && (
-                        <span style={{ fontSize:12, padding:"7px 13px", borderRadius:9, background:C.tagBg, color:C.muted }}>{w.email}</span>
-                      )}
-                    </div>
-                  )}
-
-                  <div style={{ borderTop:`1px solid ${C.border}`, paddingTop:12, marginBottom:16 }}>
-                    {w.includes.map((inc, i) => (
-                      <div key={i} style={{ fontSize:12, color:C.muted, marginBottom:4, display:"flex", gap:6 }}>
-                        <span style={{ color:C.primary, fontWeight:600 }}>+</span> {inc}
-                      </div>
-                    ))}
-                  </div>
-                </div>
-                <div style={{ padding:"0 20px 18px" }}>
-                  <button
-                    onClick={() => setB2bInquiry(w)}
-                    style={{ width:"100%", background:C.primary, color:"#FFF", border:"none", borderRadius:9, padding:"12px 16px", fontSize:13, fontWeight:600, cursor:"pointer" }}>
-                    Zapytaj o współpracę →
-                  </button>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Wkrótce */}
-        {soonWorkshops.length > 0 && (
-          <div>
-            <div style={{ display:"flex", alignItems:"baseline", gap:10, marginBottom:16 }}>
-              <h2 style={{ fontFamily:"'Montserrat', system-ui, sans-serif", fontSize:24, fontWeight:400, margin:0, color:C.muted }}>Wkrótce w ofercie</h2>
-            </div>
-            <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fill, minmax(240px,1fr))", gap:14 }}>
-              {soonWorkshops.map(w => (
-                <div key={w.id} style={{ background:"#F5F4F1", borderRadius:14, overflow:"hidden", opacity:0.72 }}>
-                  <div style={{ height:5, background:w.gradientBg }} />
-                  <div style={{ padding:"18px 20px" }}>
-                    <div style={{ fontFamily:"'Montserrat', system-ui, sans-serif", fontSize:18, fontWeight:400, color:"#999", marginBottom:4 }}>{w.name}</div>
-                    <div style={{ fontSize:11, color:"#BBB", letterSpacing:"0.1em" }}>Profil w przygotowaniu</div>
-                  </div>
-                </div>
-              ))}
+      <div style={{ display:"grid", gap:14, marginBottom:48 }}>
+        {steps.map(s => (
+          <div key={s.n} style={{ display:"flex", gap:16, alignItems:"flex-start", background:C.card, border:`1px solid ${C.border}`, borderRadius:14, padding:"18px 20px" }}>
+            <div style={{ width:32, height:32, borderRadius:"50%", background:C.tagBg, color:C.primary, fontWeight:700, fontSize:14, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>{s.n}</div>
+            <div>
+              <div style={{ fontWeight:600, fontSize:14, marginBottom:4, color:C.text }}>{s.t}</div>
+              <div style={{ fontSize:13, color:C.muted, lineHeight:1.6 }}>{s.d}</div>
             </div>
           </div>
-        )}
-
-        {/* CTA dołącz */}
-        <div style={{ marginTop:44, textAlign:"center", padding:"28px", background:C.card, borderRadius:14, border:`1px solid ${C.border}` }}>
-          <div style={{ fontFamily:"'Montserrat', system-ui, sans-serif", fontSize:20, fontWeight:400, marginBottom:8 }}>Chcesz żeby Twój lokal był widoczny dla artystów?</div>
-          <p style={{ fontSize:14, color:C.muted, margin:"0 0 14px", lineHeight:1.6 }}>Dołącz do platformy — artyści będą mogli znaleźć Twoje miejsce i zaproponować współpracę.</p>
-          <a href={`mailto:${COPY.joinEmail}`} style={{ display:"inline-block", background:C.primary, color:"#FFF", textDecoration:"none", borderRadius:9, padding:"12px 24px", fontSize:14, fontWeight:600 }}>Zgłoś swój lokal →</a>
-        </div>
+        ))}
       </div>
 
-      {b2bInquiry && <B2BInquiryModal artist={b2bInquiry} onClose={() => setB2bInquiry(null)} />}
+      <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fit, minmax(260px,1fr))", gap:16 }}>
+        <div style={{ textAlign:"center", padding:"30px 24px", background:C.card, borderRadius:14, border:`1px solid ${C.border}` }}>
+          <div style={{ fontFamily:"'Montserrat', system-ui, sans-serif", fontSize:20, fontWeight:400, marginBottom:8 }}>Jestem artystą / prowadzę warsztaty</div>
+          <p style={{ fontSize:13, color:C.muted, margin:"0 0 16px", lineHeight:1.6 }}>Dołącz jako partner i przyjmuj zapytania na warsztaty w lokalach naszych partnerów.</p>
+          <a href={ARTIST_FORM_URL} target="_blank" rel="noreferrer" style={{ display:"inline-block", background:C.primary, color:"#FFF", textDecoration:"none", borderRadius:9, padding:"12px 24px", fontSize:14, fontWeight:600 }}>Formularz zgłoszeniowy →</a>
+        </div>
+        <div style={{ textAlign:"center", padding:"30px 24px", background:C.card, borderRadius:14, border:`1px solid ${C.border}` }}>
+          <div style={{ fontFamily:"'Montserrat', system-ui, sans-serif", fontSize:20, fontWeight:400, marginBottom:8 }}>Prowadzę restaurację / kawiarnię</div>
+          <p style={{ fontSize:13, color:C.muted, margin:"0 0 16px", lineHeight:1.6 }}>Zgłoś swój lokal i dotrzyj do klientów szukających wyjątkowych eventów grupowych.</p>
+          <a href={RESTAURANT_FORM_URL} target="_blank" rel="noreferrer" style={{ display:"inline-block", background:C.primary, color:"#FFF", textDecoration:"none", borderRadius:9, padding:"12px 24px", fontSize:14, fontWeight:600 }}>Formularz zgłoszeniowy →</a>
+        </div>
+      </div>
     </div>
   );
 }
@@ -934,7 +777,7 @@ export default function App() {
         <div style={{ display:"flex", background:C.tagBg, borderRadius:10, padding:3, gap:3 }}>
           {[
             { id:"client", label:"Planuję event" },
-            { id:"b2b",    label:"Szukam artysty" },
+            { id:"b2b",    label:"Współpraca" },
           ].map(m => (
             <button key={m.id} onClick={() => setMode(m.id)} style={{ padding:"7px 14px", borderRadius:8, border:"none", background: mode===m.id ? C.primary : "transparent", color: mode===m.id ? "#FFF" : C.muted, fontSize:12, fontWeight: mode===m.id ? 600 : 400, cursor:"pointer", transition:"all 0.15s", whiteSpace:"nowrap" }}>
               {m.label}
@@ -945,8 +788,8 @@ export default function App() {
         <div style={{ fontSize:10, color:C.muted, textAlign:"right", fontWeight:300 }}>Ceny orientacyjne<br/>aktualizacja: czerwiec 2026</div>
       </header>
 
-      {/* B2B widok — katalog artystów */}
-      {mode === "b2b" && <B2BView onSwitchMode={() => setMode("client")} />}
+      {/* Widok Współpraca */}
+      {mode === "b2b" && <PartnersView />}
 
       {/* Widok klienta */}
       {mode === "client" && (
@@ -1083,19 +926,6 @@ export default function App() {
             ))}
           </div>
         </section>
-
-        {/* CTA dla partnerów */}
-        <div style={{ textAlign:"center", padding:"28px", background:C.card, borderRadius:14, border:`1px solid ${C.border}`, marginBottom:20 }}>
-          <div style={{ fontFamily:"'Montserrat', system-ui, sans-serif", fontSize:22, fontWeight:400, marginBottom:8 }}>
-            Prowadzisz restaurację lub warsztaty?
-          </div>
-          <p style={{ fontSize:14, color:C.muted, margin:"0 0 14px", lineHeight:1.6 }}>
-            Dołącz do Kawiarniani Artyści i dotrzyj do klientów szukających wyjątkowych eventów grupowych.
-          </p>
-          <a href={`mailto:${COPY.joinEmail}`} style={{ display:"inline-block", background:C.primary, color:"#FFF", textDecoration:"none", borderRadius:9, padding:"12px 24px", fontSize:14, fontWeight:600 }}>
-            Napisz do nas →
-          </a>
-        </div>
       </div>
       </>
       )} {/* koniec widoku klienta */}
