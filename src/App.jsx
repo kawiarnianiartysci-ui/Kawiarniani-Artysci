@@ -54,200 +54,109 @@ const COPY = {
 };
 
 // ══════════════════════════════════════════════════════════════
-// 🍽️  RESTAURACJE — edytuj tutaj
+// 📊  RESTAURACJE I WARSZTATY — dane wczytywane z arkusza Google Sheets
 // ══════════════════════════════════════════════════════════════
-const RESTAURANTS = [
-  {
-    id: "zuk",
-    name: "Żuk",
-    emoji: "",
-    logo: ZUK_LOGO,
-    photos: [ZUK_GALLERY_1, ZUK_GALLERY_2, ZUK_GALLERY_3, ZUK_GALLERY_4],
-    vibe: "Przytulna restauracja z ogródkiem",
-    location: "Poznań",
-    description: "Kameralne wnętrze z ogrodem — polska kuchnia w doskonałej atmosferze.",
-    fullDescription: "Restauracja Żuk to kameralny lokal z charakterem. Przytulne wnętrze i zielony ogródek tworzą wyjątkowy klimat dla grup szukających autentycznej kuchni w artystycznym otoczeniu. Miejsce z otwartością na niestandardowe eventy i indywidualnym podejściem do każdego gościa.",
-    capacity: "10–12 osób",
-    minPeople: 10,
-    maxPeople: 12,
-    address: "Poznań",
-    website: "https://www.zukrestauracja.pl/",
-    instagram: "@zukrestauracja",
-    instagramUrl: "https://www.instagram.com/zukrestauracja/",
-    facebookUrl: "https://www.facebook.com/zukrestaurant/",
-    gradientBg: "linear-gradient(135deg, #1A3020 0%, #4A7A50 100%)",
-    gradientText: "#F0FFF2",
-    variants: [
-      { id: "kawa",     label: "Kawa lub wino",         detail: "Napój do wyboru",                      price: 20  },
-      { id: "prosecco", label: "Prosecco + przystawki", detail: "Kieliszek prosecco + 2 przystawki",    price: 80  },
-      { id: "menu",     label: "Menu sezonowe",         detail: "3-daniowe menu szefa kuchni",          price: 160 },
-    ],
-  },
-  {
-    id: "magazyn",
-    name: "Magazyn",
-    emoji: "",
-    logo: MAGAZYN_LOGO,
-    photos: [MAGAZYN_GALLERY_1, MAGAZYN_GALLERY_2, MAGAZYN_GALLERY_3],
-    vibe: "Share food concept",
-    location: "Poznań",
-    description: "Pierwsza restauracja share food w Polsce — dania na środek stołu, żeby każdy skosztował wszystkiego.",
-    fullDescription: "Magazyn Food Concept to pierwsza restauracja share food w Polsce. Jedzenie podawane jest na środek stołu, żeby każdy mógł skosztować wszystkich zamówionych potraw. Przestronne stoły, ceglane ściany i wyjątkowy industrialny klimat tworzą idealne miejsce na grupy, które chcą czegoś więcej niż zwykłą kolację.",
-    capacity: "10–15 osób",
-    minPeople: 10,
-    maxPeople: 15,
-    address: "ul. Mieszka I 1, Poznań (skrz. z Puławskiego)",
-    website: "https://www.magazynpoznan.pl/",
-    instagram: "@magazynfoodconcept",
-    instagramUrl: "https://www.instagram.com/magazynfoodconcept/",
-    facebookUrl: "https://www.facebook.com/MagazynFoodConcept/photos",
-    gradientBg: "linear-gradient(135deg, #2A1F1A 0%, #7A5C3E 100%)",
-    gradientText: "#FFF5EA",
-    variants: [
-      { id: "napoj",   label: "Sama kawa / wino",   detail: "Napój do wyboru",                                        price: 20, priceMax: 40 },
-      { id: "tapasy",  label: "Pakiet Tapasy",      detail: "Tapasy i przekąski + 50 zł na dowolne napoje",           price: 150 },
-      { id: "kolacja", label: "Pakiet z kolacją",   detail: "Przystawki + dania gorące + deser + woda/kawa/herbata",  price: 245 },
-    ],
-  },
-  {
-    id: "weranda",
-    comingSoon: true,
-    name: "Weranda",
-    emoji: "",
-    vibe: "Ogród i weranda",
-    location: "Poznań",
-    description: "Zielona przestrzeń wewnątrz i na zewnątrz — romantyczna i kameralna.",
-    fullDescription: "Weranda to wyjątkowe miejsce łączące naturę z elegancją. Piękny ogród i urokliwa weranda tworzą romantyczne tło dla kameralnych eventów. Idealne na wieczory panieńskie i urodziny, gdzie liczy się atmosfera i wyjście poza codzienność.",
-    capacity: "10–12 osób",
-    minPeople: 10,
-    maxPeople: 12,
-    address: "Poznań",
-    website: "#",
-    instagram: "@weranda_poznan",
-    gradientBg: "linear-gradient(135deg, #6B2040 0%, #C0607A 100%)",
-    gradientText: "#FFF0F5",
-    variants: [
-      { id: "aperitif", label: "Aperitif",         detail: "Drink powitalny do wyboru",            price: 30  },
-      { id: "kolacja2", label: "Kolacja 2 dania",   detail: "Danie główne + deser",                price: 120 },
-      { id: "kolacja3", label: "Kolacja 3 dania",  detail: "Pełne menu + wino lub prosecco",      price: 180 },
-    ],
-  },
-  {
-    id: "filizanka",
-    comingSoon: true,
-    name: "Latająca Filiżanka",
-    emoji: "",
-    vibe: "Klimatyczna kawiarnia",
-    location: "Mrowino",
-    description: "Urokliwa kawiarnia w Mrowinie — kameralny klimat idealny na twórcze popołudnia i wieczory.",
-    fullDescription: "Latająca Filiżanka to wyjątkowe miejsce w Mrowinie, gdzie domowa atmosfera i pasja do dobrej kawy tworzą idealne tło dla kreatywnych spotkań. Spokój okolic Poznania, kameralność i autentyczność sprawiają, że eventy tutaj mają inny, bardziej intymny charakter. Idealne dla grup, które chcą oderwać się od miejskiego zgiełku.",
-    capacity: "8–15 osób",
-    minPeople: 8,
-    maxPeople: 15,
-    address: "Mrowino (ok. 20 min od centrum Poznania)",
-    website: "#",
-    instagram: "@latajacafilizanka",
-    gradientBg: "linear-gradient(135deg, #6B4226 0%, #C4956A 100%)",
-    gradientText: "#FFF8F2",
-    variants: [
-      { id: "kawa",     label: "Kawa i ciasto",        detail: "Kawa / herbata + wypiek dnia",              price: 45  },
-      { id: "brunch",   label: "Mini brunch",          detail: "Kawa + 2 wypieki + lekkie przekąski",        price: 75  },
-      { id: "catering", label: "Catering kawiarniany", detail: "Finger food + napoje do wyboru",             price: 120 },
-    ],
-  },
-];
+// Jak dodać nową restaurację/warsztat:
+//  1. Wgraj zdjęcia do public/images/ (np. przez przeglądarkę GitHub).
+//  2. Zduplikuj wiersz w odpowiedniej zakładce arkusza, wpisz dane
+//     i nazwy wgranych plików (bez ścieżki, np. "moje-zdjecie.jpg").
+// Zmiana pojawi się na stronie po odświeżeniu (do kilku minut na
+// odświeżenie publikacji arkusza przez Google).
+const CSV_RESTAURANTS_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQj-im-saKt9v_ANh2m42skFGZrBDRhckh5OjESFVhAk6vPcAg5M8m20xAB3RTAqlRsizOa_9ken2t_/pub?gid=563383430&single=true&output=csv";
+const CSV_WORKSHOPS_URL   = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQj-im-saKt9v_ANh2m42skFGZrBDRhckh5OjESFVhAk6vPcAg5M8m20xAB3RTAqlRsizOa_9ken2t_/pub?gid=273766010&single=true&output=csv";
 
-// ══════════════════════════════════════════════════════════════
-// 🎨  WARSZTATY — edytuj tutaj
-// comingSoon: true = karta widoczna ale nieaktywna (wkrótce)
-// ══════════════════════════════════════════════════════════════
-const WORKSHOPS = [
-  {
-    id: "malowanie",
-    name: "Projekt Kawiarniani Artyści",
-    emoji: "",
-    photo: WORKSHOP_PAINTING_PHOTO,
-    photos: [GALLERY_MALOWANIE_1, GALLERY_MALOWANIE_2, GALLERY_MALOWANIE_3, GALLERY_MALOWANIE_4],
-    artist: "Joanna C. — Kawiarniani Artyści",
-    bio: "Spotkanie w luźnej atmosferze przy kieliszku wina lub filiżance kawy i po prostu zaufanie chwili i oddanie się twórczemu procesowi. Malowanie na płótnie niesamowicie wycisza i relaksuje — poprzez projekt Kawiarniani Artyści chcę pokazać, że malowanie jest dla każdego i ważny jest sam proces tworzenia, a to co powstaje to po prostu bonus.",
-    duration: "2 godz.",
-    pricePerPerson: 100,
-    minPeople: 3,
-    maxPeople: 15,
-    description: "Malujesz własny obraz na płótnie 40×50 farbami akrylowymi, przy kawie lub lampce wina. Zero doświadczenia wymagane — liczy się tylko dobra zabawa.",
-    includes: ["Niesamowicie odprężająca atmosfera", "Doświadczenie malowania na płótnie akrylami", "Wszystko czego potrzebujesz do stworzenia własnego dzieła 40×50", "Moje wsparcie (moje obrazy można podejrzeć na profilu)"],
-    website: "#",
-    instagram: "@kawiarniani_artysci",
-    instagramUrl: "https://www.instagram.com/kawiarniani_artysci/",
-    facebookUrl: "https://www.facebook.com/profile.php?id=61552403980459",
-    gradientBg: "linear-gradient(135deg, #1A1060 0%, #5A3A9A 100%)",
-    gradientText: "#F5F0FF",
-  },
-  {
-    id: "ebru",
-    name: "Ebru — malowanie na wodzie",
-    emoji: "",
-    logo: EBRU_LOGO,
-    photo: EBRU_COVER,
-    photos: [
-      { src: EBRU_GALLERY_1, position: "center 15%" },
-      EBRU_GALLERY_2,
-      { src: EBRU_GALLERY_3, position: "center 70%" },
-      EBRU_GALLERY_4,
-    ],
-    artist: "Ayşe Peciak — Marbled Minds",
-    bio: "Nazywam się Ayşe i prowadzę Marbled Minds. Ebru to tradycyjna turecka sztuka malowania na wodzie — dwie prace nigdy nie są identyczne. Prowadziłam spotkania dla szkół, organizacji oraz prywatnych grup. Chcę pokazywać ebru w prosty i dostępny sposób, tak żeby każda osoba mogła spróbować tej sztuki i dobrze spędzić czas.",
-    duration: "1,5 godz.",
-    pricePerPerson: 120,
-    minPeople: 5,
-    maxPeople: 12,
-    description: "Tradycyjna turecka sztuka malowania na wodzie. Każda praca jest wyjątkowa i niepowtarzalna.",
-    includes: ["Niesamowicie odprężająca atmosfera", "Doświadczenie malowania w niestandardowy sposób i unikalną pamiątkę, którą zabierasz do domu"],
-    website: "#",
-    instagram: "@marbled.minds",
-    instagramUrl: "https://www.instagram.com/marbled.minds/",
-    facebookUrl: "https://www.facebook.com/share/1BHPtnBgVm/",
-    email: "marbledminds.workshops@gmail.com",
-    gradientBg: "linear-gradient(135deg, #083A55 0%, #1A8878 100%)",
-    gradientText: "#E0FFF8",
-  },
-  {
-    id: "perfumy",
-    name: "Warsztaty robienia perfum",
-    emoji: "",
-    artist: "Lorem ipsum",
-    comingSoon: true,
-    bio: "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris.",
-    duration: "Lorem ipsum",
-    pricePerPerson: null,
-    minPeople: 5,
-    maxPeople: 15,
-    description: "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Każda uczestniczka wychodzi z własnym, unikalnym flakonem.",
-    includes: ["Lorem ipsum dolor sit amet", "Consectetur adipiscing elit", "Sed do eiusmod tempor"],
-    website: "#",
-    instagram: "#",
-    gradientBg: "linear-gradient(135deg, #3A0A50 0%, #A050B0 100%)",
-    gradientText: "#FDF0FF",
-  },
-  {
-    id: "linoryt",
-    name: "Warsztaty z linorytu",
-    emoji: "",
-    artist: "Lorem ipsum",
-    comingSoon: true,
-    bio: "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco.",
-    duration: "Lorem ipsum",
-    pricePerPerson: null,
-    minPeople: 5,
-    maxPeople: 15,
-    description: "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Rzeźbisz wzór i odbijasz go na papierze.",
-    includes: ["Lorem ipsum dolor sit amet", "Consectetur adipiscing elit", "Sed do eiusmod tempor"],
-    website: "#",
-    instagram: "#",
-    gradientBg: "linear-gradient(135deg, #1C1C1C 0%, #484848 100%)",
-    gradientText: "#F0F0F0",
-  },
-];
+function parseCSV(text) {
+  const rows = [];
+  let row = [], field = "", inQuotes = false;
+  for (let i = 0; i < text.length; i++) {
+    const c = text[i];
+    if (inQuotes) {
+      if (c === '"') { if (text[i + 1] === '"') { field += '"'; i++; } else inQuotes = false; }
+      else field += c;
+    } else if (c === '"') inQuotes = true;
+    else if (c === ",") { row.push(field); field = ""; }
+    else if (c === "\n" || c === "\r") {
+      if (c === "\r" && text[i + 1] === "\n") i++;
+      row.push(field); field = "";
+      if (row.some(v => v !== "")) rows.push(row);
+      row = [];
+    } else field += c;
+  }
+  if (field !== "" || row.length) { row.push(field); if (row.some(v => v !== "")) rows.push(row); }
+  return rows;
+}
+
+function csvToObjects(text) {
+  const [header, ...body] = parseCSV(text);
+  if (!header) return [];
+  return body.map(r => Object.fromEntries(header.map((h, i) => [h, (r[i] ?? "").trim()])));
+}
+
+const toNum  = v => (v === "" || v == null ? null : Number(v));
+const toBool = v => /^(true|1|tak)$/i.test((v || "").trim());
+const imgPath = filename => (filename ? `/images/${filename.trim()}` : undefined);
+const imgListPath = list => !list ? [] : list.split(",").map(s => s.trim()).filter(Boolean).map(entry => {
+  const [filename, ...mods] = entry.split("@");
+  if (mods.length === 0) return imgPath(filename);
+  const obj = { src: imgPath(filename) };
+  mods.forEach(m => { const [k, v] = m.split("="); obj[k.trim()] = v?.trim(); });
+  return obj;
+});
+const splitList = text => (text ? text.split(";").filter(Boolean) : []);
+const parseVariants = text => splitList(text).map(part => {
+  const [id, label, detail, price, priceMax] = part.split("|");
+  const v = { id, label, detail, price: Number(price) };
+  if (priceMax) v.priceMax = Number(priceMax);
+  return v;
+});
+
+function restaurantFromRow(row) {
+  return {
+    id: row.id, name: row.name, comingSoon: toBool(row.comingSoon) || undefined,
+    logo: imgPath(row.logo), photos: imgListPath(row.photos),
+    vibe: row.vibe, location: row.location, description: row.description, fullDescription: row.fullDescription,
+    capacity: row.capacity, minPeople: toNum(row.minPeople), maxPeople: toNum(row.maxPeople),
+    address: row.address, website: row.website, instagram: row.instagram,
+    instagramUrl: row.instagramUrl || undefined, facebookUrl: row.facebookUrl || undefined,
+    gradientBg: row.gradientBg, gradientText: row.gradientText,
+    variants: parseVariants(row.variants),
+  };
+}
+
+function workshopFromRow(row) {
+  return {
+    id: row.id, name: row.name, comingSoon: toBool(row.comingSoon) || undefined,
+    logo: imgPath(row.logo), photo: imgPath(row.photo), photos: imgListPath(row.photos),
+    artist: row.artist, bio: row.bio, duration: row.duration, pricePerPerson: toNum(row.pricePerPerson),
+    minPeople: toNum(row.minPeople), maxPeople: toNum(row.maxPeople),
+    description: row.description, includes: splitList(row.includes),
+    website: row.website, instagram: row.instagram,
+    instagramUrl: row.instagramUrl || undefined, facebookUrl: row.facebookUrl || undefined,
+    email: row.email || undefined, gradientBg: row.gradientBg, gradientText: row.gradientText,
+  };
+}
+
+function useSheetData() {
+  const [restaurants, setRestaurants] = useState([]);
+  const [workshops, setWorkshops] = useState([]);
+  const [dataLoading, setDataLoading] = useState(true);
+  const [dataError, setDataError] = useState(false);
+
+  useEffect(() => {
+    Promise.all([
+      fetch(CSV_RESTAURANTS_URL).then(r => r.text()),
+      fetch(CSV_WORKSHOPS_URL).then(r => r.text()),
+    ])
+      .then(([restText, workText]) => {
+        setRestaurants(csvToObjects(restText).map(restaurantFromRow));
+        setWorkshops(csvToObjects(workText).map(workshopFromRow));
+      })
+      .catch(() => setDataError(true))
+      .finally(() => setDataLoading(false));
+  }, []);
+
+  return { restaurants, workshops, dataLoading, dataError };
+}
 
 const OCCASIONS = [
   { id: "all",          label: "Wszystkie" },
@@ -840,6 +749,7 @@ function PartnersView() {
 }
 
 export default function App() {
+  const { restaurants, workshops, dataLoading, dataError } = useSheetData();
   const [mode,           setMode]           = useState("client"); // "client" | "b2b"
   const [openField,      setOpenField]      = useState(null); // null | "people" | "date" | "occasion" — który segment paska wyszukiwania jest rozwinięty
   const searchBarRef = useRef(null);
@@ -873,15 +783,15 @@ export default function App() {
   const handleToggleR = rId => {
     if (selectedR === rId) { setSelectedR(null); setSelectedVariant(null); return; }
     setSelectedR(rId);
-    const r = RESTAURANTS.find(r => r.id === rId);
+    const r = restaurants.find(r => r.id === rId);
     setSelectedVariant(r?.variants[0]?.id ?? null);
   };
 
-  const filteredR  = RESTAURANTS.filter(r => r.comingSoon || (groupSize >= r.minPeople && groupSize <= r.maxPeople));
-  const filteredW  = WORKSHOPS.filter(w => w.comingSoon || (groupSize >= w.minPeople && groupSize <= w.maxPeople));
-  const restaurant = RESTAURANTS.find(r => r.id === selectedR);
+  const filteredR  = restaurants.filter(r => r.comingSoon || (groupSize >= r.minPeople && groupSize <= r.maxPeople));
+  const filteredW  = workshops.filter(w => w.comingSoon || (groupSize >= w.minPeople && groupSize <= w.maxPeople));
+  const restaurant = restaurants.find(r => r.id === selectedR);
   const variant    = restaurant?.variants.find(v => v.id === selectedVariant);
-  const workshop   = WORKSHOPS.find(w => w.id === selectedW);
+  const workshop   = workshops.find(w => w.id === selectedW);
   const ppp        = (variant?.price ?? 0) + (workshop?.pricePerPerson ?? 0);
   const total      = ppp * groupSize;
   const hasSelection = selectedR || selectedW;
@@ -892,6 +802,22 @@ export default function App() {
       {count !== undefined && <span style={{ fontSize:12, color:C.muted }}>{count} dostępne</span>}
     </div>
   );
+
+  if (dataLoading) {
+    return (
+      <div style={{ fontFamily:"'Montserrat', system-ui, sans-serif", background:C.bg, minHeight:"100vh", display:"flex", alignItems:"center", justifyContent:"center", color:C.muted, fontSize:14 }}>
+        Wczytywanie...
+      </div>
+    );
+  }
+
+  if (dataError) {
+    return (
+      <div style={{ fontFamily:"'Montserrat', system-ui, sans-serif", background:C.bg, minHeight:"100vh", display:"flex", alignItems:"center", justifyContent:"center", color:C.muted, fontSize:14, textAlign:"center", padding:24 }}>
+        Nie udało się wczytać danych. Odśwież stronę lub spróbuj ponownie za chwilę.
+      </div>
+    );
+  }
 
   return (
     <div style={{ fontFamily:"'Montserrat', system-ui, sans-serif", background:C.bg, minHeight:"100vh", color:C.text }}>
