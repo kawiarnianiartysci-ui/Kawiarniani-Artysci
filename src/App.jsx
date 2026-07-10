@@ -313,10 +313,13 @@ function ProfileModal({ item, type, isSelected, onToggleSelect, onClose }) {
           )}
 
           {/* Informacje (czas trwania / lokalizacja) */}
-          <div style={{ marginBottom:16 }}>
+          <div style={{ marginBottom:16, display:"flex", alignItems:"center", gap:8, flexWrap:"wrap" }}>
             {isRestaurant && <InfoPill text={item.address} />}
             {isRestaurant && item.hasSeparateRoom && <InfoPill text="Osobna sala" />}
             {!isRestaurant && <InfoPill text={item.duration} />}
+            {!isRestaurant && item.requiresSeparateRoom && (
+              <span style={{ fontSize:11, color:C.muted }}>* potrzebna osobna sala</span>
+            )}
           </div>
 
           {/* Description */}
@@ -384,9 +387,6 @@ function ProfileModal({ item, type, isSelected, onToggleSelect, onClose }) {
               ? "✓ Dodano do pakietu — kliknij aby usunąć"
               : isRestaurant ? "Wybierz tę restaurację →" : "Dodaj ten warsztat →"}
           </button>
-          {!isRestaurant && item.requiresSeparateRoom && (
-            <div style={{ fontSize:11, color:C.muted, marginTop:10, textAlign:"center" }}>* potrzebna osobna sala</div>
-          )}
         </div>
       </div>
     </div>
