@@ -119,6 +119,7 @@ function restaurantFromRow(row) {
     address: row.address, website: row.website, instagram: row.instagram,
     instagramUrl: row.instagramUrl || undefined, facebookUrl: row.facebookUrl || undefined,
     gradientBg: row.gradientBg, gradientText: row.gradientText,
+    hasSeparateRoom: toBool(row.hasSeparateRoom) || undefined,
     variants: parseVariants(row.variants),
   };
 }
@@ -133,6 +134,7 @@ function workshopFromRow(row) {
     website: row.website, instagram: row.instagram,
     instagramUrl: row.instagramUrl || undefined, facebookUrl: row.facebookUrl || undefined,
     email: row.email || undefined, gradientBg: row.gradientBg, gradientText: row.gradientText,
+    requiresSeparateRoom: toBool(row.requiresSeparateRoom) || undefined,
   };
 }
 
@@ -313,6 +315,7 @@ function ProfileModal({ item, type, isSelected, onToggleSelect, onClose }) {
           {/* Informacje (czas trwania / lokalizacja) */}
           <div style={{ marginBottom:16 }}>
             {isRestaurant && <InfoPill text={item.address} />}
+            {isRestaurant && item.hasSeparateRoom && <InfoPill text="Osobna sala" />}
             {!isRestaurant && <InfoPill text={item.duration} />}
           </div>
 
@@ -381,6 +384,9 @@ function ProfileModal({ item, type, isSelected, onToggleSelect, onClose }) {
               ? "✓ Dodano do pakietu — kliknij aby usunąć"
               : isRestaurant ? "Wybierz tę restaurację →" : "Dodaj ten warsztat →"}
           </button>
+          {!isRestaurant && item.requiresSeparateRoom && (
+            <div style={{ fontSize:11, color:C.muted, marginTop:10, textAlign:"center" }}>* potrzebna osobna sala</div>
+          )}
         </div>
       </div>
     </div>
@@ -421,6 +427,10 @@ function RestaurantCard({ r, isSelected, selectedVariantId, onToggle, onVariantS
         <div style={{ fontFamily:"'Montserrat', system-ui, sans-serif", fontSize:21, fontWeight:400, color: soon ? "#999" : C.text, marginBottom:2 }}>{r.name}</div>
         <div style={{ fontSize:10, letterSpacing:"0.1em", color:C.muted, marginBottom:8 }}>{r.vibe} · {r.location}</div>
         <p style={{ fontSize:13, color:C.muted, margin:"0 0 12px", lineHeight:1.55, fontWeight:300 }}>{r.description}</p>
+
+        {r.hasSeparateRoom && !soon && (
+          <span style={{ display:"inline-block", fontSize:11, padding:"3px 9px", borderRadius:10, background:C.tagBg, color:C.muted, marginBottom:10 }}>Osobna sala</span>
+        )}
 
         {isSelected && !soon && (
           <div style={{ marginTop:14, borderTop:`1px solid ${C.border}`, paddingTop:12 }}>
@@ -523,6 +533,9 @@ function WorkshopCard({ w, isSelected, onToggle, onProfile }) {
         <button onClick={e => { e.stopPropagation(); onProfile(); }} style={{ fontSize:12, color: soon ? "#BBB" : C.primary, background:"transparent", border:"none", cursor:"pointer", padding:0, fontWeight:500, textDecoration: soon ? "none" : "underline", fontFamily:"'Montserrat', system-ui, sans-serif" }}>
           {soon ? "Profil w przygotowaniu" : "Zobacz profil artysty →"}
         </button>
+        {w.requiresSeparateRoom && (
+          <div style={{ fontSize:10, color:C.muted, marginTop:8 }}>* potrzebna osobna sala</div>
+        )}
       </div>
     </div>
   );
@@ -787,11 +800,14 @@ export default function App() {
     setSelectedVariant(r?.variants[0]?.id ?? null);
   };
 
-  const filteredR  = restaurants.filter(r => r.comingSoon || (groupSize >= r.minPeople && groupSize <= r.maxPeople));
+  const workshop   = workshops.find(w => w.id === selectedW);
+  const filteredR  = restaurants.filter(r => r.comingSoon || (
+    groupSize >= r.minPeople && groupSize <= r.maxPeople &&
+    (!workshop?.requiresSeparateRoom || r.hasSeparateRoom)
+  ));
   const filteredW  = workshops.filter(w => w.comingSoon || (groupSize >= w.minPeople && groupSize <= w.maxPeople));
   const restaurant = restaurants.find(r => r.id === selectedR);
   const variant    = restaurant?.variants.find(v => v.id === selectedVariant);
-  const workshop   = workshops.find(w => w.id === selectedW);
   const ppp        = (variant?.price ?? 0) + (workshop?.pricePerPerson ?? 0);
   const total      = ppp * groupSize;
   const hasSelection = selectedR || selectedW;
