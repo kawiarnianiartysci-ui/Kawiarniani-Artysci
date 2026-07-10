@@ -192,8 +192,8 @@ const globalCSS = `
   @keyframes slideUp { from { transform: translateY(100%); opacity:0; } to { transform: translateY(0); opacity:1; } }
   @keyframes fadeIn  { from { opacity: 0; } to { opacity: 1; } }
   a { color: inherit; }
-  .tile-grid { display:flex; flex-wrap:wrap; justify-content:center; gap:14px; }
-  .tile-card { width: calc((100% - 56px) / 5); }
+  .tile-grid { display:flex; flex-wrap:wrap; justify-content:center; gap:14px; align-items:stretch; }
+  .tile-card { width: calc((100% - 42px) / 4); display:flex; }
   @media (max-width: 980px) {
     .tile-card { width: calc((100% - 28px) / 3); }
   }
@@ -400,7 +400,7 @@ function RestaurantCard({ r, isSelected, selectedVariantId, onToggle, onVariantS
   const soon = r.comingSoon;
   const minPrice = Math.min(...r.variants.map(v => v.price));
   return (
-    <div className={soon ? "" : "card-h"} style={{ background: isSelected ? C.selectedBg : soon ? "#F5F4F1" : C.card, border:`2px solid ${isSelected ? C.primary : "transparent"}`, borderRadius:14, overflow:"hidden", boxShadow: isSelected ? "0 4px 16px rgba(67,42,22,0.14)" : soon ? "none" : "0 1px 5px rgba(0,0,0,0.07)", position:"relative", opacity: soon ? 0.78 : 1 }}>
+    <div className={soon ? "" : "card-h"} style={{ background: isSelected ? C.selectedBg : soon ? "#F5F4F1" : C.card, border:`2px solid ${isSelected ? C.primary : "transparent"}`, borderRadius:14, overflow:"hidden", boxShadow: isSelected ? "0 4px 16px rgba(67,42,22,0.14)" : soon ? "none" : "0 1px 5px rgba(0,0,0,0.07)", position:"relative", opacity: soon ? 0.78 : 1, display:"flex", flexDirection:"column", width:"100%" }}>
 
       {r.photo ? (
         <div style={{ height:140, overflow:"hidden", position:"relative" }}>
@@ -421,7 +421,7 @@ function RestaurantCard({ r, isSelected, selectedVariantId, onToggle, onVariantS
         <div style={{ position:"absolute", top:14, right:12, background:"#E8E4DC", borderRadius:10, padding:"3px 9px", fontSize:10, fontWeight:600, color:"#888", letterSpacing:"0.1em" }}>Wkrótce</div>
       )}
 
-      <div onClick={soon ? undefined : onToggle} style={{ padding:"18px 20px 8px", cursor: soon ? "default" : "pointer" }}>
+      <div onClick={soon ? undefined : onToggle} style={{ padding:"18px 20px 8px", cursor: soon ? "default" : "pointer", flex:"1 1 auto" }}>
         {isSelected && !soon && (
           <div style={{ position:"absolute", top:16, right:14, background:C.primary, borderRadius:"50%", width:22, height:22, display:"flex", alignItems:"center", justifyContent:"center", fontSize:11, fontWeight:700, color:"#FFF" }}>✓</div>
         )}
@@ -480,7 +480,7 @@ function RestaurantCard({ r, isSelected, selectedVariantId, onToggle, onVariantS
 function WorkshopCard({ w, isSelected, onToggle, onProfile }) {
   const soon = w.comingSoon;
   return (
-    <div className={soon ? "" : "card-h"} style={{ background: isSelected ? C.selectedBg : soon ? "#F5F4F1" : C.card, border:`2px solid ${isSelected ? C.primary : "transparent"}`, borderRadius:14, overflow:"hidden", boxShadow: isSelected ? "0 4px 16px rgba(67,42,22,0.14)" : soon ? "none" : "0 1px 5px rgba(0,0,0,0.07)", position:"relative", opacity: soon ? 0.78 : 1 }}>
+    <div className={soon ? "" : "card-h"} style={{ background: isSelected ? C.selectedBg : soon ? "#F5F4F1" : C.card, border:`2px solid ${isSelected ? C.primary : "transparent"}`, borderRadius:14, overflow:"hidden", boxShadow: isSelected ? "0 4px 16px rgba(67,42,22,0.14)" : soon ? "none" : "0 1px 5px rgba(0,0,0,0.07)", position:"relative", opacity: soon ? 0.78 : 1, display:"flex", flexDirection:"column", width:"100%" }}>
       {w.photo ? (
         <div style={{ height:140, overflow:"hidden", position:"relative" }}>
           <img src={w.photo} alt={w.name} style={{ width:"100%", height:"100%", objectFit:"cover", display:"block" }} />
@@ -500,7 +500,7 @@ function WorkshopCard({ w, isSelected, onToggle, onProfile }) {
         <div style={{ position:"absolute", top:14, right:12, background:"#E8E4DC", borderRadius:10, padding:"3px 9px", fontSize:10, fontWeight:600, color:"#888", letterSpacing:"0.1em" }}>Wkrótce</div>
       )}
 
-      <div onClick={soon ? undefined : onToggle} style={{ padding:"18px 20px 8px", cursor: soon ? "default" : "pointer" }}>
+      <div onClick={soon ? undefined : onToggle} style={{ padding:"18px 20px 8px", cursor: soon ? "default" : "pointer", flex:"1 1 auto" }}>
         {isSelected && !soon && (
           <div style={{ position:"absolute", top:16, right:14, background:C.primary, borderRadius:"50%", width:22, height:22, display:"flex", alignItems:"center", justifyContent:"center", fontSize:11, fontWeight:700, color:"#FFF" }}>✓</div>
         )}
