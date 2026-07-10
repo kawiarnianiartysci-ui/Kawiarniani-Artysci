@@ -363,6 +363,7 @@ function ProfileModal({ item, type, isSelected, onToggleSelect, onClose }) {
                   <div style={{ fontFamily:"'Montserrat', system-ui, sans-serif", fontSize:20, color:C.primary, fontWeight:400 }}>{v.priceMax ? `${v.price}–${v.priceMax}` : v.price} zł</div>
                 </div>
               ))}
+              <div style={{ fontSize:11, color:C.muted, marginTop:6 }}>* dokładne menu ustalane z restauracją indywidualnie wg życzenia, cena pokazuje orientacyjny zakres cenowy każdego pakietu.</div>
             </>
           ) : (
             <>
