@@ -1,10 +1,4 @@
 import { useState, useEffect, useRef } from "react";
-import emailjs from "@emailjs/browser";
-
-// ══ EmailJS — konfiguracja wysyłki zapytań ══════════════════════
-const EMAILJS_SERVICE_ID  = "service_hzlvg3y";
-const EMAILJS_TEMPLATE_ID = "template_qljprda";
-const EMAILJS_PUBLIC_KEY  = "BM7FzyHsOpiRR8BR_";
 
 // ══════════════════════════════════════════════════════════════
 // 🖼️  ZDJĘCIA — pliki w public/images/, nowe zdjęcia wgrywaj tam i dopisz stałą poniżej
@@ -121,6 +115,7 @@ function restaurantFromRow(row) {
     gradientBg: row.gradientBg, gradientText: row.gradientText,
     hasSeparateRoom: toBool(row.hasSeparateRoom) || undefined,
     variants: parseVariants(row.variants),
+    email: row.email || undefined,
   };
 }
 
@@ -573,7 +568,7 @@ function PrivacyPolicyModal({ onClose }) {
 
         <div style={section}>
           <div style={h}>Komu przekazujemy dane</div>
-          <p style={p}>Dane są przetwarzane za pomocą usługi EmailJS (dostawca zewnętrzny realizujący wysyłkę wiadomości e-mail) oraz przekazywane restauracji/artyście, których dotyczy zapytanie, w celu jego realizacji. Nie przekazujemy danych innym podmiotom ani nie wykorzystujemy ich w celach marketingowych bez odrębnej zgody.</p>
+          <p style={p}>Dane są przetwarzane za pomocą usługi Resend (dostawca zewnętrzny realizujący wysyłkę wiadomości e-mail) oraz przekazywane restauracji/artyście, których dotyczy zapytanie, w celu jego realizacji. Nie przekazujemy danych innym podmiotom ani nie wykorzystujemy ich w celach marketingowych bez odrębnej zgody.</p>
         </div>
 
         <div style={section}>
@@ -630,16 +625,24 @@ function InquiryModal({ restaurant, variant, workshop, groupSize, prefilledDate,
     if (!form.name || !form.email) { alert("Podaj imię i adres email."); return; }
     if (!consent) { alert("Zaznacz zgodę na przetwarzanie danych osobowych."); return; }
     setSending(true); setError("");
-    emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, {
-      from_name: form.name,
-      from_email: form.email,
-      phone: form.phone,
-      restaurant_name: restaurant?.name || "",
-      artist_name: workshop ? `${workshop.name} (${workshop.artist})` : "",
-      group_size: groupSize,
-      date: form.time ? `${form.date}, ${form.time}` : form.date,
-      message: form.message,
-    }, { publicKey: EMAILJS_PUBLIC_KEY })
+    fetch("/api/inquiry", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        clientName: form.name,
+        clientEmail: form.email,
+        clientPhone: form.phone,
+        restaurantName: restaurant?.name || "",
+        restaurantEmail: restaurant?.email || "",
+        artistName: workshop?.artist || "",
+        workshopName: workshop?.name || "",
+        artistEmail: workshop?.email || "",
+        groupSize,
+        date: form.time ? `${form.date}, ${form.time}` : form.date,
+        message: form.message,
+      }),
+    })
+      .then(r => { if (!r.ok) throw new Error(); return r.json(); })
       .then(() => { setSending(false); setSent(true); setTimeout(onClose, 3000); })
       .catch(() => { setSending(false); setError("Nie udało się wysłać zapytania. Spróbuj ponownie."); });
   };

@@ -1,0 +1,86 @@
+import { Resend } from "resend";
+import { FROM_EMAIL, OWNER_EMAIL, htmlPage, verifyAndDecode } from "./_shared.js";
+
+export default async function handler(req, res) {
+  const { action, data, sig, confirm } = req.query;
+
+  if (action !== "accept" && action !== "decline") {
+    res.status(400).send(htmlPage("Nieprawidłowy link", "Ten link jest nieprawidłowy."));
+    return;
+  }
+
+  const payload = verifyAndDecode(data, sig);
+  if (!payload) {
+    res.status(400).send(htmlPage("Nieprawidłowy link", "Ten link jest nieprawidłowy lub wygasł. Skontaktuj się z Joanną, jeśli to się powtarza."));
+    return;
+  }
+
+  const accepted = action === "accept";
+  const { clientName, restaurantName, workshopName, date, groupSize } = payload;
+
+  // Krok pośredni — chroni przed przypadkowym "kliknięciem" linku przez skanery
+  // bezpieczeństwa w skrzynkach mailowych, które same otwierają linki z maila.
+  if (confirm !== "1") {
+    const confirmUrl = `/api/respond?action=${action}&data=${encodeURIComponent(data)}&sig=${encodeURIComponent(sig)}&confirm=1`;
+    const title = accepted ? "Potwierdź akceptację terminu" : "Potwierdź, że nie możesz";
+    const details = `<strong>${workshopName || ""}</strong> — ${restaurantName || ""}<br>Termin: ${date || "do ustalenia"} · ${groupSize || "-"} os. · Klient: ${clientName || ""}`;
+    res.status(200).send(`<!doctype html><html lang="pl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>${title}</title>
+<style>
+  body{font-family:system-ui,-apple-system,sans-serif;background:#EDEBE6;display:flex;align-items:center;justify-content:center;min-height:100vh;margin:0;padding:16px;}
+  .box{background:#fff;padding:40px 32px;border-radius:16px;max-width:440px;width:100%;text-align:center;}
+  h1{font-size:22px;font-weight:600;color:#1A1A1A;margin:0 0 14px;}
+  p{color:#6B6862;font-size:15px;line-height:1.6;margin:0 0 20px;}
+  a.btn{display:inline-block;padding:13px 24px;border-radius:9px;text-decoration:none;font-weight:600;font-size:15px;background:${accepted ? "#432A16" : "#999"};color:#fff;}
+</style>
+</head><body><div class="box"><h1>${title}</h1><p>${details}</p><a class="btn" href="${confirmUrl}">${accepted ? "Tak, akceptuję ten termin" : "Tak, nie mogę w tym terminie"}</a></div></body></html>`);
+    return;
+  }
+
+  try {
+    const resend = new Resend(process.env.RESEND_API_KEY);
+    const { clientEmail, restaurantEmail, artistName } = payload;
+    const sends = [];
+
+    if (restaurantEmail) {
+      sends.push(resend.emails.send({
+        from: FROM_EMAIL,
+        to: restaurantEmail,
+        subject: accepted
+          ? `Potwierdzone! ${workshopName || ""} — ${date || ""}`
+          : `Artysta nie może w tym terminie — ${workshopName || ""}`,
+        html: accepted
+          ? `<p>Artysta <strong>${artistName || workshopName || ""}</strong> potwierdził termin <strong>${date || ""}</strong> dla ${groupSize || "-"} osób. Event jest potwierdzony z obu stron.</p>`
+          : `<p>Niestety artysta <strong>${artistName || workshopName || ""}</strong> nie może w zaproponowanym terminie. Prosimy o kontakt z klientem w sprawie alternatywnego terminu.</p>`,
+      }));
+    }
+
+    if (clientEmail) {
+      sends.push(resend.emails.send({
+        from: FROM_EMAIL,
+        to: clientEmail,
+        subject: accepted ? "Twój termin został potwierdzony!" : "Aktualizacja Twojego zapytania",
+        html: accepted
+          ? `<p>Cześć ${clientName || ""},</p><p>Świetna wiadomość — artysta potwierdził Wasz termin (${date || ""}) w ${restaurantName || ""}. Do zobaczenia!</p>`
+          : `<p>Cześć ${clientName || ""},</p><p>Niestety artysta nie może w zaproponowanym terminie. Skontaktujemy się, żeby zaproponować alternatywę.</p>`,
+      }));
+    }
+
+    sends.push(resend.emails.send({
+      from: FROM_EMAIL,
+      to: OWNER_EMAIL,
+      subject: `${accepted ? "Zaakceptowano" : "Odrzucono"}: ${restaurantName || ""} + ${workshopName || ""}`,
+      html: `<p>Artysta ${accepted ? "zaakceptował" : "odrzucił"} zapytanie od ${clientName || ""} (${restaurantName || ""}, ${date || ""}).</p>`,
+    }));
+
+    await Promise.all(sends);
+
+    res.status(200).send(
+      accepted
+        ? htmlPage("Dziękujemy!", "Potwierdziłeś/aś termin. Restauracja i klient zostali poinformowani mailowo.")
+        : htmlPage("Zapisano", "Poinformowaliśmy restaurację i klienta, że nie możesz w tym terminie.")
+    );
+  } catch (err) {
+    console.error(err);
+    res.status(500).send(htmlPage("Błąd", "Coś poszło nie tak przy wysyłce potwierdzenia. Spróbuj ponownie za chwilę lub napisz do Joanny."));
+  }
+}
