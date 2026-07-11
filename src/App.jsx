@@ -610,6 +610,26 @@ function Footer() {
   );
 }
 
+// Klient nie może zarezerwować terminu wcześniej niż za 7 dni roboczych
+function minBookingDateStr() {
+  const d = new Date();
+  d.setHours(0, 0, 0, 0);
+  let added = 0;
+  while (added < 7) {
+    d.setDate(d.getDate() + 1);
+    const day = d.getDay();
+    if (day !== 0 && day !== 6) added++;
+  }
+  return d.toISOString().split("T")[0];
+}
+const MIN_BOOKING_DATE = minBookingDateStr();
+
+const TIME_OPTIONS = [];
+for (let h = 8; h <= 23; h++) {
+  TIME_OPTIONS.push(`${String(h).padStart(2, "0")}:00`);
+  TIME_OPTIONS.push(`${String(h).padStart(2, "0")}:30`);
+}
+
 function InquiryModal({ restaurant, variant, workshop, groupSize, prefilledDate, prefilledTime, onClose }) {
   const [form, setForm] = useState({ name:"", email:"", phone:"", date: prefilledDate || "", time: prefilledTime || "", message:"" });
   const [consent, setConsent] = useState(false);
@@ -624,6 +644,7 @@ function InquiryModal({ restaurant, variant, workshop, groupSize, prefilledDate,
   const send = () => {
     if (!form.name || !form.email) { alert("Podaj imię i adres email."); return; }
     if (!consent) { alert("Zaznacz zgodę na przetwarzanie danych osobowych."); return; }
+    if (form.date && form.date < MIN_BOOKING_DATE) { alert("Termin musi być co najmniej 7 dni roboczych od dziś."); return; }
     setSending(true); setError("");
     fetch("/api/inquiry", {
       method: "POST",
@@ -678,11 +699,14 @@ function InquiryModal({ restaurant, variant, workshop, groupSize, prefilledDate,
             <div style={{ display:"flex", gap:10, marginBottom:14 }}>
               <div style={{ flex:"1 1 150px" }}>
                 <label style={lbl}>Preferowana data</label>
-                <input type="date" value={form.date} onChange={set("date")} style={inp} />
+                <input type="date" value={form.date} min={MIN_BOOKING_DATE} onChange={set("date")} style={inp} />
               </div>
               <div style={{ flex:"1 1 110px" }}>
                 <label style={lbl}>Godzina</label>
-                <input type="time" value={form.time} onChange={set("time")} style={inp} />
+                <select value={form.time} onChange={set("time")} style={inp}>
+                  <option value="">Wybierz godzinę</option>
+                  {TIME_OPTIONS.map(t => <option key={t} value={t}>{t}</option>)}
+                </select>
               </div>
             </div>
             <div style={{ marginBottom:22 }}>
@@ -923,15 +947,17 @@ export default function App() {
                       type="date"
                       value={selectedDate}
                       onChange={e => setSelectedDate(e.target.value)}
-                      min={new Date().toISOString().split("T")[0]}
+                      min={MIN_BOOKING_DATE}
                       style={{ border:`1px solid ${C.border}`, borderRadius:8, background:"#FAFAF8", fontSize:14, color:C.primary, fontFamily:"'Montserrat', system-ui, sans-serif", fontWeight:500, padding:"9px 11px", flex:"1 1 150px", minWidth:0 }}
                     />
-                    <input
-                      type="time"
+                    <select
                       value={selectedTime}
                       onChange={e => setSelectedTime(e.target.value)}
                       style={{ border:`1px solid ${C.border}`, borderRadius:8, background:"#FAFAF8", fontSize:14, color:C.primary, fontFamily:"'Montserrat', system-ui, sans-serif", fontWeight:500, padding:"9px 11px", flex:"1 1 110px", minWidth:0 }}
-                    />
+                    >
+                      <option value="">Godzina</option>
+                      {TIME_OPTIONS.map(t => <option key={t} value={t}>{t}</option>)}
+                    </select>
                   </div>
                   {(selectedDate || selectedTime) && (
                     <button onClick={() => { setSelectedDate(""); setSelectedTime(""); }} style={{ marginTop:10, background:"none", border:"none", cursor:"pointer", color:C.muted, fontSize:12, padding:0, textDecoration:"underline" }}>Wyczyść termin</button>
