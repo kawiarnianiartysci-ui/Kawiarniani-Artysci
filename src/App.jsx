@@ -87,7 +87,7 @@ function csvToObjects(text) {
 }
 
 const toNum  = v => (v === "" || v == null ? null : Number(v));
-const toBool = v => /^(true|1|tak)$/i.test((v || "").trim());
+const toBool = v => /^(true|1|tak|prawda)$/i.test((v || "").trim());
 // jak toBool, ale puste pole zostaje "nieznane" zamiast fałszu —
 // potrzebne tam, gdzie samo "puste" i "jawnie nie" muszą się różnić
 const toTriBool = v => {
