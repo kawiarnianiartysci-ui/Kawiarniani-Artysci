@@ -38,12 +38,15 @@ export default async function handler(req, res) {
 
   try {
     const resend = new Resend(process.env.RESEND_API_KEY);
-    const { clientEmail, restaurantEmail, artistName, artistInvoicing, artistRequirements } = payload;
+    const { clientEmail, clientPhone, restaurantEmail, artistName, artistInvoicing, artistRequirements } = payload;
     const sends = [];
 
     if (restaurantEmail) {
       const detailsList = accepted && (artistInvoicing || artistRequirements)
         ? `<ul>${artistInvoicing ? `<li>${artistInvoicing}</li>` : ""}${artistRequirements ? `<li>${artistRequirements}</li>` : ""}</ul>`
+        : "";
+      const clientContact = accepted
+        ? `<p>Kontakt do klienta (np. w sprawie menu):<br>${clientName || ""}${clientEmail ? ` · ${clientEmail}` : ""}${clientPhone ? ` · ${clientPhone}` : ""}</p>`
         : "";
       sends.push(resend.emails.send({
         from: FROM_EMAIL,
@@ -52,7 +55,7 @@ export default async function handler(req, res) {
           ? `Potwierdzone! ${workshopName || ""} — ${date || ""}`
           : `Artysta nie może w tym terminie — ${workshopName || ""}`,
         html: emailHtml(accepted
-          ? `<p>Dobra wiadomość! <strong>${artistName || workshopName || ""}</strong> potwierdził termin <strong>${date || ""}</strong> dla ${groupSize || "-"} osób — event jest ustalony z obu stron.</p>${detailsList}<p>Pozdrawiamy,<br>Kawiarniani Artyści</p>`
+          ? `<p>Dobra wiadomość! <strong>${artistName || workshopName || ""}</strong> potwierdził termin <strong>${date || ""}</strong> dla ${groupSize || "-"} osób — event jest ustalony z obu stron.</p>${detailsList}${clientContact}<p>Pozdrawiamy,<br>Kawiarniani Artyści</p>`
           : `<p>Niestety <strong>${artistName || workshopName || ""}</strong> nie może w zaproponowanym terminie. Skontaktujemy się z klientem w sprawie innego terminu i damy Wam znać.</p><p>Pozdrawiamy,<br>Kawiarniani Artyści</p>`),
       }));
     }
