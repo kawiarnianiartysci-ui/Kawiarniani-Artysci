@@ -88,6 +88,12 @@ function csvToObjects(text) {
 
 const toNum  = v => (v === "" || v == null ? null : Number(v));
 const toBool = v => /^(true|1|tak)$/i.test((v || "").trim());
+// jak toBool, ale puste pole zostaje "nieznane" zamiast fałszu —
+// potrzebne tam, gdzie samo "puste" i "jawnie nie" muszą się różnić
+const toTriBool = v => {
+  const t = (v || "").trim();
+  return t === "" ? undefined : toBool(t);
+};
 const imgPath = filename => (filename ? `/images/${filename.trim()}` : undefined);
 const imgListPath = list => !list ? [] : list.split(",").map(s => s.trim()).filter(Boolean).map(entry => {
   const [filename, ...mods] = entry.split("@");
@@ -116,6 +122,7 @@ function restaurantFromRow(row) {
     hasSeparateRoom: toBool(row.hasSeparateRoom) || undefined,
     variants: parseVariants(row.variants),
     email: row.email || undefined,
+    requiresInvoice: toBool(row.requiresInvoice) || undefined,
   };
 }
 
@@ -131,6 +138,7 @@ function workshopFromRow(row) {
     email: row.email || undefined, gradientBg: row.gradientBg, gradientText: row.gradientText,
     requiresSeparateRoom: toBool(row.requiresSeparateRoom) || undefined,
     invoicing: row.invoicing || undefined, requirements: row.requirements || undefined,
+    canInvoice: toTriBool(row.canInvoice),
   };
 }
 
@@ -837,12 +845,16 @@ export default function App() {
   };
 
   const workshop   = workshops.find(w => w.id === selectedW);
+  const restaurant = restaurants.find(r => r.id === selectedR);
   const filteredR  = restaurants.filter(r => r.comingSoon || (
     groupSize >= r.minPeople && groupSize <= r.maxPeople &&
-    (!workshop?.requiresSeparateRoom || r.hasSeparateRoom)
+    (!workshop?.requiresSeparateRoom || r.hasSeparateRoom) &&
+    !(r.requiresInvoice && workshop?.canInvoice === false)
   ));
-  const filteredW  = workshops.filter(w => w.comingSoon || (groupSize >= w.minPeople && groupSize <= w.maxPeople));
-  const restaurant = restaurants.find(r => r.id === selectedR);
+  const filteredW  = workshops.filter(w => w.comingSoon || (
+    groupSize >= w.minPeople && groupSize <= w.maxPeople &&
+    !(restaurant?.requiresInvoice && w.canInvoice === false)
+  ));
   const variant    = restaurant?.variants.find(v => v.id === selectedVariant);
   const ppp        = (variant?.price ?? 0) + (workshop?.pricePerPerson ?? 0);
   const total      = ppp * groupSize;
