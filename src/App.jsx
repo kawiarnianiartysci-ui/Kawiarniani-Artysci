@@ -130,6 +130,7 @@ function workshopFromRow(row) {
     instagramUrl: row.instagramUrl || undefined, facebookUrl: row.facebookUrl || undefined,
     email: row.email || undefined, gradientBg: row.gradientBg, gradientText: row.gradientText,
     requiresSeparateRoom: toBool(row.requiresSeparateRoom) || undefined,
+    invoicing: row.invoicing || undefined, requirements: row.requirements || undefined,
   };
 }
 
@@ -663,6 +664,8 @@ function InquiryModal({ restaurant, variant, workshop, groupSize, prefilledDate,
         artistName: workshop?.artist || "",
         workshopName: workshop?.name || "",
         artistEmail: workshop?.email || "",
+        artistInvoicing: workshop?.invoicing || "",
+        artistRequirements: workshop?.requirements || "",
         groupSize,
         date: form.time ? `${form.date}, ${form.time}` : form.date,
         message: form.message,

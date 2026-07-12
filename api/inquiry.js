@@ -13,6 +13,7 @@ export default async function handler(req, res) {
       clientName, clientEmail, clientPhone,
       restaurantName, restaurantEmail,
       artistName, workshopName, artistEmail,
+      artistInvoicing, artistRequirements,
       groupSize, date, message,
     } = req.body || {};
 
@@ -25,6 +26,7 @@ export default async function handler(req, res) {
       clientName, clientEmail, clientPhone: clientPhone || "",
       restaurantName: restaurantName || "", restaurantEmail: restaurantEmail || "",
       artistName: artistName || "", workshopName: workshopName || "", artistEmail: artistEmail || "",
+      artistInvoicing: artistInvoicing || "", artistRequirements: artistRequirements || "",
       groupSize: groupSize || "", date: date || "", message: message || "",
       ts: Date.now(),
     };

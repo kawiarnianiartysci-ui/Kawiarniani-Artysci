@@ -38,10 +38,13 @@ export default async function handler(req, res) {
 
   try {
     const resend = new Resend(process.env.RESEND_API_KEY);
-    const { clientEmail, restaurantEmail, artistName } = payload;
+    const { clientEmail, restaurantEmail, artistName, artistInvoicing, artistRequirements } = payload;
     const sends = [];
 
     if (restaurantEmail) {
+      const detailsList = accepted && (artistInvoicing || artistRequirements)
+        ? `<ul>${artistInvoicing ? `<li>${artistInvoicing}</li>` : ""}${artistRequirements ? `<li>${artistRequirements}</li>` : ""}</ul>`
+        : "";
       sends.push(resend.emails.send({
         from: FROM_EMAIL,
         to: restaurantEmail,
@@ -49,7 +52,7 @@ export default async function handler(req, res) {
           ? `Potwierdzone! ${workshopName || ""} — ${date || ""}`
           : `Artysta nie może w tym terminie — ${workshopName || ""}`,
         html: accepted
-          ? `<p>Artysta <strong>${artistName || workshopName || ""}</strong> potwierdził termin <strong>${date || ""}</strong> dla ${groupSize || "-"} osób. Event jest potwierdzony z obu stron.</p>`
+          ? `<p>Artysta <strong>${artistName || workshopName || ""}</strong> potwierdził termin <strong>${date || ""}</strong> dla ${groupSize || "-"} osób. Event jest potwierdzony z obu stron.</p>${detailsList}`
           : `<p>Niestety artysta <strong>${artistName || workshopName || ""}</strong> nie może w zaproponowanym terminie. Prosimy o kontakt z klientem w sprawie alternatywnego terminu.</p>`,
       }));
     }
