@@ -1,5 +1,5 @@
 import { Resend } from "resend";
-import { FROM_EMAIL, OWNER_EMAIL, htmlPage, verifyAndDecode } from "./_shared.js";
+import { FROM_EMAIL, OWNER_EMAIL, htmlPage, verifyAndDecode, emailHtml } from "./_shared.js";
 
 export default async function handler(req, res) {
   const { action, data, sig, confirm } = req.query;
@@ -51,9 +51,9 @@ export default async function handler(req, res) {
         subject: accepted
           ? `Potwierdzone! ${workshopName || ""} — ${date || ""}`
           : `Artysta nie może w tym terminie — ${workshopName || ""}`,
-        html: accepted
-          ? `<p>Artysta <strong>${artistName || workshopName || ""}</strong> potwierdził termin <strong>${date || ""}</strong> dla ${groupSize || "-"} osób. Event jest potwierdzony z obu stron.</p>${detailsList}`
-          : `<p>Niestety artysta <strong>${artistName || workshopName || ""}</strong> nie może w zaproponowanym terminie. Prosimy o kontakt z klientem w sprawie alternatywnego terminu.</p>`,
+        html: emailHtml(accepted
+          ? `<p>Dobra wiadomość! <strong>${artistName || workshopName || ""}</strong> potwierdził termin <strong>${date || ""}</strong> dla ${groupSize || "-"} osób — event jest ustalony z obu stron.</p>${detailsList}<p>Pozdrawiamy,<br>Kawiarniani Artyści</p>`
+          : `<p>Niestety <strong>${artistName || workshopName || ""}</strong> nie może w zaproponowanym terminie. Skontaktujemy się z klientem w sprawie innego terminu i damy Wam znać.</p><p>Pozdrawiamy,<br>Kawiarniani Artyści</p>`),
       }));
     }
 
@@ -62,9 +62,9 @@ export default async function handler(req, res) {
         from: FROM_EMAIL,
         to: clientEmail,
         subject: accepted ? "Twój termin został potwierdzony!" : "Aktualizacja Twojego zapytania",
-        html: accepted
-          ? `<p>Cześć ${clientName || ""},</p><p>Świetna wiadomość — artysta potwierdził Wasz termin (${date || ""}) w ${restaurantName || ""}. Do zobaczenia!</p>`
-          : `<p>Cześć ${clientName || ""},</p><p>Niestety artysta nie może w zaproponowanym terminie. Skontaktujemy się, żeby zaproponować alternatywę.</p>`,
+        html: emailHtml(accepted
+          ? `<p>Cześć ${clientName || ""}!</p><p>Świetna wiadomość — artysta potwierdził Wasz termin (${date || ""}) w ${restaurantName || ""}. Do zobaczenia na evencie!</p><p>Pozdrawiamy,<br>Kawiarniani Artyści</p>`
+          : `<p>Cześć ${clientName || ""},</p><p>Niestety artysta nie może w zaproponowanym terminie. Odezwiemy się wkrótce z propozycją innego terminu.</p><p>Pozdrawiamy,<br>Kawiarniani Artyści</p>`),
       }));
     }
 
@@ -72,7 +72,7 @@ export default async function handler(req, res) {
       from: FROM_EMAIL,
       to: OWNER_EMAIL,
       subject: `${accepted ? "Zaakceptowano" : "Odrzucono"}: ${restaurantName || ""} + ${workshopName || ""}`,
-      html: `<p>Artysta ${accepted ? "zaakceptował" : "odrzucił"} zapytanie od ${clientName || ""} (${restaurantName || ""}, ${date || ""}).</p>`,
+      html: emailHtml(`<p>Artysta ${accepted ? "zaakceptował" : "odrzucił"} zapytanie od ${clientName || ""} (${restaurantName || ""}, ${date || ""}).</p>`),
     }));
 
     await Promise.all(sends);

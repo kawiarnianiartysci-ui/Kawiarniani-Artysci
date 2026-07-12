@@ -1,5 +1,5 @@
 import { Resend } from "resend";
-import { FROM_EMAIL, OWNER_EMAIL, SITE_URL, signPayload } from "./_shared.js";
+import { FROM_EMAIL, OWNER_EMAIL, SITE_URL, signPayload, emailHtml } from "./_shared.js";
 
 export default async function handler(req, res) {
   if (req.method !== "POST") {
@@ -41,20 +41,21 @@ export default async function handler(req, res) {
         from: FROM_EMAIL,
         to: artistEmail,
         subject: `Nowe zapytanie: ${restaurantName || "restauracja"} — ${workshopName || "warsztat"}`,
-        html: `
-          <p>Cześć ${artistName || ""},</p>
-          <p>Masz nowe zapytanie o warsztat <strong>${workshopName || ""}</strong> w restauracji <strong>${restaurantName || ""}</strong>.</p>
+        html: emailHtml(`
+          <p>Cześć ${artistName || ""}!</p>
+          <p>Restauracja <strong>${restaurantName || ""}</strong> dostała zapytanie o Twój warsztat „${workshopName || ""}". Oto szczegóły:</p>
           <ul>
             <li>Termin: ${date || "do ustalenia"}</li>
             <li>Liczba osób: ${groupSize || "-"}</li>
             ${message ? `<li>Wiadomość od klienta: ${message}</li>` : ""}
           </ul>
-          <p>Potwierdź, czy możesz przyjąć ten termin:</p>
+          <p>Daj nam znać, czy ten termin Ci pasuje:</p>
           <p>
             <a href="${acceptUrl}" style="background:#432A16;color:#fff;padding:12px 20px;border-radius:8px;text-decoration:none;margin-right:10px;display:inline-block;">Mogę — akceptuję</a>
-            <a href="${declineUrl}" style="background:#999;color:#fff;padding:12px 20px;border-radius:8px;text-decoration:none;display:inline-block;">Nie mogę</a>
+            <a href="${declineUrl}" style="background:#999;color:#fff;padding:12px 20px;border-radius:8px;text-decoration:none;display:inline-block;">Niestety nie mogę</a>
           </p>
-        `,
+          <p>Pozdrawiamy,<br>Kawiarniani Artyści</p>
+        `),
       }));
     }
 
@@ -62,17 +63,19 @@ export default async function handler(req, res) {
       sends.push(resend.emails.send({
         from: FROM_EMAIL,
         to: restaurantEmail,
-        subject: "Nowe zapytanie od klienta — czeka na potwierdzenie artysty",
-        html: `
-          <p>Otrzymaliście nowe zapytanie o event.</p>
+        subject: "Nowe zapytanie o event — czekamy na potwierdzenie artysty",
+        html: emailHtml(`
+          <p>Cześć!</p>
+          <p>Macie nowe zapytanie o wspólny event:</p>
           <ul>
             <li>Warsztat: ${workshopName || "-"} ${artistName ? `(${artistName})` : ""}</li>
             <li>Termin: ${date || "do ustalenia"}</li>
             <li>Liczba osób: ${groupSize || "-"}</li>
             <li>Klient: ${clientName}</li>
           </ul>
-          <p>Czekamy na potwierdzenie terminu przez artystę — poinformujemy Was o decyzji mailowo.</p>
-        `,
+          <p>Czekamy teraz na potwierdzenie terminu przez artystę — damy znać mailowo, jak tylko odpowie.</p>
+          <p>Pozdrawiamy,<br>Kawiarniani Artyści</p>
+        `),
       }));
     }
 
@@ -80,7 +83,7 @@ export default async function handler(req, res) {
       from: FROM_EMAIL,
       to: OWNER_EMAIL,
       subject: `Nowe zapytanie: ${restaurantName || "-"} + ${workshopName || "-"}`,
-      html: `
+      html: emailHtml(`
         <p>Nowe zapytanie na stronie:</p>
         <ul>
           <li>Klient: ${clientName} (${clientEmail}${clientPhone ? ", " + clientPhone : ""})</li>
@@ -90,7 +93,7 @@ export default async function handler(req, res) {
           <li>Liczba osób: ${groupSize || "-"}</li>
           ${message ? `<li>Wiadomość: ${message}</li>` : ""}
         </ul>
-      `,
+      `),
     }));
 
     await Promise.all(sends);

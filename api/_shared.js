@@ -29,6 +29,13 @@ export function verifyAndDecode(data, sig) {
   }
 }
 
+// Owija treść maila w pełny dokument z deklaracją UTF-8 — bez tego
+// niektóre skrzynki źle zgadują kodowanie i polskie znaki zamieniają
+// się w "�".
+export function emailHtml(bodyContent) {
+  return `<!doctype html><html lang="pl"><head><meta charset="utf-8"></head><body style="font-family:system-ui,-apple-system,sans-serif;color:#1A1A1A;font-size:15px;line-height:1.6;">${bodyContent}</body></html>`;
+}
+
 export function htmlPage(title, message) {
   return `<!doctype html><html lang="pl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>${title}</title>
 <style>
