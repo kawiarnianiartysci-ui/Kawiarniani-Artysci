@@ -632,7 +632,12 @@ for (let h = 8; h <= 23; h++) {
 
 // ══ Ekran powitalny ══════════════════════════════════════════
 
+// Sekunda, od której zaczyna się (i zapętla) wideo w tle — pomija powolny
+// początek klipu, żeby szybciej było widać ludzi przy malowaniu.
+const HERO_VIDEO_START = 2.5;
+
 function HomeScreen({ restaurants, workshops, onStart }) {
+  const videoRef = useRef(null);
   const steps = [
     { n:"1", t:"Wybierasz warsztat" },
     { n:"2", t:"Wybierasz miejsce" },
@@ -642,10 +647,15 @@ function HomeScreen({ restaurants, workshops, onStart }) {
   const activeWorkshops = workshops.filter(w => !w.comingSoon);
   const partnerLogos = [...activeRestaurants, ...activeWorkshops].filter(x => x.logo).slice(0, 6);
 
+  const seekToStart = () => { if (videoRef.current) videoRef.current.currentTime = HERO_VIDEO_START; };
+  const handleEnded = () => { seekToStart(); videoRef.current?.play(); };
+
   return (
     <div>
       <div style={{ position:"relative", width:"100%", height:"clamp(400px, 58vw, 560px)", overflow:"hidden" }}>
-        <video autoPlay muted loop playsInline poster={HERO_PHOTO} style={{ position:"absolute", inset:0, width:"100%", height:"100%", objectFit:"cover", objectPosition:"30% 68%", transform:"scale(1.25)" }}>
+        <video ref={videoRef} autoPlay muted playsInline poster={HERO_PHOTO}
+          onLoadedMetadata={seekToStart} onEnded={handleEnded}
+          style={{ position:"absolute", inset:0, width:"100%", height:"100%", objectFit:"cover", objectPosition:"30% 68%", transform:"scale(1.25)" }}>
           <source src="/videos/hero.mov" />
         </video>
         {/* delikatna faktura papieru/tektury */}
