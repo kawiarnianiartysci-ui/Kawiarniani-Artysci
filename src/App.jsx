@@ -43,7 +43,7 @@ const COPY = {
   siteName:    "Kawiarniani Artyści",
   tagline:     "Eventy grupowe · Poznań i okolice",
   heroTitle:   "Zaplanuj niezapomniane spotkanie.",
-  heroSubtitle:"Organizujemy warsztaty artystyczne w poznańskich kawiarniach i restauracjach — dla firm, urodzin i spotkań ze znajomymi.",
+  heroSubtitle:"Łączymy restauracje i kawiarnie z artystycznymi działaniami podczas spotkań rodzinnych, wieczorów panieńskich, baby shower, urodzin lub integracji firmowych.",
   contactEmail:"kawiarnianiartysci@gmail.com",
 };
 
