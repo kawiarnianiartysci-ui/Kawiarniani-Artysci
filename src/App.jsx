@@ -652,22 +652,32 @@ function HomeScreen({ restaurants, workshops, onStart }) {
 
       <div style={{ maxWidth:760, margin:"0 auto", padding:"0 16px 56px" }}>
         <div style={{ textAlign:"center", marginBottom:36 }}>
-          <h1 style={{ fontFamily:"'Montserrat', system-ui, sans-serif", fontSize:"clamp(32px,5.5vw,48px)", fontWeight:700, margin:"0 0 14px", lineHeight:1.2, color:C.text }}>
+          <h1 style={{ fontFamily:"'Pan Pizza', cursive", fontSize:"clamp(38px,6.5vw,58px)", fontWeight:400, margin:"0 0 14px", lineHeight:1.2, color:C.primary }}>
             {COPY.siteName}
           </h1>
-          <p style={{ fontSize:16, color:C.text, fontWeight:600, margin:"0 auto", maxWidth:500, lineHeight:1.65 }}>
+          <p style={{ fontSize:16, color:C.text, fontWeight:500, margin:"0 auto", maxWidth:500, lineHeight:1.65 }}>
             {COPY.heroSubtitle}
           </p>
         </div>
 
-        <div className="home-cta-grid" style={{ marginBottom:36 }}>
-          <button onClick={() => onStart("workshop")} style={{ flex:1, textAlign:"left", background:C.primary, color:"#FFF", border:"none", borderRadius:16, padding:"26px 24px", cursor:"pointer", minHeight:100 }}>
+        <div className="home-cta-grid" style={{ marginBottom:16 }}>
+          <button onClick={() => onStart("workshop")} style={{ flex:1, textAlign:"left", background:C.primary, color:"#FFF", border:"none", borderRadius:999, padding:"26px 32px", cursor:"pointer", minHeight:100 }}>
             <div style={{ fontFamily:"'Montserrat', system-ui, sans-serif", fontSize:19, fontWeight:500, marginBottom:6 }}>Zacznij od warsztatu →</div>
             <div style={{ fontSize:13, opacity:0.85 }}>Wiem, co chcemy robić</div>
           </button>
-          <button onClick={() => onStart("restaurant")} style={{ flex:1, textAlign:"left", background:C.card, color:C.text, border:`2px solid ${C.primary}`, borderRadius:16, padding:"26px 24px", cursor:"pointer", minHeight:100 }}>
+          <button onClick={() => onStart("restaurant")} style={{ flex:1, textAlign:"left", background:C.card, color:C.text, border:`2px solid ${C.primary}`, borderRadius:999, padding:"26px 32px", cursor:"pointer", minHeight:100 }}>
             <div style={{ fontFamily:"'Montserrat', system-ui, sans-serif", fontSize:19, fontWeight:500, marginBottom:6, color:C.primary }}>Zacznij od miejsca →</div>
             <div style={{ fontSize:13, color:C.muted }}>Wiem, gdzie chcemy być</div>
+          </button>
+        </div>
+
+        <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", gap:12, background:"#F1EFEA", border:`1px solid ${C.border}`, borderRadius:999, padding:"10px 10px 10px 24px", marginBottom:36, opacity:0.55 }}>
+          <div>
+            <div style={{ fontSize:10, color:C.muted, letterSpacing:"0.08em" }}>SUMA</div>
+            <div style={{ fontSize:16, color:C.muted, fontWeight:600 }}>—</div>
+          </div>
+          <button disabled style={{ background:"#CFCAC0", color:"#FFF", border:"none", borderRadius:999, padding:"13px 24px", fontSize:14, fontWeight:600, cursor:"default" }}>
+            Wyślij zapytanie →
           </button>
         </div>
 
