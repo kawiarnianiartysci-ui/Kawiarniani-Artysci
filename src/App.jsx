@@ -646,7 +646,7 @@ function HomeScreen({ restaurants, workshops, onStart }) {
       <div style={{ position:"relative", width:"100%", height:"clamp(400px, 58vw, 560px)", overflow:"hidden" }}>
         <video ref={videoRef} autoPlay muted playsInline poster={HERO_PHOTO}
           onLoadedMetadata={seekToStart} onEnded={handleEnded}
-          style={{ position:"absolute", inset:0, width:"100%", height:"100%", objectFit:"cover", objectPosition:"30% 68%", transform:"scale(1.25)" }}>
+          style={{ position:"absolute", inset:0, width:"100%", height:"100%", objectFit:"cover", objectPosition:"center 55%" }}>
           <source src="/videos/hero.mov" />
         </video>
         {/* delikatna faktura papieru/tektury */}
