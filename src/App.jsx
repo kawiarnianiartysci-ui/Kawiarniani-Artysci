@@ -629,11 +629,6 @@ const HERO_VIDEO_START = 5;
 
 function HomeScreen({ restaurants, workshops, onStart }) {
   const videoRef = useRef(null);
-  const steps = [
-    { n:"1", t:"Wybierasz warsztat" },
-    { n:"2", t:"Wybierasz miejsce" },
-    { n:"3", t:"Podajesz datę i liczbę osób — dostajesz wycenę" },
-  ];
   const activeRestaurants = restaurants.filter(r => !r.comingSoon);
   const activeWorkshops = workshops.filter(w => !w.comingSoon);
   const partnerLogos = [...activeRestaurants, ...activeWorkshops].filter(x => x.logo).slice(0, 6);
@@ -653,25 +648,16 @@ function HomeScreen({ restaurants, workshops, onStart }) {
         <div style={{ position:"absolute", inset:0, opacity:0.12, mixBlendMode:"multiply", backgroundImage:"url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E\")" }} />
         {/* przejście: przezroczyste u góry → kolor tła strony u dołu (delikatniejsze) */}
         <div style={{ position:"absolute", inset:0, background:`linear-gradient(180deg, rgba(237,235,230,0) 0%, rgba(237,235,230,0.05) 50%, rgba(237,235,230,0.35) 70%, rgba(237,235,230,0.75) 85%, ${C.bg} 97%)` }} />
+      </div>
 
-        <div style={{ position:"absolute", left:0, right:0, bottom:"14%", textAlign:"center", padding:"0 16px", zIndex:2 }}>
+      <div style={{ maxWidth:760, margin:"0 auto", padding:"0 16px 56px" }}>
+        <div style={{ textAlign:"center", marginBottom:36 }}>
           <h1 style={{ fontFamily:"'Montserrat', system-ui, sans-serif", fontSize:"clamp(32px,5.5vw,48px)", fontWeight:700, margin:"0 0 14px", lineHeight:1.2, color:C.text }}>
             {COPY.siteName}
           </h1>
           <p style={{ fontSize:16, color:C.text, fontWeight:600, margin:"0 auto", maxWidth:500, lineHeight:1.65 }}>
             {COPY.heroSubtitle}
           </p>
-        </div>
-      </div>
-
-      <div style={{ maxWidth:760, margin:"0 auto", padding:"0 16px 56px" }}>
-        <div style={{ display:"flex", flexDirection:"column", gap:12, marginBottom:36 }}>
-          {steps.map(s => (
-            <div key={s.n} style={{ display:"flex", alignItems:"center", gap:16, background:C.card, border:`1px solid ${C.border}`, borderRadius:14, padding:"16px 20px" }}>
-              <div style={{ width:34, height:34, borderRadius:"50%", background:C.tagBg, color:C.primary, fontWeight:700, fontSize:15, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>{s.n}</div>
-              <div style={{ fontSize:14, color:C.text }}>{s.t}</div>
-            </div>
-          ))}
         </div>
 
         <div className="home-cta-grid" style={{ marginBottom:36 }}>
