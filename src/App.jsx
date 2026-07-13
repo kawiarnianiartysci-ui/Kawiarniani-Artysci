@@ -645,7 +645,9 @@ function HomeScreen({ restaurants, workshops, onStart }) {
   return (
     <div>
       <div style={{ position:"relative", width:"100%", height:"clamp(160px, 24vw, 240px)", overflow:"hidden" }}>
-        <img src={HERO_PHOTO} alt="Wspólne malowanie przy kawie" style={{ width:"100%", height:"100%", objectFit:"cover", objectPosition:"center 75%", display:"block" }} />
+        <video autoPlay muted loop playsInline poster={HERO_PHOTO} style={{ width:"100%", height:"100%", objectFit:"cover", objectPosition:"center 75%", display:"block" }}>
+          <source src="/videos/hero.mov" />
+        </video>
         <div style={{ position:"absolute", inset:0, background:"rgba(26,26,26,0.35)" }} />
       </div>
 
