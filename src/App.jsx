@@ -35,9 +35,6 @@ const C = {
   accent: "#C5A050", text: "#1A1A1A", muted: "#6B6862",
   border: "#DDD9D2", tagBg: "#EAE8E3", selectedBg: "#F7EEDD",
 };
-// Teksturowane tło strony — kolor C.bg jako spód (na wypadek gdyby obrazek
-// się nie wczytał) + powtarzająca się faktura papieru na wierzchu.
-const TEXTURED_BG = `${C.bg} url('/images/paper-texture.png') repeat`;
 
 // ══════════════════════════════════════════════════════════════
 // ✏️  TEKST STRONY
@@ -178,7 +175,7 @@ const globalCSS = `
     font-style: normal;
   }
   *, *::before, *::after { box-sizing: border-box; }
-  body { background: ${TEXTURED_BG}; margin: 0; }
+  body { background: ${C.bg}; margin: 0; }
   input, textarea, button, select { font-family: 'Montserrat', system-ui, sans-serif; }
   input:focus, textarea:focus, select:focus { outline: 2px solid ${C.primary}; outline-offset: 1px; border-color: ${C.primary} !important; }
   .card-h { transition: box-shadow 0.18s, transform 0.15s; }
@@ -1108,7 +1105,7 @@ export default function App() {
 
   if (dataLoading) {
     return (
-      <div style={{ fontFamily:"'Montserrat', system-ui, sans-serif", background:TEXTURED_BG, minHeight:"100vh", display:"flex", alignItems:"center", justifyContent:"center", color:C.muted, fontSize:14 }}>
+      <div style={{ fontFamily:"'Montserrat', system-ui, sans-serif", background:C.bg, minHeight:"100vh", display:"flex", alignItems:"center", justifyContent:"center", color:C.muted, fontSize:14 }}>
         Wczytywanie...
       </div>
     );
@@ -1116,7 +1113,7 @@ export default function App() {
 
   if (dataError) {
     return (
-      <div style={{ fontFamily:"'Montserrat', system-ui, sans-serif", background:TEXTURED_BG, minHeight:"100vh", display:"flex", alignItems:"center", justifyContent:"center", color:C.muted, fontSize:14, textAlign:"center", padding:24 }}>
+      <div style={{ fontFamily:"'Montserrat', system-ui, sans-serif", background:C.bg, minHeight:"100vh", display:"flex", alignItems:"center", justifyContent:"center", color:C.muted, fontSize:14, textAlign:"center", padding:24 }}>
         Nie udało się wczytać danych. Odśwież stronę lub spróbuj ponownie za chwilę.
       </div>
     );
@@ -1128,7 +1125,7 @@ export default function App() {
   const step2Selected = path === "workshop" ? !!selectedR : !!selectedW;
 
   return (
-    <div style={{ fontFamily:"'Montserrat', system-ui, sans-serif", background:TEXTURED_BG, minHeight:"100vh", color:C.text }}>
+    <div style={{ fontFamily:"'Montserrat', system-ui, sans-serif", background:C.bg, minHeight:"100vh", color:C.text }}>
 
       {/* Nagłówek */}
       <header style={{ background:C.card, padding:"14px 28px", display:"flex", justifyContent:"space-between", alignItems:"center", flexWrap:"wrap", gap:12, borderBottom:`1px solid ${C.border}` }}>
