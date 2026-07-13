@@ -655,10 +655,10 @@ function HomeScreen({ restaurants, workshops, onStart }) {
         <div style={{ position:"absolute", inset:0, background:`linear-gradient(180deg, rgba(237,235,230,0) 0%, rgba(237,235,230,0.05) 50%, rgba(237,235,230,0.35) 70%, rgba(237,235,230,0.75) 85%, ${C.bg} 97%)` }} />
 
         <div style={{ position:"absolute", left:0, right:0, bottom:"14%", textAlign:"center", padding:"0 16px", zIndex:2 }}>
-          <h1 style={{ fontFamily:"'Montserrat', system-ui, sans-serif", fontSize:"clamp(32px,5.5vw,48px)", fontWeight:400, margin:"0 0 14px", lineHeight:1.2, color:C.text }}>
+          <h1 style={{ fontFamily:"'Montserrat', system-ui, sans-serif", fontSize:"clamp(32px,5.5vw,48px)", fontWeight:700, margin:"0 0 14px", lineHeight:1.2, color:C.text }}>
             {COPY.siteName}
           </h1>
-          <p style={{ fontSize:16, color:C.text, fontWeight:300, margin:"0 auto", maxWidth:500, lineHeight:1.65 }}>
+          <p style={{ fontSize:16, color:C.text, fontWeight:600, margin:"0 auto", maxWidth:500, lineHeight:1.65 }}>
             {COPY.heroSubtitle}
           </p>
         </div>
