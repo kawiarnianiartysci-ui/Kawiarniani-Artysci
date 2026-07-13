@@ -265,7 +265,6 @@ function ProfileModal({ item, type, isSelected, onToggleSelect, onClose }) {
 
         {/* Nagłówek — biały, z samą nazwą */}
         <div style={{ background:C.card, padding:"28px 28px 20px", position:"relative", textAlign:"center", borderBottom:`1px solid ${C.border}` }}>
-          <div style={{ position:"absolute", top:0, left:0, right:0, height:5, background: item.gradientBg }} />
           <button onClick={onClose} style={{ position:"absolute", top:10, right:10, background:C.tagBg, border:"none", color:C.muted, borderRadius:"50%", width:44, height:44, cursor:"pointer", fontSize:16, display:"flex", alignItems:"center", justifyContent:"center" }}>✕</button>
 
           {item.logo && (
@@ -395,16 +394,12 @@ function RestaurantCard({ r, isSelected, selectedVariantId, onToggle, onVariantS
       {r.photo ? (
         <div style={{ height:140, overflow:"hidden", position:"relative" }}>
           <img src={r.photo} alt={r.name} style={{ width:"100%", height:"100%", objectFit:"cover", display:"block" }} />
-          <div style={{ position:"absolute", bottom:0, left:0, right:0, height:5, background: r.gradientBg }} />
         </div>
       ) : r.logo ? (
         <div style={{ height:140, overflow:"hidden", position:"relative", background:"#FFFFFF", display:"flex", alignItems:"center", justifyContent:"center" }}>
           <img src={r.logo} alt={r.name} style={{ width:110, height:110, objectFit:"contain", display:"block" }} />
-          <div style={{ position:"absolute", bottom:0, left:0, right:0, height:5, background: r.gradientBg }} />
         </div>
-      ) : (
-        <div style={{ height:5, background: r.gradientBg }} />
-      )}
+      ) : null}
 
       {/* Wkrótce badge */}
       {soon && (
@@ -474,16 +469,12 @@ function WorkshopCard({ w, isSelected, onToggle, onProfile }) {
       {w.photo ? (
         <div style={{ height:140, overflow:"hidden", position:"relative" }}>
           <img src={w.photo} alt={w.name} style={{ width:"100%", height:"100%", objectFit:"cover", display:"block" }} />
-          <div style={{ position:"absolute", bottom:0, left:0, right:0, height:5, background: w.gradientBg }} />
         </div>
       ) : w.logo ? (
         <div style={{ height:140, overflow:"hidden", position:"relative", background:"#ECE4D7", display:"flex", alignItems:"center", justifyContent:"center" }}>
           <img src={w.logo} alt={w.name} style={{ width:110, height:110, objectFit:"contain", display:"block" }} />
-          <div style={{ position:"absolute", bottom:0, left:0, right:0, height:5, background: w.gradientBg }} />
         </div>
-      ) : (
-        <div style={{ height:5, background: w.gradientBg }} />
-      )}
+      ) : null}
 
       {/* Wkrótce badge */}
       {soon && (
@@ -660,14 +651,14 @@ function HomeScreen({ restaurants, workshops, onStart }) {
         </video>
         {/* delikatna faktura papieru/tektury */}
         <div style={{ position:"absolute", inset:0, opacity:0.12, mixBlendMode:"multiply", backgroundImage:"url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E\")" }} />
-        {/* przejście: przezroczyste u góry → kolor tła strony u dołu */}
-        <div style={{ position:"absolute", inset:0, background:`linear-gradient(180deg, rgba(237,235,230,0) 0%, rgba(237,235,230,0.1) 40%, rgba(237,235,230,0.55) 62%, rgba(237,235,230,0.88) 78%, ${C.bg} 92%)` }} />
+        {/* przejście: przezroczyste u góry → kolor tła strony u dołu (delikatniejsze) */}
+        <div style={{ position:"absolute", inset:0, background:`linear-gradient(180deg, rgba(237,235,230,0) 0%, rgba(237,235,230,0.05) 50%, rgba(237,235,230,0.35) 70%, rgba(237,235,230,0.75) 85%, ${C.bg} 97%)` }} />
 
-        <div style={{ position:"absolute", left:0, right:0, bottom:"18%", textAlign:"center", padding:"0 16px", zIndex:2 }}>
-          <h1 style={{ fontFamily:"'Montserrat', system-ui, sans-serif", fontSize:"clamp(26px,4vw,38px)", fontWeight:300, margin:"0 0 14px", lineHeight:1.2, color:"#FFF", textShadow:"0 2px 14px rgba(0,0,0,0.45)" }}>
+        <div style={{ position:"absolute", left:0, right:0, bottom:"14%", textAlign:"center", padding:"0 16px", zIndex:2 }}>
+          <h1 style={{ fontFamily:"'Montserrat', system-ui, sans-serif", fontSize:"clamp(32px,5.5vw,48px)", fontWeight:400, margin:"0 0 14px", lineHeight:1.2, color:C.text }}>
             {COPY.siteName}
           </h1>
-          <p style={{ fontSize:16, color:"#FFF", fontWeight:300, margin:"0 auto", maxWidth:500, lineHeight:1.65, textShadow:"0 1px 10px rgba(0,0,0,0.45)" }}>
+          <p style={{ fontSize:16, color:C.text, fontWeight:300, margin:"0 auto", maxWidth:500, lineHeight:1.65 }}>
             {COPY.heroSubtitle}
           </p>
         </div>
