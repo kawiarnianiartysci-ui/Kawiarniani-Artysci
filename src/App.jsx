@@ -43,7 +43,7 @@ const COPY = {
   siteName:    "Kawiarniani Artyści",
   tagline:     "Eventy grupowe · Poznań i okolice",
   heroTitle:   "Zaplanuj niezapomniane spotkanie.",
-  heroSubtitle:"Kawiarnie od zawsze były miejscem, gdzie rodziły się rozmowy, przyjaźnie i sztuka. Chcemy przywrócić ten klimat — pyszna kolacja i twórczy warsztat w jednym wieczorze, który naprawdę zbliża ludzi. Wybierzcie miejsce i zacznijcie wspólnie tworzyć.",
+  heroSubtitle:"Organizujemy warsztaty artystyczne w poznańskich kawiarniach i restauracjach — dla firm, urodzin i spotkań ze znajomymi.",
   contactEmail:"kawiarnianiartysci@gmail.com",
 };
 
@@ -164,14 +164,6 @@ function useSheetData() {
   return { restaurants, workshops, dataLoading, dataError };
 }
 
-const OCCASIONS = [
-  { id: "all",          label: "Wszystkie" },
-  { id: "bachelorette", label: "Wieczór panieński" },
-  { id: "birthday",     label: "Urodziny" },
-  { id: "team",         label: "Team building" },
-  { id: "other",        label: "Inna okazja" },
-];
-
 // ══ CSS ══════════════════════════════════════════════════════
 const PAN_PIZZA_FONT = "/fonts/pan-pizza.ttf";
 
@@ -184,8 +176,8 @@ const globalCSS = `
   }
   *, *::before, *::after { box-sizing: border-box; }
   body { background: ${C.bg}; margin: 0; }
-  input, textarea, button { font-family: 'Montserrat', system-ui, sans-serif; }
-  input:focus, textarea:focus { outline: 2px solid ${C.primary}; outline-offset: 1px; border-color: ${C.primary} !important; }
+  input, textarea, button, select { font-family: 'Montserrat', system-ui, sans-serif; }
+  input:focus, textarea:focus, select:focus { outline: 2px solid ${C.primary}; outline-offset: 1px; border-color: ${C.primary} !important; }
   .card-h { transition: box-shadow 0.18s, transform 0.15s; }
   .card-h:hover { box-shadow: 0 8px 28px rgba(0,0,0,0.12) !important; transform: translateY(-2px); }
   .gallery-thumb img { transition: transform 0.25s ease; }
@@ -196,22 +188,16 @@ const globalCSS = `
   @keyframes slideUp { from { transform: translateY(100%); opacity:0; } to { transform: translateY(0); opacity:1; } }
   @keyframes fadeIn  { from { opacity: 0; } to { opacity: 1; } }
   a { color: inherit; }
-  .tile-grid { display:flex; flex-wrap:wrap; justify-content:center; gap:14px; align-items:stretch; }
-  .tile-card { width: calc((100% - 42px) / 4); display:flex; }
-  @media (max-width: 980px) {
-    .tile-card { width: calc((100% - 28px) / 3); }
+  .wizard-list { display:flex; flex-direction:column; gap:14px; }
+  @media (min-width: 640px) {
+    .wizard-list { display:grid; grid-template-columns: repeat(2, 1fr); gap:16px; align-items:stretch; }
   }
-  @media (max-width: 640px) {
-    .tile-card { width: calc((100% - 14px) / 2); }
+  .home-cta-grid { display:flex; flex-direction:column; gap:16px; }
+  @media (min-width: 640px) {
+    .home-cta-grid { flex-direction:row; }
   }
-  @media (max-width: 420px) {
-    .tile-card { width: 100%; }
-  }
-  @media (max-width: 620px) {
-    .search-bar { flex-direction: column; align-items: stretch !important; border-radius: 20px !important; padding: 10px !important; }
-    .search-segment { padding: 10px 14px !important; }
-    .search-divider { width: 100% !important; height: 1px !important; margin: 2px 0 !important; align-self: stretch; }
-    .search-btn { width: 100%; height: 46px !important; padding: 0 20px !important; font-size: 14px !important; margin-top: 6px; }
+  @media (max-width: 480px) {
+    .wizard-progress-label { display:none; }
   }
 `;
 
@@ -280,7 +266,7 @@ function ProfileModal({ item, type, isSelected, onToggleSelect, onClose }) {
         {/* Nagłówek — biały, z samą nazwą */}
         <div style={{ background:C.card, padding:"28px 28px 20px", position:"relative", textAlign:"center", borderBottom:`1px solid ${C.border}` }}>
           <div style={{ position:"absolute", top:0, left:0, right:0, height:5, background: item.gradientBg }} />
-          <button onClick={onClose} style={{ position:"absolute", top:14, right:14, background:C.tagBg, border:"none", color:C.muted, borderRadius:"50%", width:32, height:32, cursor:"pointer", fontSize:15, display:"flex", alignItems:"center", justifyContent:"center" }}>✕</button>
+          <button onClick={onClose} style={{ position:"absolute", top:10, right:10, background:C.tagBg, border:"none", color:C.muted, borderRadius:"50%", width:44, height:44, cursor:"pointer", fontSize:16, display:"flex", alignItems:"center", justifyContent:"center" }}>✕</button>
 
           {item.logo && (
             <div style={{ width:72, height:72, margin:"0 auto 14px" }}>
@@ -471,7 +457,7 @@ function RestaurantCard({ r, isSelected, selectedVariantId, onToggle, onVariantS
 
       {/* Profile link */}
       <div style={{ padding:"0 20px 16px" }}>
-        <button onClick={e => { e.stopPropagation(); onProfile(); }} style={{ fontSize:12, color: soon ? "#BBB" : C.primary, background:"transparent", border:"none", cursor:"pointer", padding:0, fontWeight:500, textDecoration: soon ? "none" : "underline", fontFamily:"'Montserrat', system-ui, sans-serif" }}>
+        <button onClick={e => { e.stopPropagation(); onProfile(); }} style={{ fontSize:12, color: soon ? "#BBB" : C.primary, background:"transparent", border:"none", cursor:"pointer", padding:"11px 0", minHeight:44, display:"inline-flex", alignItems:"center", fontWeight:500, textDecoration: soon ? "none" : "underline", fontFamily:"'Montserrat', system-ui, sans-serif" }}>
           {soon ? "Profil w przygotowaniu" : "Zobacz profil →"}
         </button>
       </div>
@@ -535,7 +521,7 @@ function WorkshopCard({ w, isSelected, onToggle, onProfile }) {
       </div>
 
       <div style={{ padding:"0 20px 16px" }}>
-        <button onClick={e => { e.stopPropagation(); onProfile(); }} style={{ fontSize:12, color: soon ? "#BBB" : C.primary, background:"transparent", border:"none", cursor:"pointer", padding:0, fontWeight:500, textDecoration: soon ? "none" : "underline", fontFamily:"'Montserrat', system-ui, sans-serif" }}>
+        <button onClick={e => { e.stopPropagation(); onProfile(); }} style={{ fontSize:12, color: soon ? "#BBB" : C.primary, background:"transparent", border:"none", cursor:"pointer", padding:"11px 0", minHeight:44, display:"inline-flex", alignItems:"center", fontWeight:500, textDecoration: soon ? "none" : "underline", fontFamily:"'Montserrat', system-ui, sans-serif" }}>
           {soon ? "Profil w przygotowaniu" : "Zobacz profil artysty →"}
         </button>
         {w.requiresSeparateRoom && (
@@ -546,7 +532,7 @@ function WorkshopCard({ w, isSelected, onToggle, onProfile }) {
   );
 }
 
-// ══ Formularz zapytania ══════════════════════════════════════
+// ══ Polityka prywatności / stopka ═══════════════════════════
 
 function PrivacyPolicyModal({ onClose }) {
   const section = { marginBottom: 18 };
@@ -644,21 +630,214 @@ for (let h = 8; h <= 23; h++) {
   TIME_OPTIONS.push(`${String(h).padStart(2, "0")}:30`);
 }
 
-function InquiryModal({ restaurant, variant, workshop, groupSize, prefilledDate, prefilledTime, onClose }) {
-  const [form, setForm] = useState({ name:"", email:"", phone:"", date: prefilledDate || "", time: prefilledTime || "", message:"" });
+// ══ Ekran powitalny ══════════════════════════════════════════
+
+function HomeScreen({ restaurants, workshops, onStart }) {
+  const steps = [
+    { n:"1", t:"Wybierasz warsztat" },
+    { n:"2", t:"Wybierasz miejsce" },
+    { n:"3", t:"Podajesz datę i liczbę osób — dostajesz wycenę" },
+  ];
+  const activeRestaurants = restaurants.filter(r => !r.comingSoon);
+  const activeWorkshops = workshops.filter(w => !w.comingSoon);
+  const partnerLogos = [...activeRestaurants, ...activeWorkshops].filter(x => x.logo).slice(0, 6);
+
+  return (
+    <div>
+      <div style={{ position:"relative", width:"100%", height:"clamp(160px, 24vw, 240px)", overflow:"hidden" }}>
+        <img src={HERO_PHOTO} alt="Wspólne malowanie przy kawie" style={{ width:"100%", height:"100%", objectFit:"cover", objectPosition:"center 75%", display:"block" }} />
+        <div style={{ position:"absolute", inset:0, background:"rgba(26,26,26,0.35)" }} />
+      </div>
+
+      <div style={{ maxWidth:760, margin:"0 auto", padding:"36px 16px 56px" }}>
+        <div style={{ textAlign:"center", marginBottom:36 }}>
+          <h1 style={{ fontFamily:"'Montserrat', system-ui, sans-serif", fontSize:"clamp(26px,4vw,38px)", fontWeight:300, margin:"0 0 14px", lineHeight:1.2, color:C.text }}>
+            {COPY.siteName}
+          </h1>
+          <p style={{ fontSize:16, color:C.muted, fontWeight:300, margin:"0 auto", maxWidth:500, lineHeight:1.65 }}>
+            {COPY.heroSubtitle}
+          </p>
+        </div>
+
+        <div style={{ display:"flex", flexDirection:"column", gap:12, marginBottom:36 }}>
+          {steps.map(s => (
+            <div key={s.n} style={{ display:"flex", alignItems:"center", gap:16, background:C.card, border:`1px solid ${C.border}`, borderRadius:14, padding:"16px 20px" }}>
+              <div style={{ width:34, height:34, borderRadius:"50%", background:C.tagBg, color:C.primary, fontWeight:700, fontSize:15, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>{s.n}</div>
+              <div style={{ fontSize:14, color:C.text }}>{s.t}</div>
+            </div>
+          ))}
+        </div>
+
+        <div className="home-cta-grid" style={{ marginBottom:36 }}>
+          <button onClick={() => onStart("workshop")} style={{ flex:1, textAlign:"left", background:C.primary, color:"#FFF", border:"none", borderRadius:16, padding:"26px 24px", cursor:"pointer", minHeight:100 }}>
+            <div style={{ fontFamily:"'Montserrat', system-ui, sans-serif", fontSize:19, fontWeight:500, marginBottom:6 }}>Zacznij od warsztatu →</div>
+            <div style={{ fontSize:13, opacity:0.85 }}>Wiem, co chcemy robić</div>
+          </button>
+          <button onClick={() => onStart("restaurant")} style={{ flex:1, textAlign:"left", background:C.card, color:C.text, border:`2px solid ${C.primary}`, borderRadius:16, padding:"26px 24px", cursor:"pointer", minHeight:100 }}>
+            <div style={{ fontFamily:"'Montserrat', system-ui, sans-serif", fontSize:19, fontWeight:500, marginBottom:6, color:C.primary }}>Zacznij od miejsca →</div>
+            <div style={{ fontSize:13, color:C.muted }}>Wiem, gdzie chcemy być</div>
+          </button>
+        </div>
+
+        <div style={{ textAlign:"center" }}>
+          <div style={{ fontSize:11, color:C.muted, letterSpacing:"0.08em", marginBottom:14 }}>
+            {activeWorkshops.length} warsztatów · {activeRestaurants.length} miejsc w Poznaniu
+          </div>
+          {partnerLogos.length > 0 && (
+            <div style={{ display:"flex", gap:18, justifyContent:"center", flexWrap:"wrap", alignItems:"center" }}>
+              {partnerLogos.map(p => (
+                <img key={p.id} src={p.logo} alt={p.name} style={{ height:40, objectFit:"contain", opacity:0.75 }} />
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ══ Pasek postępu kreatora ═══════════════════════════════════
+
+function WizardProgressBar({ step, path }) {
+  const labels = path === "workshop"
+    ? ["Warsztat", "Miejsce", "Cena i termin", "Kontakt"]
+    : ["Miejsce", "Warsztat", "Cena i termin", "Kontakt"];
+  return (
+    <div style={{ display:"flex", alignItems:"flex-start", maxWidth:640, margin:"0 auto", padding:"18px 16px 0" }}>
+      {labels.map((l, i) => {
+        const n = i + 1;
+        const active = n === step;
+        const done = n < step;
+        return (
+          <div key={l} style={{ display:"flex", alignItems:"center", flex: n < labels.length ? 1 : "0 0 auto" }}>
+            <div style={{ display:"flex", flexDirection:"column", alignItems:"center", gap:4, minWidth:0 }}>
+              <div style={{ width:26, height:26, borderRadius:"50%", flexShrink:0, display:"flex", alignItems:"center", justifyContent:"center", fontSize:12, fontWeight:700, background: active || done ? C.primary : C.tagBg, color: active || done ? "#FFF" : C.muted }}>
+                {done ? "✓" : n}
+              </div>
+              <span className="wizard-progress-label" style={{ fontSize:9, color: active ? C.primary : C.muted, fontWeight: active ? 600 : 400, whiteSpace:"nowrap", textAlign:"center" }}>{l}</span>
+            </div>
+            {n < labels.length && <div style={{ flex:1, height:2, background: done ? C.primary : C.border, margin:"0 6px", marginTop:12 }} />}
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+// ══ Krok 1 / krok 2 — wybór warsztatu lub restauracji ═══════
+
+function PickStep({ kind, items, selectedId, selectedVariantId, onToggle, onVariantSelect, onProfile, onFallback, onBackToStep1 }) {
+  const isRestaurant = kind === "restaurant";
+  const empty = items.length === 0;
+  return (
+    <div style={{ maxWidth:900, margin:"0 auto", padding:"24px 16px 20px" }}>
+      <h2 style={{ fontFamily:"'Montserrat', system-ui, sans-serif", fontSize:24, fontWeight:400, margin:"0 0 18px", textAlign:"center", color:C.text }}>
+        {isRestaurant ? "Wybierz miejsce" : "Wybierz warsztat"}
+      </h2>
+      {empty ? (
+        <div style={{ textAlign:"center", padding:"40px 20px", background:C.card, borderRadius:14, border:`1px solid ${C.border}` }}>
+          <p style={{ fontSize:14, color:C.muted, lineHeight:1.6, maxWidth:420, margin:"0 auto 20px" }}>
+            {isRestaurant
+              ? "Ten warsztat nie odbywa się jeszcze w żadnym z dostępnych miejsc. Zmień wybór albo napisz do nas — poszukamy lokalu."
+              : "Żaden dostępny warsztat nie pasuje jeszcze do tego miejsca. Zmień wybór albo napisz do nas — poszukamy artysty."}
+          </p>
+          <div style={{ display:"flex", gap:10, justifyContent:"center", flexWrap:"wrap" }}>
+            <button onClick={onBackToStep1} style={{ padding:"12px 22px", borderRadius:9, border:`1px solid ${C.border}`, background:"#FFF", color:C.text, fontSize:13, fontWeight:600, cursor:"pointer", minHeight:44 }}>← Zmień wybór</button>
+            <button onClick={onFallback} style={{ padding:"12px 22px", borderRadius:9, border:"none", background:C.primary, color:"#FFF", fontSize:13, fontWeight:600, cursor:"pointer", minHeight:44 }}>Napisz do nas</button>
+          </div>
+        </div>
+      ) : (
+        <div className="wizard-list">
+          {items.map(item => (
+            isRestaurant ? (
+              <RestaurantCard key={item.id} r={item}
+                isSelected={selectedId === item.id}
+                selectedVariantId={selectedId === item.id ? selectedVariantId : null}
+                onToggle={() => onToggle(item.id)}
+                onVariantSelect={onVariantSelect}
+                onProfile={() => onProfile(item)} />
+            ) : (
+              <WorkshopCard key={item.id} w={item}
+                isSelected={selectedId === item.id}
+                onToggle={() => onToggle(item.id)}
+                onProfile={() => onProfile(item)} />
+            )
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ══ Krok 3 — liczba osób, termin, cena na żywo ═══════════════
+
+function Step3PriceAndDate({ groupSize, minGroup, maxGroup, onGroupSizeChange, selectedDate, onDateChange, selectedTime, onTimeChange, ppp, total }) {
+  return (
+    <div style={{ maxWidth:480, margin:"0 auto", padding:"24px 16px 20px" }}>
+      <h2 style={{ fontFamily:"'Montserrat', system-ui, sans-serif", fontSize:24, fontWeight:400, margin:"0 0 22px", textAlign:"center", color:C.text }}>
+        Liczba osób, termin i cena
+      </h2>
+
+      <div style={{ background:C.card, border:`1px solid ${C.border}`, borderRadius:14, padding:20, marginBottom:16 }}>
+        <div style={{ fontSize:11, fontWeight:700, color:C.text, letterSpacing:"0.05em", marginBottom:12 }}>LICZBA OSÓB</div>
+        <div style={{ display:"flex", alignItems:"center", gap:18, justifyContent:"center" }}>
+          <button onClick={() => onGroupSizeChange(Math.max(minGroup, groupSize - 1))} style={{ width:44, height:44, borderRadius:"50%", border:`1px solid ${C.border}`, background:"transparent", cursor:"pointer", fontSize:20, color:C.primary }}>−</button>
+          <span style={{ fontSize:26, fontWeight:600, color:C.primary, minWidth:36, textAlign:"center" }}>{groupSize}</span>
+          <button onClick={() => onGroupSizeChange(Math.min(maxGroup, groupSize + 1))} style={{ width:44, height:44, borderRadius:"50%", border:`1px solid ${C.border}`, background:"transparent", cursor:"pointer", fontSize:20, color:C.primary }}>+</button>
+        </div>
+        <div style={{ textAlign:"center", fontSize:11, color:C.muted, marginTop:10 }}>
+          Dopuszczalny zakres dla tego wyboru: {minGroup}–{maxGroup} os.
+        </div>
+      </div>
+
+      <div style={{ background:C.card, border:`1px solid ${C.border}`, borderRadius:14, padding:20, marginBottom:16, display:"flex", gap:12, flexWrap:"wrap" }}>
+        <div style={{ flex:"1 1 160px" }}>
+          <div style={{ fontSize:11, fontWeight:700, color:C.text, letterSpacing:"0.05em", marginBottom:8 }}>DATA</div>
+          <input type="date" value={selectedDate} min={MIN_BOOKING_DATE} onChange={e => onDateChange(e.target.value)}
+            style={{ width:"100%", padding:"11px 13px", border:`1px solid ${C.border}`, borderRadius:8, fontSize:14, color:C.text, background:"#FAFAF8", minHeight:44 }} />
+        </div>
+        <div style={{ flex:"1 1 130px" }}>
+          <div style={{ fontSize:11, fontWeight:700, color:C.text, letterSpacing:"0.05em", marginBottom:8 }}>GODZINA</div>
+          <select value={selectedTime} onChange={e => onTimeChange(e.target.value)}
+            style={{ width:"100%", padding:"11px 13px", border:`1px solid ${C.border}`, borderRadius:8, fontSize:14, color:C.text, background:"#FAFAF8", minHeight:44 }}>
+            <option value="">Wybierz godzinę</option>
+            {TIME_OPTIONS.map(t => <option key={t} value={t}>{t}</option>)}
+          </select>
+        </div>
+      </div>
+
+      <div style={{ background:C.primary, borderRadius:14, padding:22, textAlign:"center" }}>
+        <div style={{ fontFamily:"'Montserrat', system-ui, sans-serif", fontSize:22, color:"#FFF", fontWeight:400 }}>
+          {groupSize} osób × {ppp} zł = {total.toLocaleString("pl-PL")} zł
+        </div>
+        <div style={{ fontSize:11, color:"rgba(255,255,255,0.7)", marginTop:8 }}>Szacunkowo. Ostateczną cenę potwierdzamy mailem.</div>
+      </div>
+    </div>
+  );
+}
+
+// ══ Krok 4 — podsumowanie i formularz kontaktowy ═════════════
+
+function Step4ContactForm({ restaurant, variant, workshop, groupSize, selectedDate, selectedTime, ppp, total, onEditStep, onSubmitted }) {
+  const [form, setForm] = useState({ name:"", email:"", phone:"", message:"" });
   const [consent, setConsent] = useState(false);
   const [showPrivacy, setShowPrivacy] = useState(false);
-  const [sent, setSent] = useState(false);
   const [sending, setSending] = useState(false);
+  const [errors, setErrors] = useState({});
   const [error, setError] = useState("");
   const set = k => e => setForm({ ...form, [k]: e.target.value });
-  const inp = { width:"100%", padding:"11px 13px", border:`1px solid ${C.border}`, borderRadius:8, fontSize:14, color:C.text, background:"#FAFAF8" };
+  const inp = { width:"100%", padding:"11px 13px", border:`1px solid ${C.border}`, borderRadius:8, fontSize:14, color:C.text, background:"#FAFAF8", minHeight:44 };
   const lbl = { display:"block", fontSize:11, fontWeight:600, color:C.muted, marginBottom:5, letterSpacing:"0.08em" };
+  const errStyle = { color:"#C0392B", fontSize:11, marginTop:5 };
 
   const send = () => {
-    if (!form.name || !form.email) { alert("Podaj imię i adres email."); return; }
-    if (!consent) { alert("Zaznacz zgodę na przetwarzanie danych osobowych."); return; }
-    if (form.date && form.date < MIN_BOOKING_DATE) { alert("Termin musi być co najmniej 7 dni roboczych od dziś."); return; }
+    const nextErrors = {};
+    if (!form.name) nextErrors.name = "Podaj imię i nazwisko.";
+    if (!form.email) nextErrors.email = "Podaj adres email.";
+    if (!consent) nextErrors.consent = "Zaznacz zgodę na przetwarzanie danych osobowych.";
+    setErrors(nextErrors);
+    if (Object.keys(nextErrors).length > 0) return;
+
     setSending(true); setError("");
     fetch("/api/inquiry", {
       method: "POST",
@@ -675,77 +854,113 @@ function InquiryModal({ restaurant, variant, workshop, groupSize, prefilledDate,
         artistInvoicing: workshop?.invoicing || "",
         artistRequirements: workshop?.requirements || "",
         groupSize,
-        date: form.time ? `${form.date}, ${form.time}` : form.date,
+        date: selectedTime ? `${selectedDate}, ${selectedTime}` : selectedDate,
         message: form.message,
       }),
     })
       .then(r => { if (!r.ok) throw new Error(); return r.json(); })
-      .then(() => { setSending(false); setSent(true); setTimeout(onClose, 3000); })
+      .then(() => { setSending(false); onSubmitted(); })
       .catch(() => { setSending(false); setError("Nie udało się wysłać zapytania. Spróbuj ponownie."); });
   };
 
+  const summaryRows = [
+    { label:"Warsztat", value: workshop ? `${workshop.name} (${workshop.artist})` : "—", step:1 },
+    { label:"Miejsce", value: restaurant ? `${restaurant.name}${variant ? " · " + variant.label : ""}` : "—", step:2 },
+    { label:"Termin", value: selectedDate ? `${new Date(selectedDate).toLocaleDateString("pl-PL",{day:"numeric",month:"long",year:"numeric"})}${selectedTime ? ", " + selectedTime : ""}` : "do ustalenia", step:3 },
+    { label:"Liczba osób", value: `${groupSize} osób`, step:3 },
+    { label:"Kwota", value: total > 0 ? `${total.toLocaleString("pl-PL")} zł` : "—", step:3 },
+  ];
+
   return (
-    <div onClick={e => e.target === e.currentTarget && onClose()} style={{ position:"fixed", inset:0, background:"rgba(0,0,0,0.6)", display:"flex", alignItems:"center", justifyContent:"center", zIndex:500, padding:16 }}>
-      <div style={{ background:"#FFF", borderRadius:16, padding:32, maxWidth:460, width:"100%", maxHeight:"90vh", overflowY:"auto" }}>
-        {sent ? (
-          <div style={{ textAlign:"center", padding:"32px 0" }}>
-            <div style={{ width:64, height:64, borderRadius:"50%", background:C.primary, color:"#FFF", fontSize:30, display:"flex", alignItems:"center", justifyContent:"center", margin:"0 auto 16px" }}>✓</div>
-            <div style={{ fontFamily:"'Montserrat', system-ui, sans-serif", fontSize:28, fontWeight:400, marginBottom:10 }}>Zapytanie wysłane!</div>
-            <p style={{ color:C.muted, fontSize:14, lineHeight:1.65, margin:0 }}>Skontaktujemy się z Tobą w ciągu 24 godzin.</p>
+    <div style={{ maxWidth:480, margin:"0 auto", padding:"24px 16px 60px" }}>
+      <h2 style={{ fontFamily:"'Montserrat', system-ui, sans-serif", fontSize:24, fontWeight:400, margin:"0 0 18px", textAlign:"center", color:C.text }}>
+        Podsumowanie i wysyłka
+      </h2>
+
+      <div style={{ background:C.card, border:`1px solid ${C.border}`, borderRadius:14, padding:"6px 20px", marginBottom:20 }}>
+        {summaryRows.map((row, i) => (
+          <div key={row.label} style={{ display:"flex", justifyContent:"space-between", alignItems:"center", padding:"12px 0", borderBottom: i < summaryRows.length - 1 ? `1px solid ${C.border}` : "none" }}>
+            <div>
+              <div style={{ fontSize:10, color:C.muted, letterSpacing:"0.08em" }}>{row.label.toUpperCase()}</div>
+              <div style={{ fontSize:13, color:C.text }}>{row.value}</div>
+            </div>
+            {onEditStep && (
+              <button onClick={() => onEditStep(row.step)} style={{ background:"none", border:"none", color:C.primary, fontSize:11, textDecoration:"underline", cursor:"pointer", padding:"10px 0", minHeight:44 }}>zmień</button>
+            )}
           </div>
-        ) : (
-          <>
-            <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", marginBottom:22 }}>
-              <div>
-                <div style={{ fontFamily:"'Montserrat', system-ui, sans-serif", fontSize:26, fontWeight:400, marginBottom:4 }}>Wyślij zapytanie</div>
-                <p style={{ fontSize:12, color:C.muted, margin:0 }}>{restaurant?.name || "–"}{variant ? ` · ${variant.label}` : ""}{workshop ? ` + ${workshop.name}` : ""} · {groupSize} os.</p>
-              </div>
-              <button onClick={onClose} style={{ background:"none", border:"none", fontSize:20, cursor:"pointer", color:C.muted, padding:4, lineHeight:1 }}>✕</button>
-            </div>
-            {[
-              { k:"name",  l:"Imię i nazwisko *", t:"text",  p:"Anna Kowalska"      },
-              { k:"email", l:"Email *",            t:"email", p:"anna@email.com"     },
-              { k:"phone", l:"Telefon",            t:"tel",   p:"+48 500 000 000"   },
-            ].map(f => (
-              <div key={f.k} style={{ marginBottom:14 }}>
-                <label style={lbl}>{f.l}</label>
-                <input type={f.t} placeholder={f.p} value={form[f.k]} onChange={set(f.k)} style={inp} />
-              </div>
-            ))}
-            <div style={{ display:"flex", gap:10, marginBottom:14 }}>
-              <div style={{ flex:"1 1 150px" }}>
-                <label style={lbl}>Preferowana data</label>
-                <input type="date" value={form.date} min={MIN_BOOKING_DATE} onChange={set("date")} style={inp} />
-              </div>
-              <div style={{ flex:"1 1 110px" }}>
-                <label style={lbl}>Godzina</label>
-                <select value={form.time} onChange={set("time")} style={inp}>
-                  <option value="">Wybierz godzinę</option>
-                  {TIME_OPTIONS.map(t => <option key={t} value={t}>{t}</option>)}
-                </select>
-              </div>
-            </div>
-            <div style={{ marginBottom:22 }}>
-              <label style={lbl}>Wiadomość / specjalne życzenia</label>
-              <textarea rows={3} placeholder="Okazja, szczególne wymagania, pytania..." value={form.message} onChange={set("message")} style={{ ...inp, resize:"vertical" }} />
-            </div>
-            <label style={{ display:"flex", gap:9, alignItems:"flex-start", fontSize:11, color:C.muted, lineHeight:1.5, marginBottom:16, cursor:"pointer" }}>
-              <input type="checkbox" checked={consent} onChange={e => setConsent(e.target.checked)} style={{ marginTop:2, flexShrink:0 }} />
-              <span>Wyrażam zgodę na przetwarzanie moich danych osobowych w celu obsługi zapytania. Więcej informacji w{" "}
-                <button type="button" onClick={e => { e.preventDefault(); setShowPrivacy(true); }} style={{ background:"none", border:"none", padding:0, color:C.primary, textDecoration:"underline", cursor:"pointer", fontSize:11 }}>
-                  Polityce prywatności
-                </button>.
-              </span>
-            </label>
-            {error && <p style={{ color:"#C0392B", fontSize:12, marginBottom:12 }}>{error}</p>}
-            <button onClick={send} disabled={sending} style={{ width:"100%", background:C.primary, color:"#FFF", border:"none", borderRadius:9, padding:16, fontSize:15, fontWeight:600, cursor: sending ? "default" : "pointer", opacity: sending ? 0.7 : 1 }}>
-              {sending ? "Wysyłanie..." : "Wyślij zapytanie →"}
-            </button>
-            <p style={{ fontSize:11, color:"#C0BEB9", textAlign:"center", marginTop:12, marginBottom:0 }}>Odpowiadamy w ciągu 24 godz.</p>
-          </>
-        )}
+        ))}
       </div>
+
+      {[
+        { k:"name",  l:"Imię i nazwisko *", t:"text",  p:"Anna Kowalska" },
+        { k:"email", l:"Email *",           t:"email", p:"anna@email.com" },
+        { k:"phone", l:"Telefon",           t:"tel",   p:"+48 500 000 000" },
+      ].map(f => (
+        <div key={f.k} style={{ marginBottom:14 }}>
+          <label style={lbl}>{f.l}</label>
+          <input type={f.t} placeholder={f.p} value={form[f.k]} onChange={set(f.k)} style={inp} />
+          {errors[f.k] && <div style={errStyle}>{errors[f.k]}</div>}
+        </div>
+      ))}
+      <div style={{ marginBottom:18 }}>
+        <label style={lbl}>Dodatkowe uwagi</label>
+        <textarea rows={3} placeholder="Okazja, szczególne wymagania, pytania..." value={form.message} onChange={set("message")} style={{ ...inp, resize:"vertical", minHeight:70 }} />
+      </div>
+      <label style={{ display:"flex", gap:9, alignItems:"flex-start", fontSize:11, color:C.muted, lineHeight:1.5, marginBottom:6, cursor:"pointer" }}>
+        <input type="checkbox" checked={consent} onChange={e => setConsent(e.target.checked)} style={{ marginTop:2, flexShrink:0, width:18, height:18 }} />
+        <span>Wyrażam zgodę na przetwarzanie moich danych osobowych w celu obsługi zapytania. Więcej informacji w{" "}
+          <button type="button" onClick={e => { e.preventDefault(); setShowPrivacy(true); }} style={{ background:"none", border:"none", padding:0, color:C.primary, textDecoration:"underline", cursor:"pointer", fontSize:11 }}>
+            Polityce prywatności
+          </button>.
+        </span>
+      </label>
+      {errors.consent && <div style={{ ...errStyle, marginBottom:12 }}>{errors.consent}</div>}
+      {error && <p style={{ color:"#C0392B", fontSize:12, marginBottom:12 }}>{error}</p>}
+      <button onClick={send} disabled={sending} style={{ width:"100%", background:C.primary, color:"#FFF", border:"none", borderRadius:9, padding:16, fontSize:15, fontWeight:600, cursor: sending ? "default" : "pointer", opacity: sending ? 0.7 : 1, minHeight:52 }}>
+        {sending ? "Wysyłanie..." : "Wyślij zapytanie →"}
+      </button>
+      <p style={{ fontSize:11, color:"#B8B4AE", textAlign:"center", marginTop:12, marginBottom:0 }}>Odpowiadamy w ciągu 24 godz.</p>
+
       {showPrivacy && <PrivacyPolicyModal onClose={() => setShowPrivacy(false)} />}
+    </div>
+  );
+}
+
+// ══ Ekran potwierdzenia ══════════════════════════════════════
+
+function ConfirmationScreen({ onBackToHome }) {
+  return (
+    <div style={{ maxWidth:420, margin:"0 auto", padding:"80px 16px", textAlign:"center" }}>
+      <div style={{ width:64, height:64, borderRadius:"50%", background:C.primary, color:"#FFF", fontSize:30, display:"flex", alignItems:"center", justifyContent:"center", margin:"0 auto 20px" }}>✓</div>
+      <div style={{ fontFamily:"'Montserrat', system-ui, sans-serif", fontSize:28, fontWeight:400, marginBottom:12, color:C.text }}>Zapytanie wysłane!</div>
+      <p style={{ color:C.muted, fontSize:14, lineHeight:1.65, margin:"0 0 28px" }}>Odpiszemy w ciągu 24 godzin.</p>
+      <button onClick={onBackToHome} style={{ background:C.primary, color:"#FFF", border:"none", borderRadius:9, padding:"14px 28px", fontSize:14, fontWeight:600, cursor:"pointer", minHeight:44 }}>
+        Wróć na stronę główną
+      </button>
+    </div>
+  );
+}
+
+// ══ Stały dolny pasek kreatora ═══════════════════════════════
+
+function WizardStickyBar({ restaurant, workshop, groupSize, ppp, total, canAdvance, nextLabel, onNext, onBack }) {
+  const summary = restaurant || workshop
+    ? [restaurant?.name, workshop?.name].filter(Boolean).join(" + ")
+    : "Wybierz, aby kontynuować";
+  return (
+    <div className="bar-in" style={{ position:"fixed", bottom:0, left:0, right:0, background:"#1C1C1C", padding:"14px 20px", display:"flex", justifyContent:"space-between", alignItems:"center", gap:12, zIndex:200, boxShadow:"0 -4px 28px rgba(0,0,0,0.2)" }}>
+      <div style={{ display:"flex", alignItems:"center", gap:14, minWidth:0 }}>
+        <button onClick={onBack} style={{ background:"none", border:"1px solid #444", color:"#CCC", borderRadius:9, padding:"10px 14px", fontSize:13, cursor:"pointer", flexShrink:0, minHeight:44 }}>← Wstecz</button>
+        <div style={{ minWidth:0 }}>
+          <div style={{ fontFamily:"'Montserrat', system-ui, sans-serif", fontSize:15, color:"#FFF", fontWeight:400, whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis" }}>
+            {total > 0 ? `${total.toLocaleString("pl-PL")} zł` : summary}
+          </div>
+          {total > 0 && <div style={{ fontSize:11, color:"#888" }}>{groupSize} os. × {ppp} zł</div>}
+        </div>
+      </div>
+      <button onClick={onNext} disabled={!canAdvance} style={{ background: canAdvance ? C.accent : "#444", color: canAdvance ? "#1A1A1A" : "#888", border:"none", borderRadius:9, padding:"13px 22px", fontSize:14, fontWeight:600, cursor: canAdvance ? "pointer" : "default", flexShrink:0, minHeight:44 }}>
+        {nextLabel}
+      </button>
     </div>
   );
 }
@@ -807,15 +1022,14 @@ function PartnersView() {
 
 export default function App() {
   const { restaurants, workshops, dataLoading, dataError } = useSheetData();
-  const [mode,           setMode]           = useState("client"); // "client" | "b2b"
-  const [openField,      setOpenField]      = useState(null); // null | "people" | "date" | "occasion" — który segment paska wyszukiwania jest rozwinięty
-  const searchBarRef = useRef(null);
-  const [occasion,        setOccasion]        = useState("all");
+  const [mode,            setMode]            = useState("client"); // "client" | "b2b"
+  const [path,            setPath]            = useState(null);     // null | "workshop" | "restaurant" — null = ekran powitalny
+  const [wizardStep,      setWizardStep]      = useState(1);         // 1..4
+  const [submitted,       setSubmitted]       = useState(false);
   const [selectedR,       setSelectedR]       = useState(null);
   const [selectedVariant, setSelectedVariant] = useState(null);
   const [selectedW,       setSelectedW]       = useState(null);
   const [groupSize,       setGroupSize]       = useState(10);
-  const [showInquiry,     setShowInquiry]     = useState(false);
   const [profileItem,     setProfileItem]     = useState(null);
   const [selectedDate,    setSelectedDate]    = useState("");
   const [selectedTime,    setSelectedTime]    = useState("");
@@ -828,20 +1042,17 @@ export default function App() {
     style.textContent = globalCSS; document.head.appendChild(style);
   }, []);
 
-  useEffect(() => {
-    if (!openField) return;
-    const handleOutsideClick = e => {
-      if (searchBarRef.current && !searchBarRef.current.contains(e.target)) setOpenField(null);
-    };
-    document.addEventListener("mousedown", handleOutsideClick);
-    return () => document.removeEventListener("mousedown", handleOutsideClick);
-  }, [openField]);
-
   const handleToggleR = rId => {
     if (selectedR === rId) { setSelectedR(null); setSelectedVariant(null); return; }
     setSelectedR(rId);
     const r = restaurants.find(r => r.id === rId);
     setSelectedVariant(r?.variants[0]?.id ?? null);
+  };
+
+  const resetToHome = () => {
+    setPath(null); setWizardStep(1); setSubmitted(false);
+    setSelectedR(null); setSelectedVariant(null); setSelectedW(null);
+    setGroupSize(10); setSelectedDate(""); setSelectedTime("");
   };
 
   const workshop   = workshops.find(w => w.id === selectedW);
@@ -858,14 +1069,18 @@ export default function App() {
   const variant    = restaurant?.variants.find(v => v.id === selectedVariant);
   const ppp        = (variant?.price ?? 0) + (workshop?.pricePerPerson ?? 0);
   const total      = ppp * groupSize;
-  const hasSelection = selectedR || selectedW;
 
-  const SectionTitle = ({ title, count }) => (
-    <div style={{ display:"flex", alignItems:"baseline", gap:10, marginBottom:18 }}>
-      <h2 style={{ fontFamily:"'Montserrat', system-ui, sans-serif", fontSize:28, fontWeight:400, margin:0, color:C.text }}>{title}</h2>
-      {count !== undefined && <span style={{ fontSize:12, color:C.muted }}>{count} dostępne</span>}
-    </div>
-  );
+  const minGroup = Math.max(workshop?.minPeople ?? 1, restaurant?.minPeople ?? 1);
+  const maxGroup = Math.min(workshop?.maxPeople ?? Infinity, restaurant?.maxPeople ?? Infinity);
+
+  // Gdy zmienia się wybrany warsztat lub restauracja, ustaw liczbę osób na
+  // minimum wspólne dla obu (nie odpala się przy samym "Wstecz"/"Dalej").
+  useEffect(() => {
+    if (workshop || restaurant) {
+      setGroupSize(Math.max(workshop?.minPeople ?? 1, restaurant?.minPeople ?? 1));
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [workshop?.id, restaurant?.id]);
 
   if (dataLoading) {
     return (
@@ -883,12 +1098,17 @@ export default function App() {
     );
   }
 
+  const step1Kind = path === "workshop" ? "workshop" : "restaurant";
+  const step2Kind = path === "workshop" ? "restaurant" : "workshop";
+  const step1Selected = path === "workshop" ? !!selectedW : !!selectedR;
+  const step2Selected = path === "workshop" ? !!selectedR : !!selectedW;
+
   return (
     <div style={{ fontFamily:"'Montserrat', system-ui, sans-serif", background:C.bg, minHeight:"100vh", color:C.text }}>
 
       {/* Nagłówek */}
       <header style={{ background:C.card, padding:"14px 28px", display:"flex", justifyContent:"space-between", alignItems:"center", flexWrap:"wrap", gap:12, borderBottom:`1px solid ${C.border}` }}>
-        <div onClick={() => setMode("client")} style={{ display:"flex", alignItems:"center", gap:12, flex:"1 1 0", marginLeft:"clamp(4px, 3vw, 44px)", cursor:"pointer" }}>
+        <div onClick={() => { setMode("client"); resetToHome(); }} style={{ display:"flex", alignItems:"center", gap:12, flex:"1 1 0", marginLeft:"clamp(4px, 3vw, 44px)", cursor:"pointer" }}>
           <div style={{ width:58, height:58, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
             <img src={LOGO_IMG} alt={COPY.siteName} style={{ width:58, height:58, objectFit:"contain" }} />
           </div>
@@ -917,171 +1137,77 @@ export default function App() {
 
       {/* Widok klienta */}
       {mode === "client" && (
-      <>
-      {/* Baner ze zdjęciem */}
-      <div style={{ position:"relative", width:"100%", height:"clamp(260px, 42vw, 420px)", overflow:"hidden" }}>
-        <img src={HERO_PHOTO} alt="Wspólne malowanie przy kawie" style={{ width:"100%", height:"100%", objectFit:"cover", objectPosition:"center 75%", display:"block" }} />
-        <div style={{ position:"absolute", inset:0, background:"linear-gradient(180deg, rgba(26,26,26,0) 40%, rgba(26,26,26,0.75) 100%)" }} />
-        <div style={{ position:"absolute", left:0, right:0, bottom:0, padding:"0 16px 28px", maxWidth:1160, margin:"0 auto" }}>
-          <h1 style={{ fontFamily:"'Montserrat', system-ui, sans-serif", fontSize:"clamp(30px,4.5vw,52px)", fontWeight:300, margin:0, lineHeight:1.1, color:"#FFF", textShadow:"0 2px 12px rgba(0,0,0,0.35)" }}>{COPY.heroTitle}</h1>
-        </div>
-      </div>
-
-      {/* Pasek wyszukiwania — pigułka z 3 rozwijanymi sekcjami, pod zdjęciem */}
-      <div style={{ background:C.card, padding:"22px 16px", borderBottom:`1px solid ${C.border}`, position:"relative" }}>
-        <div ref={searchBarRef} style={{ maxWidth:820, margin:"0 auto", position:"relative" }}>
-          <div className="search-bar" style={{ display:"flex", alignItems:"stretch", background:"#FFF", border:`1px solid ${C.border}`, borderRadius:999, boxShadow:"0 4px 18px rgba(0,0,0,0.07)", padding:5, gap:0 }} onClick={e => e.stopPropagation()}>
-
-            {/* Segment: Liczba osób */}
-            <div className="search-segment" onClick={() => setOpenField(openField === "people" ? null : "people")} style={{ flex:1, padding:"8px 20px", borderRadius:999, cursor:"pointer", background: openField==="people" ? C.tagBg : "transparent", position:"relative" }}>
-              <div style={{ fontSize:10, fontWeight:700, color:C.text, letterSpacing:"0.02em" }}>Liczba osób</div>
-              <div style={{ fontSize:13, color:C.muted, marginTop:2 }}>{groupSize} osób</div>
-
-              {/* Rozwinięta zawartość: Liczba osób */}
-              {openField === "people" && (
-                <div className="modal-fade" onClick={e => e.stopPropagation()} style={{ position:"absolute", top:"calc(100% + 8px)", left:0, background:"#FFF", border:`1px solid ${C.border}`, borderRadius:14, boxShadow:"0 10px 32px rgba(0,0,0,0.14)", padding:20, minWidth:220, zIndex:50, cursor:"default" }}>
-                  <div style={{ fontSize:12, color:C.muted, marginBottom:10 }}>Grupa od 5 do 20 osób</div>
-                  <div style={{ display:"flex", alignItems:"center", gap:16, justifyContent:"center" }}>
-                    <button onClick={() => setGroupSize(Math.max(5, groupSize-1))} style={{ width:36, height:36, borderRadius:"50%", border:`1px solid ${C.border}`, background:"transparent", cursor:"pointer", fontSize:18, color:C.primary }}>−</button>
-                    <span style={{ fontSize:22, fontWeight:600, color:C.primary, minWidth:30, textAlign:"center" }}>{groupSize}</span>
-                    <button onClick={() => setGroupSize(Math.min(20, groupSize+1))} style={{ width:36, height:36, borderRadius:"50%", border:`1px solid ${C.border}`, background:"transparent", cursor:"pointer", fontSize:18, color:C.primary }}>+</button>
-                  </div>
-                </div>
+        <>
+          {path === null ? (
+            <>
+              <HomeScreen restaurants={restaurants} workshops={workshops} onStart={p => { setPath(p); setWizardStep(1); }} />
+              <Footer />
+            </>
+          ) : submitted ? (
+            <>
+              <ConfirmationScreen onBackToHome={resetToHome} />
+              <Footer />
+            </>
+          ) : (
+            <>
+              <WizardProgressBar step={wizardStep} path={path} />
+              <div style={{ paddingBottom: wizardStep === 4 ? 20 : 100 }}>
+                {wizardStep === 1 && (
+                  <PickStep
+                    kind={step1Kind}
+                    items={step1Kind === "workshop" ? filteredW : filteredR}
+                    selectedId={step1Kind === "workshop" ? selectedW : selectedR}
+                    selectedVariantId={selectedVariant}
+                    onToggle={id => step1Kind === "workshop" ? setSelectedW(selectedW === id ? null : id) : handleToggleR(id)}
+                    onVariantSelect={vid => setSelectedVariant(vid)}
+                    onProfile={item => setProfileItem({ item, type: step1Kind })}
+                  />
+                )}
+                {wizardStep === 2 && (
+                  <PickStep
+                    kind={step2Kind}
+                    items={step2Kind === "workshop" ? filteredW : filteredR}
+                    selectedId={step2Kind === "workshop" ? selectedW : selectedR}
+                    selectedVariantId={selectedVariant}
+                    onToggle={id => step2Kind === "workshop" ? setSelectedW(selectedW === id ? null : id) : handleToggleR(id)}
+                    onVariantSelect={vid => setSelectedVariant(vid)}
+                    onProfile={item => setProfileItem({ item, type: step2Kind })}
+                    onFallback={() => setWizardStep(4)}
+                    onBackToStep1={() => setWizardStep(1)}
+                  />
+                )}
+                {wizardStep === 3 && (
+                  <Step3PriceAndDate
+                    groupSize={groupSize} minGroup={minGroup} maxGroup={maxGroup}
+                    onGroupSizeChange={setGroupSize}
+                    selectedDate={selectedDate} onDateChange={setSelectedDate}
+                    selectedTime={selectedTime} onTimeChange={setSelectedTime}
+                    ppp={ppp} total={total}
+                  />
+                )}
+                {wizardStep === 4 && (
+                  <Step4ContactForm
+                    restaurant={restaurant} variant={variant} workshop={workshop}
+                    groupSize={groupSize} selectedDate={selectedDate} selectedTime={selectedTime}
+                    ppp={ppp} total={total}
+                    onEditStep={n => setWizardStep(n)}
+                    onSubmitted={() => setSubmitted(true)}
+                  />
+                )}
+              </div>
+              {wizardStep < 4 && (
+                <WizardStickyBar
+                  restaurant={restaurant} workshop={workshop}
+                  groupSize={groupSize} ppp={ppp} total={total}
+                  canAdvance={wizardStep === 1 ? step1Selected : wizardStep === 2 ? step2Selected : true}
+                  nextLabel={wizardStep === 3 ? "Przejdź do podsumowania →" : "Dalej →"}
+                  onNext={() => setWizardStep(s => s + 1)}
+                  onBack={() => wizardStep === 1 ? setPath(null) : setWizardStep(s => s - 1)}
+                />
               )}
-            </div>
-
-            <div className="search-divider" style={{ width:1, background:C.border, margin:"8px 0" }} />
-
-            {/* Segment: Data eventu */}
-            <div className="search-segment" onClick={() => setOpenField(openField === "date" ? null : "date")} style={{ flex:1, padding:"8px 20px", borderRadius:999, cursor:"pointer", background: openField==="date" ? C.tagBg : "transparent", position:"relative" }}>
-              <div style={{ fontSize:10, fontWeight:700, color:C.text, letterSpacing:"0.02em" }}>Data eventu</div>
-              <div style={{ fontSize:13, color: selectedDate ? C.primary : C.muted, marginTop:2, fontWeight: selectedDate ? 600 : 400, whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis" }}>
-                {selectedDate ? `${new Date(selectedDate).toLocaleDateString("pl-PL", { day:"numeric", month:"long", year:"numeric" })}${selectedTime ? ", " + selectedTime : ""}` : "Wybierz termin"}
-              </div>
-
-              {/* Rozwinięta zawartość: Data eventu */}
-              {openField === "date" && (
-                <div className="modal-fade" onClick={e => e.stopPropagation()} style={{ position:"absolute", top:"calc(100% + 8px)", left:0, background:"#FFF", border:`1px solid ${C.border}`, borderRadius:14, boxShadow:"0 10px 32px rgba(0,0,0,0.14)", padding:20, minWidth:280, zIndex:50, cursor:"default" }}>
-                  <div style={{ display:"flex", gap:10, flexWrap:"wrap" }}>
-                    <input
-                      type="date"
-                      value={selectedDate}
-                      onChange={e => setSelectedDate(e.target.value)}
-                      min={MIN_BOOKING_DATE}
-                      style={{ border:`1px solid ${C.border}`, borderRadius:8, background:"#FAFAF8", fontSize:14, color:C.primary, fontFamily:"'Montserrat', system-ui, sans-serif", fontWeight:500, padding:"9px 11px", flex:"1 1 150px", minWidth:0 }}
-                    />
-                    <select
-                      value={selectedTime}
-                      onChange={e => setSelectedTime(e.target.value)}
-                      style={{ border:`1px solid ${C.border}`, borderRadius:8, background:"#FAFAF8", fontSize:14, color:C.primary, fontFamily:"'Montserrat', system-ui, sans-serif", fontWeight:500, padding:"9px 11px", flex:"1 1 110px", minWidth:0 }}
-                    >
-                      <option value="">Godzina</option>
-                      {TIME_OPTIONS.map(t => <option key={t} value={t}>{t}</option>)}
-                    </select>
-                  </div>
-                  {(selectedDate || selectedTime) && (
-                    <button onClick={() => { setSelectedDate(""); setSelectedTime(""); }} style={{ marginTop:10, background:"none", border:"none", cursor:"pointer", color:C.muted, fontSize:12, padding:0, textDecoration:"underline" }}>Wyczyść termin</button>
-                  )}
-                </div>
-              )}
-            </div>
-
-            <div className="search-divider" style={{ width:1, background:C.border, margin:"8px 0" }} />
-
-            {/* Segment: Okazja */}
-            <div className="search-segment" onClick={() => setOpenField(openField === "occasion" ? null : "occasion")} style={{ flex:1, padding:"8px 20px", borderRadius:999, cursor:"pointer", background: openField==="occasion" ? C.tagBg : "transparent", position:"relative" }}>
-              <div style={{ fontSize:10, fontWeight:700, color:C.text, letterSpacing:"0.02em" }}>Okazja</div>
-              <div style={{ fontSize:13, color:C.muted, marginTop:2, whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis" }}>
-                {OCCASIONS.find(o => o.id === occasion)?.label ?? "Wszystkie"}
-              </div>
-
-              {/* Rozwinięta zawartość: Okazja */}
-              {openField === "occasion" && (
-                <div className="modal-fade" onClick={e => e.stopPropagation()} style={{ position:"absolute", top:"calc(100% + 8px)", right:0, background:"#FFF", border:`1px solid ${C.border}`, borderRadius:14, boxShadow:"0 10px 32px rgba(0,0,0,0.14)", padding:8, minWidth:230, zIndex:50, cursor:"default" }}>
-                  {OCCASIONS.map(o => (
-                    <div key={o.id} onClick={() => { setOccasion(o.id); setOpenField(null); }} style={{ padding:"10px 14px", borderRadius:9, cursor:"pointer", fontSize:14, background: occasion===o.id ? C.tagBg : "transparent", color: occasion===o.id ? C.primary : C.text, fontWeight: occasion===o.id ? 600 : 400 }}>
-                      {o.label}
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-
-            <button
-              className="search-btn"
-              onClick={() => { setOpenField(null); document.getElementById("restauracje")?.scrollIntoView({ behavior:"smooth", block:"start" }); }}
-              style={{ padding:"0 20px", height:46, borderRadius:999, background:C.primary, border:"none", color:"#FFF", fontSize:13, fontWeight:600, cursor:"pointer", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, alignSelf:"center", whiteSpace:"nowrap" }}>
-              Szukaj
-            </button>
-          </div>
-        </div>
-      </div>
-
-      <div style={{ maxWidth:1160, margin:"0 auto", padding:"28px 16px 40px" }}>
-
-        {/* Hero */}
-        <div style={{ marginBottom:38 }}>
-          <p style={{ fontSize:15, color:C.muted, fontWeight:300, margin:0, maxWidth:"100%", lineHeight:1.65 }}>{COPY.heroSubtitle}</p>
-        </div>
-
-        {/* Restauracje */}
-        <section id="restauracje" style={{ marginBottom:42 }}>
-          <SectionTitle title="Wybierz restaurację" count={filteredR.length} />
-          <div className="tile-grid">
-            {filteredR.map(r => (
-              <div key={r.id} className="tile-card">
-                <RestaurantCard r={r}
-                  isSelected={selectedR === r.id}
-                  selectedVariantId={selectedR === r.id ? selectedVariant : null}
-                  onToggle={() => handleToggleR(r.id)}
-                  onVariantSelect={vid => setSelectedVariant(vid)}
-                  onProfile={() => setProfileItem({ item:r, type:"restaurant" })} />
-              </div>
-            ))}
-          </div>
-        </section>
-
-        {/* Warsztaty */}
-        <section style={{ marginBottom: hasSelection ? 130 : 42 }}>
-          <SectionTitle title="Wybierz warsztat" count={filteredW.length} />
-          <div className="tile-grid">
-            {filteredW.map(w => (
-              <div key={w.id} className="tile-card">
-                <WorkshopCard w={w}
-                  isSelected={selectedW === w.id}
-                  onToggle={() => setSelectedW(selectedW===w.id ? null : w.id)}
-                  onProfile={() => setProfileItem({ item:w, type:"workshop" })} />
-              </div>
-            ))}
-          </div>
-        </section>
-      </div>
-      <Footer />
-      </>
-      )} {/* koniec widoku klienta */}
-
-      {/* Belka podsumowania — tylko w trybie klienta */}
-      {mode === "client" && hasSelection && (
-        <div className="bar-in" style={{ position:"fixed", bottom:0, left:0, right:0, background:"#1C1C1C", padding:"14px 24px", display:"flex", justifyContent:"space-between", alignItems:"center", gap:12, zIndex:200, boxShadow:"0 -4px 28px rgba(0,0,0,0.2)" }}>
-          <div style={{ flex:1, minWidth:0 }}>
-            <div style={{ fontFamily:"'Montserrat', system-ui, sans-serif", fontSize:17, color:"#FFF", fontWeight:400, whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis" }}>
-              {restaurant ? <>{restaurant.name}{variant && <span style={{ color:C.accent }}> · {variant.label}</span>}</> : <span style={{ color:"#555" }}>— wybierz restaurację</span>}
-              {restaurant && (workshop ? <><span style={{ color:C.accent }}> + </span>{workshop.name}</> : <span style={{ color:"#555" }}> · wybierz warsztat</span>)}
-            </div>
-            <div style={{ fontSize:11, color:"#777", marginTop:2 }}>
-              {groupSize} osób{variant && ` · ${variant.price} zł/os.`}{workshop && ` · ${workshop.pricePerPerson} zł/os.`}{selectedDate && ` · ${new Date(selectedDate).toLocaleDateString("pl-PL", { day:"numeric", month:"long", year:"numeric" })}`}
-            </div>
-          </div>
-          {ppp > 0 && (
-            <div style={{ textAlign:"right", flexShrink:0 }}>
-              <div style={{ fontFamily:"'Montserrat', system-ui, sans-serif", fontSize:28, color:C.accent, fontWeight:400, lineHeight:1 }}>{total.toLocaleString("pl-PL")} zł</div>
-              <div style={{ fontSize:11, color:"#777" }}>{ppp} zł × {groupSize} os.</div>
-            </div>
+            </>
           )}
-          <button onClick={() => setShowInquiry(true)} style={{ background:C.accent, color:"#1A1A1A", border:"none", borderRadius:9, padding:"13px 20px", fontSize:14, fontWeight:600, cursor:"pointer", flexShrink:0 }}>
-            Wyślij zapytanie →
-          </button>
-        </div>
+        </>
       )}
 
       {/* Modale */}
@@ -1094,9 +1220,6 @@ export default function App() {
             else setSelectedW(selectedW === profileItem.item.id ? null : profileItem.item.id);
           }}
           onClose={() => setProfileItem(null)} />
-      )}
-      {showInquiry && (
-        <InquiryModal restaurant={restaurant} variant={variant} workshop={workshop} groupSize={groupSize} prefilledDate={selectedDate} prefilledTime={selectedTime} onClose={() => setShowInquiry(false)} />
       )}
     </div>
   );
