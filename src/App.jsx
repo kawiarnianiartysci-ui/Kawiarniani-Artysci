@@ -644,23 +644,26 @@ function HomeScreen({ restaurants, workshops, onStart }) {
 
   return (
     <div>
-      <div style={{ position:"relative", width:"100%", height:"clamp(160px, 24vw, 240px)", overflow:"hidden" }}>
-        <video autoPlay muted loop playsInline poster={HERO_PHOTO} style={{ width:"100%", height:"100%", objectFit:"cover", objectPosition:"center 75%", display:"block" }}>
+      <div style={{ position:"relative", width:"100%", height:"clamp(400px, 58vw, 560px)", overflow:"hidden" }}>
+        <video autoPlay muted loop playsInline poster={HERO_PHOTO} style={{ position:"absolute", inset:0, width:"100%", height:"100%", objectFit:"cover", objectPosition:"30% 68%", transform:"scale(1.25)" }}>
           <source src="/videos/hero.mov" />
         </video>
-        <div style={{ position:"absolute", inset:0, background:"rgba(26,26,26,0.35)" }} />
-      </div>
+        {/* delikatna faktura papieru/tektury */}
+        <div style={{ position:"absolute", inset:0, opacity:0.12, mixBlendMode:"multiply", backgroundImage:"url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E\")" }} />
+        {/* przejście: przezroczyste u góry → kolor tła strony u dołu */}
+        <div style={{ position:"absolute", inset:0, background:`linear-gradient(180deg, rgba(237,235,230,0) 0%, rgba(237,235,230,0.1) 40%, rgba(237,235,230,0.55) 62%, rgba(237,235,230,0.88) 78%, ${C.bg} 92%)` }} />
 
-      <div style={{ maxWidth:760, margin:"0 auto", padding:"36px 16px 56px" }}>
-        <div style={{ textAlign:"center", marginBottom:36 }}>
-          <h1 style={{ fontFamily:"'Montserrat', system-ui, sans-serif", fontSize:"clamp(26px,4vw,38px)", fontWeight:300, margin:"0 0 14px", lineHeight:1.2, color:C.text }}>
+        <div style={{ position:"absolute", left:0, right:0, bottom:"18%", textAlign:"center", padding:"0 16px", zIndex:2 }}>
+          <h1 style={{ fontFamily:"'Montserrat', system-ui, sans-serif", fontSize:"clamp(26px,4vw,38px)", fontWeight:300, margin:"0 0 14px", lineHeight:1.2, color:"#FFF", textShadow:"0 2px 14px rgba(0,0,0,0.45)" }}>
             {COPY.siteName}
           </h1>
-          <p style={{ fontSize:16, color:C.muted, fontWeight:300, margin:"0 auto", maxWidth:500, lineHeight:1.65 }}>
+          <p style={{ fontSize:16, color:"#FFF", fontWeight:300, margin:"0 auto", maxWidth:500, lineHeight:1.65, textShadow:"0 1px 10px rgba(0,0,0,0.45)" }}>
             {COPY.heroSubtitle}
           </p>
         </div>
+      </div>
 
+      <div style={{ maxWidth:760, margin:"0 auto", padding:"0 16px 56px" }}>
         <div style={{ display:"flex", flexDirection:"column", gap:12, marginBottom:36 }}>
           {steps.map(s => (
             <div key={s.n} style={{ display:"flex", alignItems:"center", gap:16, background:C.card, border:`1px solid ${C.border}`, borderRadius:14, padding:"16px 20px" }}>
