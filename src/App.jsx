@@ -625,7 +625,7 @@ for (let h = 8; h <= 23; h++) {
 
 // Sekunda, od której zaczyna się (i zapętla) wideo w tle — pomija powolny
 // początek klipu, żeby szybciej było widać ludzi przy malowaniu.
-const HERO_VIDEO_START = 2.5;
+const HERO_VIDEO_START = 5;
 
 function HomeScreen({ restaurants, workshops, onStart }) {
   const videoRef = useRef(null);
