@@ -1057,15 +1057,21 @@ export default function App() {
 
   const workshop   = workshops.find(w => w.id === selectedW);
   const restaurant = restaurants.find(r => r.id === selectedR);
-  const filteredR  = restaurants.filter(r => r.comingSoon || (
-    groupSize >= r.minPeople && groupSize <= r.maxPeople &&
-    (!workshop?.requiresSeparateRoom || r.hasSeparateRoom) &&
-    !(r.requiresInvoice && workshop?.canInvoice === false)
-  ));
-  const filteredW  = workshops.filter(w => w.comingSoon || (
-    groupSize >= w.minPeople && groupSize <= w.maxPeople &&
-    !(restaurant?.requiresInvoice && w.canInvoice === false)
-  ));
+
+  // Zgodność niezależna od jeszcze niewybranej liczby osób — sprawdza czy
+  // zakresy min/max obu stron w ogóle się przecinają (a nie czy pasują do
+  // aktualnej wartości groupSize, która na tym etapie może się jeszcze zmienić).
+  const isCompatible = (w, r) => {
+    if (!w || !r) return true;
+    if (w.requiresSeparateRoom && !r.hasSeparateRoom) return false;
+    if (r.requiresInvoice && w.canInvoice === false) return false;
+    return Math.max(w.minPeople, r.minPeople) <= Math.min(w.maxPeople, r.maxPeople);
+  };
+  // Krok 1 (nic jeszcze nie wybrane po drugiej stronie) pokazuje wszystko;
+  // krok 2 zawęża do pozycji zgodnych z tym, co wybrano w kroku 1.
+  const compatibleRestaurants = restaurants.filter(r => r.comingSoon || isCompatible(workshop, r));
+  const compatibleWorkshops   = workshops.filter(w => w.comingSoon || isCompatible(w, restaurant));
+
   const variant    = restaurant?.variants.find(v => v.id === selectedVariant);
   const ppp        = (variant?.price ?? 0) + (workshop?.pricePerPerson ?? 0);
   const total      = ppp * groupSize;
@@ -1155,7 +1161,7 @@ export default function App() {
                 {wizardStep === 1 && (
                   <PickStep
                     kind={step1Kind}
-                    items={step1Kind === "workshop" ? filteredW : filteredR}
+                    items={step1Kind === "workshop" ? workshops : restaurants}
                     selectedId={step1Kind === "workshop" ? selectedW : selectedR}
                     selectedVariantId={selectedVariant}
                     onToggle={id => step1Kind === "workshop" ? setSelectedW(selectedW === id ? null : id) : handleToggleR(id)}
@@ -1166,7 +1172,7 @@ export default function App() {
                 {wizardStep === 2 && (
                   <PickStep
                     kind={step2Kind}
-                    items={step2Kind === "workshop" ? filteredW : filteredR}
+                    items={step2Kind === "workshop" ? compatibleWorkshops : compatibleRestaurants}
                     selectedId={step2Kind === "workshop" ? selectedW : selectedR}
                     selectedVariantId={selectedVariant}
                     onToggle={id => step2Kind === "workshop" ? setSelectedW(selectedW === id ? null : id) : handleToggleR(id)}
