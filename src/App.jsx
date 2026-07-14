@@ -974,7 +974,7 @@ function Step4ContactForm({ restaurant, variant, workshop, groupSize, selectedDa
   return (
     <div style={{ maxWidth:480, margin:"0 auto", padding:"24px 16px 60px" }}>
       <h2 style={{ fontFamily:"'Montserrat', system-ui, sans-serif", fontSize:24, fontWeight:400, margin:"0 0 18px", textAlign:"center", color:C.text }}>
-        Podsumowanie i wysyłka
+        Wyślij zapytanie o rezerwację
       </h2>
 
       <div style={{ background:C.card, border:`1px solid ${C.border}`, borderRadius:14, padding:"6px 20px", marginBottom:20 }}>
