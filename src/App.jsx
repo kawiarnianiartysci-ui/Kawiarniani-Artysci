@@ -627,7 +627,86 @@ for (let h = 8; h <= 23; h++) {
 // początek klipu, żeby szybciej było widać ludzi przy malowaniu.
 const HERO_VIDEO_START = 5;
 
-function HomeScreen({ restaurants, workshops, onStart }) {
+const LOCATION_OPTIONS = [
+  { id:"poznan",   label:"Poznań" },
+  { id:"poznan30", label:"Poznań + 30 km" },
+];
+
+// Pigułka pojedynczego pola filtra na stronie głównej — szara domyślnie,
+// podświetla się na kolor wyboru (jak zaznaczona karta) gdy ma wartość.
+function HomeFilterPill({ label, value, isOpen, onToggle, children }) {
+  const active = !!value;
+  return (
+    <div style={{ position:"relative" }}>
+      <button onClick={onToggle} style={{
+        display:"flex", flexDirection:"column", alignItems:"flex-start", gap:2,
+        background: active ? C.selectedBg : "#F1EFEA",
+        border:`2px solid ${active ? C.primary : "transparent"}`,
+        borderRadius:999, padding:"10px 20px", cursor:"pointer", minHeight:44, minWidth:0,
+      }}>
+        <span style={{ fontSize:9, fontWeight:700, color: active ? C.primary : C.muted, letterSpacing:"0.06em", whiteSpace:"nowrap" }}>{label.toUpperCase()}</span>
+        <span style={{ fontSize:13, color: active ? C.primary : C.text, fontWeight: active ? 600 : 400, whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis", maxWidth:140 }}>{value || "Dowolne"}</span>
+      </button>
+      {isOpen && (
+        <div className="modal-fade" onClick={e => e.stopPropagation()} style={{ position:"absolute", top:"calc(100% + 8px)", left:0, background:"#FFF", border:`1px solid ${C.border}`, borderRadius:14, boxShadow:"0 10px 32px rgba(0,0,0,0.14)", padding:16, minWidth:220, zIndex:50, cursor:"default" }}>
+          {children}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function HomeFilterBar({ homeLocation, setHomeLocation, groupSize, setGroupSize, selectedDate, setSelectedDate, selectedTime, setSelectedTime }) {
+  const [openField, setOpenField] = useState(null);
+  const barRef = useRef(null);
+  const toggle = f => setOpenField(openField === f ? null : f);
+
+  useEffect(() => {
+    if (!openField) return;
+    const onOutside = e => { if (barRef.current && !barRef.current.contains(e.target)) setOpenField(null); };
+    document.addEventListener("mousedown", onOutside);
+    return () => document.removeEventListener("mousedown", onOutside);
+  }, [openField]);
+
+  const locationLabel = LOCATION_OPTIONS.find(o => o.id === homeLocation)?.label;
+  const dateLabel = selectedDate
+    ? `${new Date(selectedDate).toLocaleDateString("pl-PL", { day:"numeric", month:"short" })}${selectedTime ? ", " + selectedTime : ""}`
+    : "";
+
+  return (
+    <div ref={barRef} style={{ display:"flex", flexWrap:"wrap", gap:10, justifyContent:"center", marginBottom:28 }}>
+      <HomeFilterPill label="Miejsce" value={locationLabel} isOpen={openField === "location"} onToggle={() => toggle("location")}>
+        {LOCATION_OPTIONS.map(o => (
+          <div key={o.id} onClick={() => { setHomeLocation(o.id); setOpenField(null); }} style={{ padding:"10px 14px", borderRadius:9, cursor:"pointer", fontSize:14, background: homeLocation===o.id ? C.tagBg : "transparent", color: homeLocation===o.id ? C.primary : C.text, fontWeight: homeLocation===o.id ? 600 : 400, whiteSpace:"nowrap" }}>
+            {o.label}
+          </div>
+        ))}
+      </HomeFilterPill>
+
+      <HomeFilterPill label="Liczba osób" value={`${groupSize} os.`} isOpen={openField === "people"} onToggle={() => toggle("people")}>
+        <div style={{ display:"flex", alignItems:"center", gap:16, justifyContent:"center" }}>
+          <button onClick={() => setGroupSize(Math.max(5, groupSize-1))} style={{ width:36, height:36, borderRadius:"50%", border:`1px solid ${C.border}`, background:"transparent", cursor:"pointer", fontSize:18, color:C.primary }}>−</button>
+          <span style={{ fontSize:22, fontWeight:600, color:C.primary, minWidth:30, textAlign:"center" }}>{groupSize}</span>
+          <button onClick={() => setGroupSize(Math.min(20, groupSize+1))} style={{ width:36, height:36, borderRadius:"50%", border:`1px solid ${C.border}`, background:"transparent", cursor:"pointer", fontSize:18, color:C.primary }}>+</button>
+        </div>
+      </HomeFilterPill>
+
+      <HomeFilterPill label="Data i godzina" value={dateLabel} isOpen={openField === "date"} onToggle={() => toggle("date")}>
+        <div style={{ display:"flex", gap:10, flexWrap:"wrap" }}>
+          <input type="date" value={selectedDate} min={MIN_BOOKING_DATE} onChange={e => setSelectedDate(e.target.value)}
+            style={{ border:`1px solid ${C.border}`, borderRadius:8, background:"#FAFAF8", fontSize:14, color:C.primary, fontFamily:"'Montserrat', system-ui, sans-serif", fontWeight:500, padding:"9px 11px", minHeight:44 }} />
+          <select value={selectedTime} onChange={e => setSelectedTime(e.target.value)}
+            style={{ border:`1px solid ${C.border}`, borderRadius:8, background:"#FAFAF8", fontSize:14, color:C.primary, fontFamily:"'Montserrat', system-ui, sans-serif", fontWeight:500, padding:"9px 11px", minHeight:44 }}>
+            <option value="">Godzina</option>
+            {TIME_OPTIONS.map(t => <option key={t} value={t}>{t}</option>)}
+          </select>
+        </div>
+      </HomeFilterPill>
+    </div>
+  );
+}
+
+function HomeScreen({ restaurants, workshops, onStart, homeLocation, setHomeLocation, groupSize, setGroupSize, selectedDate, setSelectedDate, selectedTime, setSelectedTime }) {
   const videoRef = useRef(null);
   const activeRestaurants = restaurants.filter(r => !r.comingSoon);
   const activeWorkshops = workshops.filter(w => !w.comingSoon);
@@ -639,7 +718,7 @@ function HomeScreen({ restaurants, workshops, onStart }) {
   return (
     <div>
       <div style={{ position:"relative", width:"100%", height:"clamp(400px, 58vw, 560px)", overflow:"hidden" }}>
-        <video ref={videoRef} autoPlay muted playsInline poster={HERO_PHOTO}
+        <video ref={videoRef} autoPlay muted playsInline preload="auto" poster={HERO_PHOTO}
           onLoadedMetadata={seekToStart} onEnded={handleEnded}
           style={{ position:"absolute", inset:0, width:"100%", height:"100%", objectFit:"cover", objectPosition:"center 55%" }}>
           <source src="/videos/hero.mov" />
@@ -659,6 +738,13 @@ function HomeScreen({ restaurants, workshops, onStart }) {
             {COPY.heroSubtitle}
           </p>
         </div>
+
+        <HomeFilterBar
+          homeLocation={homeLocation} setHomeLocation={setHomeLocation}
+          groupSize={groupSize} setGroupSize={setGroupSize}
+          selectedDate={selectedDate} setSelectedDate={setSelectedDate}
+          selectedTime={selectedTime} setSelectedTime={setSelectedTime}
+        />
 
         <div className="home-cta-grid" style={{ marginBottom:16 }}>
           <button onClick={() => onStart("workshop")} style={{ flex:1, textAlign:"left", background:C.primary, color:"#FFF", border:"none", borderRadius:999, padding:"26px 32px", cursor:"pointer", minHeight:100 }}>
@@ -1035,6 +1121,7 @@ export default function App() {
   const [profileItem,     setProfileItem]     = useState(null);
   const [selectedDate,    setSelectedDate]    = useState("");
   const [selectedTime,    setSelectedTime]    = useState("");
+  const [homeLocation,    setHomeLocation]    = useState(null);
 
   useEffect(() => {
     const link = document.createElement("link");
@@ -1054,7 +1141,7 @@ export default function App() {
   const resetToHome = () => {
     setPath(null); setWizardStep(1); setSubmitted(false);
     setSelectedR(null); setSelectedVariant(null); setSelectedW(null);
-    setGroupSize(10); setSelectedDate(""); setSelectedTime("");
+    setGroupSize(10); setSelectedDate(""); setSelectedTime(""); setHomeLocation(null);
   };
 
   const workshop   = workshops.find(w => w.id === selectedW);
@@ -1148,7 +1235,12 @@ export default function App() {
         <>
           {path === null ? (
             <>
-              <HomeScreen restaurants={restaurants} workshops={workshops} onStart={p => { setPath(p); setWizardStep(1); }} />
+              <HomeScreen restaurants={restaurants} workshops={workshops} onStart={p => { setPath(p); setWizardStep(1); }}
+                homeLocation={homeLocation} setHomeLocation={setHomeLocation}
+                groupSize={groupSize} setGroupSize={setGroupSize}
+                selectedDate={selectedDate} setSelectedDate={setSelectedDate}
+                selectedTime={selectedTime} setSelectedTime={setSelectedTime}
+              />
               <Footer />
             </>
           ) : submitted ? (
