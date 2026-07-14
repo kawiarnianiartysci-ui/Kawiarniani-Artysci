@@ -1050,17 +1050,17 @@ function WizardStickyBar({ restaurant, workshop, groupSize, ppp, total, canAdvan
     ? [restaurant?.name, workshop?.name].filter(Boolean).join(" + ")
     : "Wybierz, aby kontynuować";
   return (
-    <div className="bar-in" style={{ position:"fixed", bottom:0, left:0, right:0, background:"#1C1C1C", padding:"14px 20px", display:"flex", justifyContent:"space-between", alignItems:"center", gap:12, zIndex:200, boxShadow:"0 -4px 28px rgba(0,0,0,0.2)" }}>
+    <div className="bar-in" style={{ position:"fixed", bottom:0, left:0, right:0, background:C.selectedBg, borderTop:`1px solid ${C.border}`, padding:"14px 20px", display:"flex", justifyContent:"space-between", alignItems:"center", gap:12, zIndex:200, boxShadow:"0 -4px 28px rgba(0,0,0,0.12)" }}>
       <div style={{ display:"flex", alignItems:"center", gap:14, minWidth:0 }}>
-        <button onClick={onBack} style={{ background:"none", border:"1px solid #444", color:"#CCC", borderRadius:9, padding:"10px 14px", fontSize:13, cursor:"pointer", flexShrink:0, minHeight:44 }}>← Wstecz</button>
+        <button onClick={onBack} style={{ background:C.primary, border:"none", color:"#FFF", borderRadius:9, padding:"10px 14px", fontSize:13, fontWeight:600, cursor:"pointer", flexShrink:0, minHeight:44 }}>← Wstecz</button>
         <div style={{ minWidth:0 }}>
-          <div style={{ fontFamily:"'Montserrat', system-ui, sans-serif", fontSize:15, color:"#FFF", fontWeight:400, whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis" }}>
+          <div style={{ fontFamily:"'Montserrat', system-ui, sans-serif", fontSize:15, color:C.text, fontWeight:500, whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis" }}>
             {total > 0 ? `${total.toLocaleString("pl-PL")} zł` : summary}
           </div>
-          {total > 0 && <div style={{ fontSize:11, color:"#888" }}>{groupSize} os. × {ppp} zł</div>}
+          {total > 0 && <div style={{ fontSize:11, color:C.muted }}>{groupSize} os. × {ppp} zł</div>}
         </div>
       </div>
-      <button onClick={onNext} disabled={!canAdvance} style={{ background: canAdvance ? C.accent : "#444", color: canAdvance ? "#1A1A1A" : "#888", border:"none", borderRadius:9, padding:"13px 22px", fontSize:14, fontWeight:600, cursor: canAdvance ? "pointer" : "default", flexShrink:0, minHeight:44 }}>
+      <button onClick={onNext} disabled={!canAdvance} style={{ background: canAdvance ? C.primary : "#DDD9D2", color: canAdvance ? "#FFF" : "#9A968D", border:"none", borderRadius:9, padding:"13px 22px", fontSize:14, fontWeight:600, cursor: canAdvance ? "pointer" : "default", flexShrink:0, minHeight:44 }}>
         {nextLabel}
       </button>
     </div>
