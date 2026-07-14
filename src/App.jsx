@@ -177,7 +177,7 @@ const globalCSS = `
   *, *::before, *::after { box-sizing: border-box; }
   body { background: ${C.bg}; margin: 0; }
   input, textarea, button, select { font-family: 'Montserrat', system-ui, sans-serif; }
-  input:focus, textarea:focus, select:focus { outline: 2px solid ${C.primary}; outline-offset: 1px; border-color: ${C.primary} !important; }
+  input:focus, textarea:focus, select:focus { outline: none; border-color: ${C.primary} !important; }
   .card-h { transition: box-shadow 0.18s, transform 0.15s; }
   .card-h:hover { box-shadow: 0 8px 28px rgba(0,0,0,0.12) !important; transform: translateY(-2px); }
   .gallery-thumb img { transition: transform 0.25s ease; }
@@ -988,9 +988,14 @@ function Step4ContactForm({ restaurant, variant, workshop, groupSize, selectedDa
           </div>
         ))}
 
-        <div style={rowStyle}>
+        <div style={editingTermin ? { ...rowStyle, alignItems:"flex-start" } : rowStyle}>
           <div style={{ flex:1, minWidth:0 }}>
-            <div style={{ fontSize:10, color:C.muted, letterSpacing:"0.08em" }}>TERMIN</div>
+            <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center" }}>
+              <div style={{ fontSize:10, color:C.muted, letterSpacing:"0.08em" }}>TERMIN</div>
+              {editingTermin && (
+                <button onClick={() => setEditingTermin(false)} style={zmienBtnStyle}>gotowe</button>
+              )}
+            </div>
             {editingTermin ? (
               <div style={{ display:"flex", gap:8, marginTop:6, flexWrap:"wrap" }}>
                 <input type="date" value={selectedDate} min={MIN_BOOKING_DATE} onChange={e => onDateChange(e.target.value)}
@@ -1005,7 +1010,9 @@ function Step4ContactForm({ restaurant, variant, workshop, groupSize, selectedDa
               <div style={{ fontSize:13, color:C.text }}>{terminValue}</div>
             )}
           </div>
-          <button onClick={() => setEditingTermin(v => !v)} style={zmienBtnStyle}>{editingTermin ? "gotowe" : "zmień"}</button>
+          {!editingTermin && (
+            <button onClick={() => setEditingTermin(true)} style={zmienBtnStyle}>zmień</button>
+          )}
         </div>
 
         {summaryRowsBottom.map((row, i) => (
