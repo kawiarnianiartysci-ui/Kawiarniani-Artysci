@@ -743,20 +743,20 @@ function PathTiles({ activeKey, onSelect }) {
     const active = activeKey === key;
     return (
       <button key={key} onClick={() => onSelect(key)} style={{
-        flex:1, textAlign:"left",
+        flex:1, textAlign:"center",
         background: active ? C.primary : C.card,
-        border: active ? "none" : `2px solid ${C.primary}`,
-        borderRadius:999, padding:"26px 32px", cursor:"pointer", minHeight:100,
+        border: `1px solid ${C.primary}`,
+        borderRadius:999, padding:"14px 20px", cursor:"pointer",
       }}>
-        <div style={{ fontFamily:"'Montserrat', system-ui, sans-serif", fontSize:19, fontWeight:500, marginBottom:6, color: active ? "#FFF" : C.primary }}>{label}</div>
-        <div style={{ fontSize:13, color: active ? "rgba(255,255,255,0.85)" : C.muted }}>{sub}</div>
+        <div style={{ fontFamily:"'Montserrat', system-ui, sans-serif", fontSize:16, fontWeight:500, marginBottom:3, color: active ? "#FFF" : C.primary }}>{label}</div>
+        <div style={{ fontSize:12, color: active ? "rgba(255,255,255,0.85)" : C.muted }}>{sub}</div>
       </button>
     );
   };
   return (
     <div className="home-cta-grid">
-      {tile("workshop", "Wybierz warsztat →", "Wiem, co chcemy robić")}
-      {tile("restaurant", "Wybierz restaurację/kawiarnię →", "Wiem, gdzie chcemy być")}
+      {tile("workshop", "Wybierz warsztat", "Wiem, co chcemy robić")}
+      {tile("restaurant", "Wybierz restaurację/kawiarnię", "Wiem, gdzie chcemy być")}
     </div>
   );
 }
@@ -866,10 +866,7 @@ function PickStep({ kind, items, selectedId, selectedVariantId, onToggle, onVari
   const isRestaurant = kind === "restaurant";
   const empty = items.length === 0;
   return (
-    <div style={{ maxWidth:900, margin:"0 auto", padding:"24px 16px 20px" }}>
-      <h2 style={{ fontFamily:"'Montserrat', system-ui, sans-serif", fontSize:24, fontWeight:400, margin:"0 0 18px", textAlign:"center", color:C.text }}>
-        {isRestaurant ? "Wybierz miejsce" : "Wybierz warsztat"}
-      </h2>
+    <div style={{ maxWidth:900, margin:"0 auto", padding:"20px 16px 20px" }}>
       {empty ? (
         <div style={{ textAlign:"center", padding:"40px 20px", background:C.card, borderRadius:14, border:`1px solid ${C.border}` }}>
           <p style={{ fontSize:14, color:C.muted, lineHeight:1.6, maxWidth:420, margin:"0 auto 20px" }}>
