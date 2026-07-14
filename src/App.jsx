@@ -1004,9 +1004,9 @@ function WizardStickyBar({ restaurant, workshop, groupSize, ppp, total, canAdvan
     : "Wybierz, aby kontynuować";
   return (
     <div className="bar-in" style={{ position:"fixed", bottom:0, left:0, right:0, background:C.selectedBg, borderTop:`1px solid ${C.border}`, padding:"14px 20px", display:"flex", justifyContent:"space-between", alignItems:"center", gap:12, zIndex:200, boxShadow:"0 -4px 28px rgba(0,0,0,0.12)" }}>
-      <div style={{ display:"flex", alignItems:"center", gap:14, minWidth:0 }}>
+      <div style={{ display:"flex", alignItems:"center", gap:14, minWidth:0, flex:"1 1 auto", overflow:"hidden" }}>
         <button onClick={onBack} style={{ background:C.primary, border:"none", color:"#FFF", borderRadius:9, padding:"10px 14px", fontSize:13, fontWeight:600, cursor:"pointer", flexShrink:0, minHeight:44 }}>← Wstecz</button>
-        <div style={{ minWidth:0 }}>
+        <div style={{ minWidth:0, overflow:"hidden" }}>
           <div style={{ fontFamily:"'Montserrat', system-ui, sans-serif", fontSize:15, color:C.text, fontWeight:500, whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis" }}>
             {total > 0 ? `${total.toLocaleString("pl-PL")} zł` : summary}
           </div>
@@ -1285,7 +1285,7 @@ export default function App() {
                   restaurant={restaurant} workshop={workshop}
                   groupSize={groupSize} ppp={ppp} total={total}
                   canAdvance={wizardStep === 1 ? step1Selected : step2Selected}
-                  nextLabel={wizardStep === 2 ? "Przejdź do podsumowania →" : "Dalej →"}
+                  nextLabel={wizardStep === 2 ? "Podsumowanie →" : "Dalej →"}
                   onNext={() => setWizardStep(s => s + 1)}
                   onBack={() => window.history.back()}
                 />
