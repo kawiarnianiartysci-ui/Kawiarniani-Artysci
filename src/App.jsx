@@ -381,10 +381,10 @@ function ProfileModal({ item, type, isSelected, onToggleSelect, selectedVariantI
 
           {/* CTA */}
           <button
-            onClick={() => { onToggleSelect(); onClose(); }}
-            style={{ marginTop:24, width:"100%", background: isSelected ? "#6E4A2E" : C.primary, color:"#FFF", border:"none", borderRadius:9, padding:16, fontSize:14, fontWeight:600, cursor:"pointer" }}>
+            onClick={() => { if (!isSelected) onToggleSelect(); onClose(); }}
+            style={{ marginTop:24, width:"100%", background:C.primary, color:"#FFF", border:"none", borderRadius:9, padding:16, fontSize:14, fontWeight:600, cursor:"pointer" }}>
             {isSelected
-              ? "✓ Dodano do pakietu — kliknij aby usunąć"
+              ? "Dodaj ten pakiet →"
               : isRestaurant ? "Wybierz tę restaurację →" : "Dodaj ten warsztat →"}
           </button>
         </div>
