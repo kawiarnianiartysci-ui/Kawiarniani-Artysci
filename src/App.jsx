@@ -251,7 +251,7 @@ function PhotoGallery({ photos }) {
   );
 }
 
-function ProfileModal({ item, type, isSelected, onToggleSelect, onClose }) {
+function ProfileModal({ item, type, isSelected, onToggleSelect, selectedVariantId, onVariantSelect, onClose }) {
   const isRestaurant = type === "restaurant";
 
   const InfoPill = ({ text, href }) => (
@@ -347,16 +347,23 @@ function ProfileModal({ item, type, isSelected, onToggleSelect, onClose }) {
           {/* Packages / Includes */}
           {isRestaurant ? (
             <>
-              <div style={{ fontSize:11, color:C.muted, letterSpacing:"0.1em", marginBottom:12 }}>Pakiety gastronomiczne:</div>
-              {item.variants.map(v => (
-                <div key={v.id} style={{ display:"flex", alignItems:"center", gap:10, padding:"10px 12px", borderRadius:9, marginBottom:8, background:C.tagBg, border:`1px solid ${C.border}` }}>
-                  <div style={{ flex:1 }}>
-                    <div style={{ fontSize:13, fontWeight:500, color:C.text }}>{v.label}</div>
-                    <div style={{ fontSize:11, color:C.muted, marginTop:2 }}>{v.detail}</div>
+              <div style={{ fontSize:11, color:C.muted, letterSpacing:"0.1em", marginBottom:12 }}>Wybierz pakiet:</div>
+              {item.variants.map(v => {
+                const sel = selectedVariantId === v.id;
+                return (
+                  <div key={v.id} onClick={() => onVariantSelect(v.id)}
+                    style={{ display:"flex", alignItems:"center", gap:10, padding:"10px 12px", borderRadius:9, marginBottom:8, cursor:"pointer", background:"#F3E8D6", border:`1px solid ${sel ? C.primary : "transparent"}` }}>
+                    <div style={{ width:16, height:16, borderRadius:"50%", flexShrink:0, border:`2px solid ${sel ? C.primary : C.border}`, background:"transparent", display:"flex", alignItems:"center", justifyContent:"center" }}>
+                      {sel && <div style={{ width:7, height:7, borderRadius:"50%", background:C.primary }} />}
+                    </div>
+                    <div style={{ flex:1 }}>
+                      <div style={{ fontSize:13, fontWeight: sel ? 600 : 500, color:C.text }}>{v.label}</div>
+                      <div style={{ fontSize:11, color:C.muted, marginTop:2 }}>{v.detail}</div>
+                    </div>
+                    <div style={{ fontFamily:"'Montserrat', system-ui, sans-serif", fontSize:20, color:C.primary, fontWeight:400 }}>{v.priceMax ? `${v.price}–${v.priceMax}` : v.price} zł</div>
                   </div>
-                  <div style={{ fontFamily:"'Montserrat', system-ui, sans-serif", fontSize:20, color:C.primary, fontWeight:400 }}>{v.priceMax ? `${v.price}–${v.priceMax}` : v.price} zł</div>
-                </div>
-              ))}
+                );
+              })}
               <div style={{ fontSize:11, color:C.muted, marginTop:6 }}>* dokładne menu ustalane z restauracją indywidualnie wg życzenia, cena pokazuje orientacyjny zakres cenowy każdego pakietu.</div>
             </>
           ) : (
@@ -1141,20 +1148,28 @@ export default function App() {
       const s = e.state;
       if (s) {
         setMode(s.mode); setPath(s.path); setWizardStep(s.wizardStep); setSubmitted(s.submitted);
+        if (s.profileItem) {
+          const list = s.profileItem.type === "restaurant" ? restaurants : workshops;
+          const found = list.find(x => x.id === s.profileItem.itemId);
+          setProfileItem(found ? { item: found, type: s.profileItem.type } : null);
+        } else {
+          setProfileItem(null);
+        }
       } else {
-        setMode("client"); setPath(null); setWizardStep(1); setSubmitted(false);
+        setMode("client"); setPath(null); setWizardStep(1); setSubmitted(false); setProfileItem(null);
       }
     };
     window.addEventListener("popstate", onPopState);
     return () => window.removeEventListener("popstate", onPopState);
-  }, []);
+  }, [restaurants, workshops]);
 
   useEffect(() => {
     if (isPoppingRef.current) { isPoppingRef.current = false; return; }
-    const atRoot = mode === "client" && path === null && wizardStep === 1 && !submitted;
+    const atRoot = mode === "client" && path === null && wizardStep === 1 && !submitted && !profileItem;
     if (atRoot) return;
-    window.history.pushState({ mode, path, wizardStep, submitted }, "");
-  }, [mode, path, wizardStep, submitted]);
+    const profileState = profileItem ? { itemId: profileItem.item.id, type: profileItem.type } : null;
+    window.history.pushState({ mode, path, wizardStep, submitted, profileItem: profileState }, "");
+  }, [mode, path, wizardStep, submitted, profileItem]);
 
   // Każda zmiana ścieżki/kroku przewija na górę strony — bez tego np.
   // kliknięcie kafelka na dole ekranu powitalnego zostawiało gościa
@@ -1357,7 +1372,12 @@ export default function App() {
             if (profileItem.type === "restaurant") handleToggleR(profileItem.item.id);
             else setSelectedW(selectedW === profileItem.item.id ? null : profileItem.item.id);
           }}
-          onClose={() => setProfileItem(null)} />
+          selectedVariantId={selectedR === profileItem.item.id ? selectedVariant : null}
+          onVariantSelect={vid => {
+            if (selectedR !== profileItem.item.id) setSelectedR(profileItem.item.id);
+            setSelectedVariant(vid);
+          }}
+          onClose={() => window.history.back()} />
       )}
     </div>
   );
