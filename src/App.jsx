@@ -183,9 +183,7 @@ const globalCSS = `
   .gallery-thumb img { transition: transform 0.25s ease; }
   .gallery-thumb:hover img { transform: scale(1.08); }
   .chip { transition: all 0.15s; }
-  .bar-in { animation: slideUp 0.28s ease; }
   .modal-fade { animation: fadeIn 0.2s ease; }
-  @keyframes slideUp { from { transform: translateY(100%); opacity:0; } to { transform: translateY(0); opacity:1; } }
   @keyframes fadeIn  { from { opacity: 0; } to { opacity: 1; } }
   a { color: inherit; }
   .wizard-list { display:flex; flex-direction:column; gap:14px; }
@@ -1077,19 +1075,19 @@ function WizardStickyBar({ restaurant, workshop, groupSize, ppp, total, canAdvan
     ? [restaurant?.name, workshop?.name].filter(Boolean).join(" + ")
     : "Wybierz, aby kontynuować";
   return (
-    <div className="bar-in" style={{ position:"fixed", bottom:0, left:0, right:0, background:C.selectedBg, borderTop:`1px solid ${C.border}`, padding:"14px 20px", display:"flex", justifyContent:"space-between", alignItems:"center", gap:12, zIndex:200, boxShadow:"0 -4px 28px rgba(0,0,0,0.12)" }}>
-      <div style={{ display:"flex", alignItems:"center", gap:14, minWidth:0, flex:"1 1 auto", overflow:"hidden" }}>
-        <button onClick={onBack} style={{ background:C.primary, border:"none", color:"#FFF", borderRadius:9, padding:"10px 14px", fontSize:13, fontWeight:600, cursor:"pointer", flexShrink:0, minHeight:44 }}>← Wstecz</button>
-        <div style={{ minWidth:0, overflow:"hidden" }}>
+    <div style={{ maxWidth:900, margin:"0 auto 20px", padding:"0 16px" }}>
+      <div style={{ display:"grid", gridTemplateColumns:"auto 1fr auto", alignItems:"center", gap:10, background:C.tagBg, borderRadius:999, padding:6 }}>
+        <button onClick={onBack} style={{ background:C.primary, border:"none", color:"#FFF", borderRadius:999, padding:"12px 22px", fontSize:13, fontWeight:600, cursor:"pointer", minHeight:44, whiteSpace:"nowrap" }}>← Wstecz</button>
+        <div style={{ textAlign:"center", minWidth:0, overflow:"hidden" }}>
           <div style={{ fontFamily:"'Montserrat', system-ui, sans-serif", fontSize:15, color:C.text, fontWeight:500, whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis" }}>
             {total > 0 ? `${total.toLocaleString("pl-PL")} zł` : summary}
           </div>
           {total > 0 && <div style={{ fontSize:11, color:C.muted }}>{groupSize} os. × {ppp} zł</div>}
         </div>
+        <button onClick={onNext} disabled={!canAdvance} style={{ background: canAdvance ? C.primary : "#DDD9D2", color: canAdvance ? "#FFF" : "#9A968D", border:"none", borderRadius:999, padding:"12px 22px", fontSize:13, fontWeight:600, cursor: canAdvance ? "pointer" : "default", minHeight:44, whiteSpace:"nowrap" }}>
+          {nextLabel}
+        </button>
       </div>
-      <button onClick={onNext} disabled={!canAdvance} style={{ background: canAdvance ? C.primary : "#DDD9D2", color: canAdvance ? "#FFF" : "#9A968D", border:"none", borderRadius:9, padding:"13px 22px", fontSize:14, fontWeight:600, cursor: canAdvance ? "pointer" : "default", flexShrink:0, minHeight:44 }}>
-        {nextLabel}
-      </button>
     </div>
   );
 }
@@ -1344,7 +1342,19 @@ export default function App() {
           ) : (
             <>
               <WizardProgressBar step={wizardStep} path={path} />
-              <div style={{ paddingBottom: wizardStep === 3 ? 20 : 100 }}>
+              {wizardStep < 3 && (
+                <div style={{ marginTop:20 }}>
+                  <WizardStickyBar
+                    restaurant={restaurant} workshop={workshop}
+                    groupSize={groupSize} ppp={ppp} total={total}
+                    canAdvance={wizardStep === 1 ? step1Selected : step2Selected}
+                    nextLabel={wizardStep === 2 ? "Podsumowanie →" : "Dalej →"}
+                    onNext={() => setWizardStep(s => s + 1)}
+                    onBack={() => window.history.back()}
+                  />
+                </div>
+              )}
+              <div style={{ paddingBottom:20 }}>
                 {wizardStep === 1 && (
                   <>
                     <div style={{ maxWidth:900, margin:"0 auto", padding:"0 16px" }}>
@@ -1386,16 +1396,6 @@ export default function App() {
                   />
                 )}
               </div>
-              {wizardStep < 3 && (
-                <WizardStickyBar
-                  restaurant={restaurant} workshop={workshop}
-                  groupSize={groupSize} ppp={ppp} total={total}
-                  canAdvance={wizardStep === 1 ? step1Selected : step2Selected}
-                  nextLabel={wizardStep === 2 ? "Podsumowanie →" : "Dalej →"}
-                  onNext={() => setWizardStep(s => s + 1)}
-                  onBack={() => window.history.back()}
-                />
-              )}
             </>
           )}
         </>
