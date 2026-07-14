@@ -1220,13 +1220,14 @@ export default function App() {
   }, [path, wizardStep]);
 
   // Przełącznik ścieżki dostępny też na górze kroku 1 (nie tylko na
-  // stronie głównej) — pozwala zmienić zdanie bez powrotu do ekranu
-  // powitalnego. Czyści wybory, bo "warsztat najpierw"/"miejsce najpierw"
-  // to inny sens kroku 1 i 2.
+  // stronie głównej) — pozwala zmienić zdanie, co wybieramy najpierw,
+  // bez powrotu do ekranu powitalnego. "Path" ustala tylko kolejność
+  // kroków 1/2 — nie czyścimy już wcześniejszych wyborów (workshop/
+  // restauracja), żeby np. wybrany wcześniej warsztat nie znikał, gdy
+  // klient przełączy się na przeglądanie restauracji.
   const switchPath = p => {
     if (p === path) return;
     setPath(p); setWizardStep(1);
-    setSelectedW(null); setSelectedR(null); setSelectedVariant(null);
   };
 
   const handleToggleR = rId => {
