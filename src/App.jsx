@@ -199,6 +199,11 @@ const globalCSS = `
   @media (max-width: 480px) {
     .wizard-progress-label { display:none; }
   }
+  .search-divider { width:1px; align-self:stretch; margin:8px 0; }
+  @media (max-width: 640px) {
+    .search-bar { flex-direction: column !important; border-radius: 20px !important; }
+    .search-divider { width:100%; height:1px; align-self:auto; margin:2px 0; }
+  }
 `;
 
 // ══ Profil modal ════════════════════════════════════════════
@@ -627,15 +632,16 @@ for (let h = 8; h <= 23; h++) {
 // początek klipu, żeby szybciej było widać ludzi przy malowaniu.
 const HERO_VIDEO_START = 5;
 
+// Na ten moment tylko Poznań — kolejne miejscowości dojdą tutaj, gdy
+// pojawią się nowe restauracje/warsztaty poza Poznaniem.
 const LOCATION_OPTIONS = [
-  { id:"poznan",   label:"Poznań" },
-  { id:"poznan30", label:"Poznań + 30 km" },
+  { id:"poznan", label:"Poznań" },
 ];
 
 // Panel filtrów na stronie głównej — jeden wspólny zaokrąglony pasek
-// podzielony cienkimi liniami (jak dawny pasek wyszukiwania). Pole, które
-// ma wybraną wartość, "wyskakuje" jako własny owalny kafelek w kolorze
-// wyboru (jak zaznaczona karta warsztatu/restauracji); puste pola są płaskie.
+// podzielony cienkimi liniami. Pole z wybraną wartością dostaje tylko
+// delikatne brązowe obramowanie (bez wypełnienia); puste pola są całkiem
+// puste, bez tekstu zastępczego typu "Dowolne".
 function HomeFilterBar({ homeLocation, setHomeLocation, groupSize, setGroupSize, selectedDate, setSelectedDate, selectedTime, setSelectedTime }) {
   const [openField, setOpenField] = useState(null);
   const barRef = useRef(null);
@@ -649,18 +655,17 @@ function HomeFilterBar({ homeLocation, setHomeLocation, groupSize, setGroupSize,
   }, [openField]);
 
   const locationLabel = LOCATION_OPTIONS.find(o => o.id === homeLocation)?.label;
-  const dateLabel = selectedDate
-    ? `${new Date(selectedDate).toLocaleDateString("pl-PL", { day:"numeric", month:"short" })}${selectedTime ? ", " + selectedTime : ""}`
-    : "";
+  const dateLabel = selectedDate ? new Date(selectedDate).toLocaleDateString("pl-PL", { day:"numeric", month:"short" }) : "";
+
+  const openPeople = () => { if (groupSize == null) setGroupSize(10); toggle("people"); };
 
   const segStyle = active => ({
-    flex:1, minWidth:0, padding: active ? "8px 20px" : "10px 20px", margin: active ? 2 : 0, cursor:"pointer", position:"relative",
+    flex:1, minWidth:0, padding:"10px 18px", cursor:"pointer", position:"relative",
     borderRadius:999,
-    background: active ? C.selectedBg : "transparent",
-    border: `2px solid ${active ? C.primary : "transparent"}`,
+    border: `1px solid ${active ? C.primary : "transparent"}`,
   });
   const segLabel = active => ({ fontSize:9, fontWeight:700, color: active ? C.primary : C.muted, letterSpacing:"0.06em", whiteSpace:"nowrap" });
-  const segValue = active => ({ fontSize:13, color: active ? C.primary : C.text, fontWeight: active ? 600 : 400, whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis" });
+  const segValue = active => ({ fontSize:13, color: active ? C.primary : C.text, fontWeight: active ? 600 : 400, whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis", minHeight:16 });
 
   return (
     <div ref={barRef} style={{ maxWidth:640, margin:"0 auto 28px", position:"relative" }}>
@@ -668,7 +673,7 @@ function HomeFilterBar({ homeLocation, setHomeLocation, groupSize, setGroupSize,
 
         <div onClick={() => toggle("location")} style={segStyle(!!homeLocation)}>
           <div style={segLabel(!!homeLocation)}>MIEJSCE</div>
-          <div style={segValue(!!homeLocation)}>{locationLabel || "Dowolne"}</div>
+          <div style={segValue(!!homeLocation)}>{locationLabel || ""}</div>
           {openField === "location" && (
             <div className="modal-fade" onClick={e => e.stopPropagation()} style={{ position:"absolute", top:"calc(100% + 8px)", left:0, background:"#FFF", border:`1px solid ${C.border}`, borderRadius:14, boxShadow:"0 10px 32px rgba(0,0,0,0.14)", padding:8, minWidth:200, zIndex:50, cursor:"default" }}>
               {LOCATION_OPTIONS.map(o => (
@@ -680,38 +685,47 @@ function HomeFilterBar({ homeLocation, setHomeLocation, groupSize, setGroupSize,
           )}
         </div>
 
-        <div className="search-divider" style={{ width:1, background:C.border, margin:"8px 0" }} />
+        <div className="search-divider" style={{ background:C.border }} />
 
-        <div onClick={() => toggle("people")} style={segStyle(true)}>
-          <div style={segLabel(true)}>LICZBA OSÓB</div>
-          <div style={segValue(true)}>{groupSize} os.</div>
+        <div onClick={openPeople} style={segStyle(!!groupSize)}>
+          <div style={segLabel(!!groupSize)}>LICZBA OSÓB</div>
+          <div style={segValue(!!groupSize)}>{groupSize ? `${groupSize} os.` : ""}</div>
           {openField === "people" && (
             <div className="modal-fade" onClick={e => e.stopPropagation()} style={{ position:"absolute", top:"calc(100% + 8px)", left:0, background:"#FFF", border:`1px solid ${C.border}`, borderRadius:14, boxShadow:"0 10px 32px rgba(0,0,0,0.14)", padding:20, minWidth:200, zIndex:50, cursor:"default" }}>
               <div style={{ display:"flex", alignItems:"center", gap:16, justifyContent:"center" }}>
-                <button onClick={() => setGroupSize(Math.max(5, groupSize-1))} style={{ width:36, height:36, borderRadius:"50%", border:`1px solid ${C.border}`, background:"transparent", cursor:"pointer", fontSize:18, color:C.primary }}>−</button>
-                <span style={{ fontSize:22, fontWeight:600, color:C.primary, minWidth:30, textAlign:"center" }}>{groupSize}</span>
-                <button onClick={() => setGroupSize(Math.min(20, groupSize+1))} style={{ width:36, height:36, borderRadius:"50%", border:`1px solid ${C.border}`, background:"transparent", cursor:"pointer", fontSize:18, color:C.primary }}>+</button>
+                <button onClick={() => setGroupSize(Math.max(5, (groupSize ?? 10) - 1))} style={{ width:36, height:36, borderRadius:"50%", border:`1px solid ${C.border}`, background:"transparent", cursor:"pointer", fontSize:18, color:C.primary }}>−</button>
+                <span style={{ fontSize:22, fontWeight:600, color:C.primary, minWidth:30, textAlign:"center" }}>{groupSize ?? 10}</span>
+                <button onClick={() => setGroupSize(Math.min(20, (groupSize ?? 10) + 1))} style={{ width:36, height:36, borderRadius:"50%", border:`1px solid ${C.border}`, background:"transparent", cursor:"pointer", fontSize:18, color:C.primary }}>+</button>
               </div>
             </div>
           )}
         </div>
 
-        <div className="search-divider" style={{ width:1, background:C.border, margin:"8px 0" }} />
+        <div className="search-divider" style={{ background:C.border }} />
 
         <div onClick={() => toggle("date")} style={segStyle(!!selectedDate)}>
-          <div style={segLabel(!!selectedDate)}>DATA I GODZINA</div>
-          <div style={segValue(!!selectedDate)}>{dateLabel || "Dowolne"}</div>
+          <div style={segLabel(!!selectedDate)}>DATA</div>
+          <div style={segValue(!!selectedDate)}>{dateLabel}</div>
           {openField === "date" && (
-            <div className="modal-fade" onClick={e => e.stopPropagation()} style={{ position:"absolute", top:"calc(100% + 8px)", right:0, background:"#FFF", border:`1px solid ${C.border}`, borderRadius:14, boxShadow:"0 10px 32px rgba(0,0,0,0.14)", padding:20, minWidth:260, zIndex:50, cursor:"default" }}>
-              <div style={{ display:"flex", gap:10, flexWrap:"wrap" }}>
-                <input type="date" value={selectedDate} min={MIN_BOOKING_DATE} onChange={e => setSelectedDate(e.target.value)}
-                  style={{ border:`1px solid ${C.border}`, borderRadius:8, background:"#FAFAF8", fontSize:14, color:C.primary, fontFamily:"'Montserrat', system-ui, sans-serif", fontWeight:500, padding:"9px 11px", minHeight:44, flex:"1 1 150px", minWidth:0 }} />
-                <select value={selectedTime} onChange={e => setSelectedTime(e.target.value)}
-                  style={{ border:`1px solid ${C.border}`, borderRadius:8, background:"#FAFAF8", fontSize:14, color:C.primary, fontFamily:"'Montserrat', system-ui, sans-serif", fontWeight:500, padding:"9px 11px", minHeight:44, flex:"1 1 110px", minWidth:0 }}>
-                  <option value="">Godzina</option>
-                  {TIME_OPTIONS.map(t => <option key={t} value={t}>{t}</option>)}
-                </select>
-              </div>
+            <div className="modal-fade" onClick={e => e.stopPropagation()} style={{ position:"absolute", top:"calc(100% + 8px)", left:0, background:"#FFF", border:`1px solid ${C.border}`, borderRadius:14, boxShadow:"0 10px 32px rgba(0,0,0,0.14)", padding:16, minWidth:200, zIndex:50, cursor:"default" }}>
+              <input type="date" value={selectedDate} min={MIN_BOOKING_DATE} onChange={e => setSelectedDate(e.target.value)}
+                style={{ width:"100%", border:`1px solid ${C.border}`, borderRadius:8, background:"#FAFAF8", fontSize:14, color:C.primary, fontFamily:"'Montserrat', system-ui, sans-serif", fontWeight:500, padding:"9px 11px", minHeight:44 }} />
+            </div>
+          )}
+        </div>
+
+        <div className="search-divider" style={{ background:C.border }} />
+
+        <div onClick={() => toggle("time")} style={segStyle(!!selectedTime)}>
+          <div style={segLabel(!!selectedTime)}>GODZINA</div>
+          <div style={segValue(!!selectedTime)}>{selectedTime}</div>
+          {openField === "time" && (
+            <div className="modal-fade" onClick={e => e.stopPropagation()} style={{ position:"absolute", top:"calc(100% + 8px)", right:0, background:"#FFF", border:`1px solid ${C.border}`, borderRadius:14, boxShadow:"0 10px 32px rgba(0,0,0,0.14)", padding:16, minWidth:160, zIndex:50, cursor:"default" }}>
+              <select value={selectedTime} onChange={e => setSelectedTime(e.target.value)}
+                style={{ width:"100%", border:`1px solid ${C.border}`, borderRadius:8, background:"#FAFAF8", fontSize:14, color:C.primary, fontFamily:"'Montserrat', system-ui, sans-serif", fontWeight:500, padding:"9px 11px", minHeight:44 }}>
+                <option value="">Godzina</option>
+                {TIME_OPTIONS.map(t => <option key={t} value={t}>{t}</option>)}
+              </select>
             </div>
           )}
         </div>
@@ -1084,7 +1098,7 @@ export default function App() {
   const [selectedR,       setSelectedR]       = useState(null);
   const [selectedVariant, setSelectedVariant] = useState(null);
   const [selectedW,       setSelectedW]       = useState(null);
-  const [groupSize,       setGroupSize]       = useState(10);
+  const [groupSize,       setGroupSize]       = useState(null);
   const [profileItem,     setProfileItem]     = useState(null);
   const [selectedDate,    setSelectedDate]    = useState("");
   const [selectedTime,    setSelectedTime]    = useState("");
