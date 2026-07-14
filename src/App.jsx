@@ -384,8 +384,8 @@ function ProfileModal({ item, type, isSelected, onToggleSelect, selectedVariantI
             onClick={() => { if (!isSelected) onToggleSelect(); onClose(); }}
             style={{ marginTop:24, width:"100%", background:C.primary, color:"#FFF", border:"none", borderRadius:9, padding:16, fontSize:14, fontWeight:600, cursor:"pointer" }}>
             {isSelected
-              ? "Dodaj ten pakiet →"
-              : isRestaurant ? "Wybierz tę restaurację →" : "Dodaj ten warsztat →"}
+              ? "Dodaj ten pakiet"
+              : isRestaurant ? "Wybierz tę restaurację" : "Dodaj ten warsztat"}
           </button>
         </div>
       </div>
@@ -816,7 +816,7 @@ function HomeScreen({ restaurants, workshops, onStart, homeLocation, setHomeLoca
             <div style={{ fontSize:16, color:C.muted, fontWeight:600 }}>—</div>
           </div>
           <button disabled style={{ background:"#CFCAC0", color:"#FFF", border:"none", borderRadius:999, padding:"13px 24px", fontSize:14, fontWeight:600, cursor:"default" }}>
-            Wyślij zapytanie →
+            Wyślij zapytanie
           </button>
         </div>
 
@@ -880,7 +880,7 @@ function PickStep({ kind, items, selectedId, selectedVariantId, onToggle, onVari
               : "Żaden dostępny warsztat nie pasuje jeszcze do tego miejsca. Zmień wybór albo napisz do nas — poszukamy artysty."}
           </p>
           <div style={{ display:"flex", gap:10, justifyContent:"center", flexWrap:"wrap" }}>
-            <button onClick={onBackToStep1} style={{ padding:"12px 22px", borderRadius:9, border:`1px solid ${C.border}`, background:"#FFF", color:C.text, fontSize:13, fontWeight:600, cursor:"pointer", minHeight:44 }}>← Zmień wybór</button>
+            <button onClick={onBackToStep1} style={{ padding:"12px 22px", borderRadius:9, border:`1px solid ${C.border}`, background:"#FFF", color:C.text, fontSize:13, fontWeight:600, cursor:"pointer", minHeight:44 }}>Zmień wybór</button>
             <button onClick={onFallback} style={{ padding:"12px 22px", borderRadius:9, border:"none", background:C.primary, color:"#FFF", fontSize:13, fontWeight:600, cursor:"pointer", minHeight:44 }}>Napisz do nas</button>
           </div>
         </div>
@@ -1051,7 +1051,7 @@ function Step4ContactForm({ restaurant, variant, workshop, groupSize, selectedDa
       {errors.consent && <div style={{ ...errStyle, marginBottom:12 }}>{errors.consent}</div>}
       {error && <p style={{ color:"#C0392B", fontSize:12, marginBottom:12 }}>{error}</p>}
       <button onClick={send} disabled={sending} style={{ width:"100%", background:C.primary, color:"#FFF", border:"none", borderRadius:9, padding:16, fontSize:15, fontWeight:600, cursor: sending ? "default" : "pointer", opacity: sending ? 0.7 : 1, minHeight:52 }}>
-        {sending ? "Wysyłanie..." : "Wyślij zapytanie →"}
+        {sending ? "Wysyłanie..." : "Wyślij zapytanie"}
       </button>
       <p style={{ fontSize:11, color:"#B8B4AE", textAlign:"center", marginTop:12, marginBottom:0 }}>Odpowiadamy w ciągu 24 godz.</p>
 
@@ -1080,11 +1080,11 @@ function ConfirmationScreen({ onBackToHome }) {
 function WizardStickyBar({ restaurant, workshop, groupSize, ppp, total, canAdvance, nextLabel, onNext, onBack }) {
   const summary = restaurant || workshop
     ? [restaurant?.name, workshop?.name].filter(Boolean).join(" + ")
-    : "Wybierz, aby kontynuować";
+    : "";
   return (
     <div style={{ maxWidth:900, margin:"0 auto 20px", padding:"0 16px" }}>
       <div style={{ display:"grid", gridTemplateColumns:"auto 1fr auto", alignItems:"center", gap:10, background:C.tagBg, borderRadius:999, padding:6 }}>
-        <button onClick={onBack} style={{ background:C.primary, border:"none", color:"#FFF", borderRadius:999, padding:"12px 18px", fontSize:13, fontWeight:600, cursor:"pointer", minHeight:44, whiteSpace:"nowrap" }}>← Wstecz</button>
+        <button onClick={onBack} style={{ background:C.primary, border:"none", color:"#FFF", borderRadius:999, padding:"12px 18px", fontSize:13, fontWeight:600, cursor:"pointer", minHeight:44, whiteSpace:"nowrap" }}>Wstecz</button>
         <div style={{ textAlign:"center", minWidth:0, overflow:"hidden" }}>
           <div style={{ fontFamily:"'Montserrat', system-ui, sans-serif", fontSize:18, color:C.text, fontWeight:600, whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis" }}>
             {total > 0 ? `${total.toLocaleString("pl-PL")} zł` : summary}
@@ -1140,12 +1140,12 @@ function PartnersView() {
         <div style={{ textAlign:"center", padding:"30px 24px", background:C.card, borderRadius:14, border:`1px solid ${C.border}` }}>
           <div style={{ fontFamily:"'Montserrat', system-ui, sans-serif", fontSize:20, fontWeight:400, marginBottom:8 }}>Jestem artystą / prowadzę warsztaty</div>
           <p style={{ fontSize:13, color:C.muted, margin:"0 0 16px", lineHeight:1.6 }}>Dołącz jako partner i przyjmuj zapytania na warsztaty w lokalach naszych partnerów.</p>
-          <a href={ARTIST_FORM_URL} target="_blank" rel="noreferrer" style={{ display:"inline-block", background:C.primary, color:"#FFF", textDecoration:"none", borderRadius:9, padding:"12px 24px", fontSize:14, fontWeight:600 }}>Formularz zgłoszeniowy →</a>
+          <a href={ARTIST_FORM_URL} target="_blank" rel="noreferrer" style={{ display:"inline-block", background:C.primary, color:"#FFF", textDecoration:"none", borderRadius:9, padding:"12px 24px", fontSize:14, fontWeight:600 }}>Formularz zgłoszeniowy</a>
         </div>
         <div style={{ textAlign:"center", padding:"30px 24px", background:C.card, borderRadius:14, border:`1px solid ${C.border}` }}>
           <div style={{ fontFamily:"'Montserrat', system-ui, sans-serif", fontSize:20, fontWeight:400, marginBottom:8 }}>Prowadzę restaurację / kawiarnię</div>
           <p style={{ fontSize:13, color:C.muted, margin:"0 0 16px", lineHeight:1.6 }}>Zgłoś swój lokal i dotrzyj do klientów szukających wyjątkowych eventów grupowych.</p>
-          <a href={RESTAURANT_FORM_URL} target="_blank" rel="noreferrer" style={{ display:"inline-block", background:C.primary, color:"#FFF", textDecoration:"none", borderRadius:9, padding:"12px 24px", fontSize:14, fontWeight:600 }}>Formularz zgłoszeniowy →</a>
+          <a href={RESTAURANT_FORM_URL} target="_blank" rel="noreferrer" style={{ display:"inline-block", background:C.primary, color:"#FFF", textDecoration:"none", borderRadius:9, padding:"12px 24px", fontSize:14, fontWeight:600 }}>Formularz zgłoszeniowy</a>
         </div>
       </div>
     </div>
@@ -1356,7 +1356,7 @@ export default function App() {
                     restaurant={restaurant} workshop={workshop}
                     groupSize={groupSize} ppp={ppp} total={total}
                     canAdvance={wizardStep === 1 ? step1Selected : step2Selected}
-                    nextLabel={wizardStep === 2 ? "Wyślij zapytanie →" : "Dalej →"}
+                    nextLabel={wizardStep === 2 ? "Wyślij zapytanie" : "Dalej"}
                     onNext={() => setWizardStep(s => s + 1)}
                     onBack={() => window.history.back()}
                   />
