@@ -802,8 +802,8 @@ function HomeScreen({ restaurants, workshops, onStart, homeLocation, setHomeLoca
 
 function WizardProgressBar({ step, path }) {
   const labels = path === "workshop"
-    ? ["Warsztat", "Miejsce", "Cena i termin", "Kontakt"]
-    : ["Miejsce", "Warsztat", "Cena i termin", "Kontakt"];
+    ? ["Warsztat", "Miejsce", "Podsumowanie"]
+    : ["Miejsce", "Warsztat", "Podsumowanie"];
   return (
     <div style={{ display:"flex", alignItems:"flex-start", maxWidth:640, margin:"0 auto", padding:"18px 16px 0" }}>
       {labels.map((l, i) => {
@@ -871,42 +871,7 @@ function PickStep({ kind, items, selectedId, selectedVariantId, onToggle, onVari
   );
 }
 
-// ══ Krok 3 — liczba osób, termin, cena na żywo ═══════════════
-
-function Step3PriceAndDate({ groupSize, selectedDate, onDateChange, selectedTime, onTimeChange, ppp, total }) {
-  return (
-    <div style={{ maxWidth:480, margin:"0 auto", padding:"24px 16px 20px" }}>
-      <h2 style={{ fontFamily:"'Montserrat', system-ui, sans-serif", fontSize:24, fontWeight:400, margin:"0 0 22px", textAlign:"center", color:C.text }}>
-        Termin i cena
-      </h2>
-
-      <div style={{ background:C.card, border:`1px solid ${C.border}`, borderRadius:14, padding:20, marginBottom:16, display:"flex", gap:12, flexWrap:"wrap" }}>
-        <div style={{ flex:"1 1 160px" }}>
-          <div style={{ fontSize:11, fontWeight:700, color:C.text, letterSpacing:"0.05em", marginBottom:8 }}>DATA</div>
-          <input type="date" value={selectedDate} min={MIN_BOOKING_DATE} onChange={e => onDateChange(e.target.value)}
-            style={{ width:"100%", padding:"11px 13px", border:`1px solid ${C.border}`, borderRadius:8, fontSize:14, color:C.text, background:"#FAFAF8", minHeight:44 }} />
-        </div>
-        <div style={{ flex:"1 1 130px" }}>
-          <div style={{ fontSize:11, fontWeight:700, color:C.text, letterSpacing:"0.05em", marginBottom:8 }}>GODZINA</div>
-          <select value={selectedTime} onChange={e => onTimeChange(e.target.value)}
-            style={{ width:"100%", padding:"11px 13px", border:`1px solid ${C.border}`, borderRadius:8, fontSize:14, color:C.text, background:"#FAFAF8", minHeight:44 }}>
-            <option value="">Wybierz godzinę</option>
-            {TIME_OPTIONS.map(t => <option key={t} value={t}>{t}</option>)}
-          </select>
-        </div>
-      </div>
-
-      <div style={{ background:C.primary, borderRadius:14, padding:22, textAlign:"center" }}>
-        <div style={{ fontFamily:"'Montserrat', system-ui, sans-serif", fontSize:22, color:"#FFF", fontWeight:400 }}>
-          {groupSize} osób × {ppp} zł = {total.toLocaleString("pl-PL")} zł
-        </div>
-        <div style={{ fontSize:11, color:"rgba(255,255,255,0.7)", marginTop:8 }}>Szacunkowo. Ostateczną cenę potwierdzamy mailem.</div>
-      </div>
-    </div>
-  );
-}
-
-// ══ Krok 4 — podsumowanie i formularz kontaktowy ═════════════
+// ══ Krok 3 — podsumowanie i formularz kontaktowy ═════════════
 
 function Step4ContactForm({ restaurant, variant, workshop, groupSize, selectedDate, selectedTime, ppp, total, onEditStep, onSubmitted }) {
   const [form, setForm] = useState({ name:"", email:"", phone:"", message:"" });
@@ -956,9 +921,9 @@ function Step4ContactForm({ restaurant, variant, workshop, groupSize, selectedDa
   const summaryRows = [
     { label:"Warsztat", value: workshop ? `${workshop.name} (${workshop.artist})` : "—", step:1 },
     { label:"Miejsce", value: restaurant ? `${restaurant.name}${variant ? " · " + variant.label : ""}` : "—", step:2 },
-    { label:"Termin", value: selectedDate ? `${new Date(selectedDate).toLocaleDateString("pl-PL",{day:"numeric",month:"long",year:"numeric"})}${selectedTime ? ", " + selectedTime : ""}` : "do ustalenia", step:3 },
+    { label:"Termin", value: selectedDate ? `${new Date(selectedDate).toLocaleDateString("pl-PL",{day:"numeric",month:"long",year:"numeric"})}${selectedTime ? ", " + selectedTime : ""}` : "do ustalenia" },
     { label:"Liczba osób", value: `${groupSize} osób` },
-    { label:"Kwota", value: total > 0 ? `${total.toLocaleString("pl-PL")} zł` : "—", step:3 },
+    { label:"Kwota", value: total > 0 ? `${total.toLocaleString("pl-PL")} zł` : "—" },
   ];
 
   return (
@@ -1114,7 +1079,7 @@ export default function App() {
   const { restaurants, workshops, dataLoading, dataError } = useSheetData();
   const [mode,            setMode]            = useState("client"); // "client" | "b2b"
   const [path,            setPath]            = useState(null);     // null | "workshop" | "restaurant" — null = ekran powitalny
-  const [wizardStep,      setWizardStep]      = useState(1);         // 1..4
+  const [wizardStep,      setWizardStep]      = useState(1);         // 1..3
   const [submitted,       setSubmitted]       = useState(false);
   const [selectedR,       setSelectedR]       = useState(null);
   const [selectedVariant, setSelectedVariant] = useState(null);
@@ -1280,7 +1245,7 @@ export default function App() {
           ) : (
             <>
               <WizardProgressBar step={wizardStep} path={path} />
-              <div style={{ paddingBottom: wizardStep === 4 ? 20 : 100 }}>
+              <div style={{ paddingBottom: wizardStep === 3 ? 20 : 100 }}>
                 {wizardStep === 1 && (
                   <PickStep
                     kind={step1Kind}
@@ -1301,19 +1266,11 @@ export default function App() {
                     onToggle={id => step2Kind === "workshop" ? setSelectedW(selectedW === id ? null : id) : handleToggleR(id)}
                     onVariantSelect={vid => setSelectedVariant(vid)}
                     onProfile={item => setProfileItem({ item, type: step2Kind })}
-                    onFallback={() => setWizardStep(4)}
+                    onFallback={() => setWizardStep(3)}
                     onBackToStep1={() => window.history.back()}
                   />
                 )}
                 {wizardStep === 3 && (
-                  <Step3PriceAndDate
-                    groupSize={groupSize}
-                    selectedDate={selectedDate} onDateChange={setSelectedDate}
-                    selectedTime={selectedTime} onTimeChange={setSelectedTime}
-                    ppp={ppp} total={total}
-                  />
-                )}
-                {wizardStep === 4 && (
                   <Step4ContactForm
                     restaurant={restaurant} variant={variant} workshop={workshop}
                     groupSize={groupSize} selectedDate={selectedDate} selectedTime={selectedTime}
@@ -1323,12 +1280,12 @@ export default function App() {
                   />
                 )}
               </div>
-              {wizardStep < 4 && (
+              {wizardStep < 3 && (
                 <WizardStickyBar
                   restaurant={restaurant} workshop={workshop}
                   groupSize={groupSize} ppp={ppp} total={total}
-                  canAdvance={wizardStep === 1 ? step1Selected : wizardStep === 2 ? step2Selected : true}
-                  nextLabel={wizardStep === 3 ? "Przejdź do podsumowania →" : "Dalej →"}
+                  canAdvance={wizardStep === 1 ? step1Selected : step2Selected}
+                  nextLabel={wizardStep === 2 ? "Przejdź do podsumowania →" : "Dalej →"}
                   onNext={() => setWizardStep(s => s + 1)}
                   onBack={() => window.history.back()}
                 />
