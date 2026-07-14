@@ -713,7 +713,7 @@ function HomeFilterBar({ homeLocation, setHomeLocation, groupSize, setGroupSize,
           <div style={segValue(!!selectedDate)}>{dateLabel}</div>
           {openField === "date" && (
             <div className="modal-fade" onClick={e => e.stopPropagation()} style={{ position:"absolute", top:"calc(100% + 8px)", left:0, background:"#FFF", border:`1px solid ${C.border}`, borderRadius:14, boxShadow:"0 10px 32px rgba(0,0,0,0.14)", padding:16, minWidth:200, zIndex:50, cursor:"default" }}>
-              <input type="date" value={selectedDate} min={MIN_BOOKING_DATE} onChange={e => setSelectedDate(e.target.value)}
+              <input type="date" value={selectedDate} min={MIN_BOOKING_DATE} onChange={e => { setSelectedDate(e.target.value); setOpenField(null); }}
                 style={{ width:"100%", border:`1px solid ${C.border}`, borderRadius:8, background:"#FAFAF8", fontSize:14, color:C.primary, fontFamily:"'Montserrat', system-ui, sans-serif", fontWeight:500, padding:"9px 11px", minHeight:44 }} />
             </div>
           )}
@@ -726,7 +726,7 @@ function HomeFilterBar({ homeLocation, setHomeLocation, groupSize, setGroupSize,
           <div style={segValue(!!selectedTime)}>{selectedTime}</div>
           {openField === "time" && (
             <div className="modal-fade" onClick={e => e.stopPropagation()} style={{ position:"absolute", top:"calc(100% + 8px)", right:0, background:"#FFF", border:`1px solid ${C.border}`, borderRadius:14, boxShadow:"0 10px 32px rgba(0,0,0,0.14)", padding:16, minWidth:160, zIndex:50, cursor:"default" }}>
-              <select value={selectedTime} onChange={e => setSelectedTime(e.target.value)}
+              <select value={selectedTime} onChange={e => { setSelectedTime(e.target.value); setOpenField(null); }}
                 style={{ width:"100%", border:`1px solid ${C.border}`, borderRadius:8, background:"#FAFAF8", fontSize:14, color:C.primary, fontFamily:"'Montserrat', system-ui, sans-serif", fontWeight:500, padding:"9px 11px", minHeight:44 }}>
                 <option value="">Godzina</option>
                 {TIME_OPTIONS.map(t => <option key={t} value={t}>{t}</option>)}
