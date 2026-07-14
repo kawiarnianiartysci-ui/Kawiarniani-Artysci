@@ -734,6 +734,33 @@ function HomeFilterBar({ homeLocation, setHomeLocation, groupSize, setGroupSize,
   );
 }
 
+// Para kafelków wyboru ścieżki — używana na ekranie powitalnym (gdzie
+// "warsztat" jest domyślnie wizualnie wyróżniony) i na górze kroku 1
+// kreatora (gdzie brązowy = faktycznie wybrana w tej chwili ścieżka,
+// co pozwala przełączyć się na drugą bez powrotu na stronę główną).
+function PathTiles({ activeKey, onSelect }) {
+  const tile = (key, label, sub) => {
+    const active = activeKey === key;
+    return (
+      <button key={key} onClick={() => onSelect(key)} style={{
+        flex:1, textAlign:"left",
+        background: active ? C.primary : C.card,
+        border: active ? "none" : `2px solid ${C.primary}`,
+        borderRadius:999, padding:"26px 32px", cursor:"pointer", minHeight:100,
+      }}>
+        <div style={{ fontFamily:"'Montserrat', system-ui, sans-serif", fontSize:19, fontWeight:500, marginBottom:6, color: active ? "#FFF" : C.primary }}>{label}</div>
+        <div style={{ fontSize:13, color: active ? "rgba(255,255,255,0.85)" : C.muted }}>{sub}</div>
+      </button>
+    );
+  };
+  return (
+    <div className="home-cta-grid">
+      {tile("workshop", "Wybierz warsztat →", "Wiem, co chcemy robić")}
+      {tile("restaurant", "Wybierz restaurację/kawiarnię →", "Wiem, gdzie chcemy być")}
+    </div>
+  );
+}
+
 function HomeScreen({ restaurants, workshops, onStart, homeLocation, setHomeLocation, groupSize, setGroupSize, selectedDate, setSelectedDate, selectedTime, setSelectedTime }) {
   const videoRef = useRef(null);
   const activeRestaurants = restaurants.filter(r => !r.comingSoon);
@@ -774,15 +801,8 @@ function HomeScreen({ restaurants, workshops, onStart, homeLocation, setHomeLoca
           selectedTime={selectedTime} setSelectedTime={setSelectedTime}
         />
 
-        <div className="home-cta-grid" style={{ marginBottom:16 }}>
-          <button onClick={() => onStart("workshop")} style={{ flex:1, textAlign:"left", background:C.primary, color:"#FFF", border:"none", borderRadius:999, padding:"26px 32px", cursor:"pointer", minHeight:100 }}>
-            <div style={{ fontFamily:"'Montserrat', system-ui, sans-serif", fontSize:19, fontWeight:500, marginBottom:6 }}>Zacznij od warsztatu →</div>
-            <div style={{ fontSize:13, opacity:0.85 }}>Wiem, co chcemy robić</div>
-          </button>
-          <button onClick={() => onStart("restaurant")} style={{ flex:1, textAlign:"left", background:C.card, color:C.text, border:`2px solid ${C.primary}`, borderRadius:999, padding:"26px 32px", cursor:"pointer", minHeight:100 }}>
-            <div style={{ fontFamily:"'Montserrat', system-ui, sans-serif", fontSize:19, fontWeight:500, marginBottom:6, color:C.primary }}>Zacznij od miejsca →</div>
-            <div style={{ fontSize:13, color:C.muted }}>Wiem, gdzie chcemy być</div>
-          </button>
+        <div style={{ marginBottom:16 }}>
+          <PathTiles activeKey="workshop" onSelect={onStart} />
         </div>
 
         <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", gap:12, background:"#F1EFEA", border:`1px solid ${C.border}`, borderRadius:999, padding:"10px 10px 10px 24px", marginBottom:36, opacity:0.55 }}>
@@ -1139,6 +1159,23 @@ export default function App() {
     window.history.pushState({ mode, path, wizardStep, submitted }, "");
   }, [mode, path, wizardStep, submitted]);
 
+  // Każda zmiana ścieżki/kroku przewija na górę strony — bez tego np.
+  // kliknięcie kafelka na dole ekranu powitalnego zostawiało gościa
+  // w tym samym miejscu przewinięcia, w środku nowej strony.
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [path, wizardStep]);
+
+  // Przełącznik ścieżki dostępny też na górze kroku 1 (nie tylko na
+  // stronie głównej) — pozwala zmienić zdanie bez powrotu do ekranu
+  // powitalnego. Czyści wybory, bo "warsztat najpierw"/"miejsce najpierw"
+  // to inny sens kroku 1 i 2.
+  const switchPath = p => {
+    if (p === path) return;
+    setPath(p); setWizardStep(1);
+    setSelectedW(null); setSelectedR(null); setSelectedVariant(null);
+  };
+
   const handleToggleR = rId => {
     if (selectedR === rId) { setSelectedR(null); setSelectedVariant(null); return; }
     setSelectedR(rId);
@@ -1149,7 +1186,7 @@ export default function App() {
   const resetToHome = () => {
     setPath(null); setWizardStep(1); setSubmitted(false);
     setSelectedR(null); setSelectedVariant(null); setSelectedW(null);
-    setGroupSize(10); setSelectedDate(""); setSelectedTime(""); setHomeLocation(null);
+    setGroupSize(null); setSelectedDate(""); setSelectedTime(""); setHomeLocation(null);
   };
 
   const workshop   = workshops.find(w => w.id === selectedW);
@@ -1261,7 +1298,11 @@ export default function App() {
               <WizardProgressBar step={wizardStep} path={path} />
               <div style={{ paddingBottom: wizardStep === 3 ? 20 : 100 }}>
                 {wizardStep === 1 && (
-                  <PickStep
+                  <>
+                    <div style={{ maxWidth:900, margin:"0 auto", padding:"0 16px" }}>
+                      <PathTiles activeKey={path} onSelect={switchPath} />
+                    </div>
+                    <PickStep
                     kind={step1Kind}
                     items={step1Kind === "workshop" ? workshops : restaurants}
                     selectedId={step1Kind === "workshop" ? selectedW : selectedR}
@@ -1269,7 +1310,8 @@ export default function App() {
                     onToggle={id => step1Kind === "workshop" ? setSelectedW(selectedW === id ? null : id) : handleToggleR(id)}
                     onVariantSelect={vid => setSelectedVariant(vid)}
                     onProfile={item => setProfileItem({ item, type: step1Kind })}
-                  />
+                    />
+                  </>
                 )}
                 {wizardStep === 2 && (
                   <PickStep
