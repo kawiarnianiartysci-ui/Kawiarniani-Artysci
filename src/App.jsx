@@ -1077,14 +1077,14 @@ function WizardStickyBar({ restaurant, workshop, groupSize, ppp, total, canAdvan
   return (
     <div style={{ maxWidth:900, margin:"0 auto 20px", padding:"0 16px" }}>
       <div style={{ display:"grid", gridTemplateColumns:"auto 1fr auto", alignItems:"center", gap:10, background:C.tagBg, borderRadius:999, padding:6 }}>
-        <button onClick={onBack} style={{ background:C.primary, border:"none", color:"#FFF", borderRadius:999, padding:"12px 22px", fontSize:13, fontWeight:600, cursor:"pointer", minHeight:44, whiteSpace:"nowrap" }}>← Wstecz</button>
+        <button onClick={onBack} style={{ background:C.primary, border:"none", color:"#FFF", borderRadius:999, padding:"12px 18px", fontSize:13, fontWeight:600, cursor:"pointer", minHeight:44, whiteSpace:"nowrap" }}>← Wstecz</button>
         <div style={{ textAlign:"center", minWidth:0, overflow:"hidden" }}>
-          <div style={{ fontFamily:"'Montserrat', system-ui, sans-serif", fontSize:15, color:C.text, fontWeight:500, whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis" }}>
+          <div style={{ fontFamily:"'Montserrat', system-ui, sans-serif", fontSize:18, color:C.text, fontWeight:600, whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis" }}>
             {total > 0 ? `${total.toLocaleString("pl-PL")} zł` : summary}
           </div>
-          {total > 0 && <div style={{ fontSize:11, color:C.muted }}>{groupSize} os. × {ppp} zł</div>}
+          {total > 0 && <div style={{ fontSize:12, color:C.muted, whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis" }}>{groupSize} os. × {ppp} zł</div>}
         </div>
-        <button onClick={onNext} disabled={!canAdvance} style={{ background: canAdvance ? C.primary : "#DDD9D2", color: canAdvance ? "#FFF" : "#9A968D", border:"none", borderRadius:999, padding:"12px 22px", fontSize:13, fontWeight:600, cursor: canAdvance ? "pointer" : "default", minHeight:44, whiteSpace:"nowrap" }}>
+        <button onClick={onNext} disabled={!canAdvance} style={{ background: canAdvance ? C.primary : "#DDD9D2", color: canAdvance ? "#FFF" : "#9A968D", border:"none", borderRadius:999, padding:"8px 14px", fontSize:12, fontWeight:600, cursor: canAdvance ? "pointer" : "default", minHeight:44, maxWidth:96, lineHeight:1.3, textAlign:"center" }}>
           {nextLabel}
         </button>
       </div>
@@ -1348,7 +1348,7 @@ export default function App() {
                     restaurant={restaurant} workshop={workshop}
                     groupSize={groupSize} ppp={ppp} total={total}
                     canAdvance={wizardStep === 1 ? step1Selected : step2Selected}
-                    nextLabel={wizardStep === 2 ? "Podsumowanie →" : "Dalej →"}
+                    nextLabel={wizardStep === 2 ? "Wyślij zapytanie →" : "Dalej →"}
                     onNext={() => setWizardStep(s => s + 1)}
                     onBack={() => window.history.back()}
                   />
