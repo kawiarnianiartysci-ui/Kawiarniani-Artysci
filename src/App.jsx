@@ -632,30 +632,10 @@ const LOCATION_OPTIONS = [
   { id:"poznan30", label:"Poznań + 30 km" },
 ];
 
-// Pigułka pojedynczego pola filtra na stronie głównej — szara domyślnie,
-// podświetla się na kolor wyboru (jak zaznaczona karta) gdy ma wartość.
-function HomeFilterPill({ label, value, isOpen, onToggle, children }) {
-  const active = !!value;
-  return (
-    <div style={{ position:"relative" }}>
-      <button onClick={onToggle} style={{
-        display:"flex", flexDirection:"column", alignItems:"flex-start", gap:2,
-        background: active ? C.selectedBg : "#F1EFEA",
-        border:`2px solid ${active ? C.primary : "transparent"}`,
-        borderRadius:999, padding:"10px 20px", cursor:"pointer", minHeight:44, minWidth:0,
-      }}>
-        <span style={{ fontSize:9, fontWeight:700, color: active ? C.primary : C.muted, letterSpacing:"0.06em", whiteSpace:"nowrap" }}>{label.toUpperCase()}</span>
-        <span style={{ fontSize:13, color: active ? C.primary : C.text, fontWeight: active ? 600 : 400, whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis", maxWidth:140 }}>{value || "Dowolne"}</span>
-      </button>
-      {isOpen && (
-        <div className="modal-fade" onClick={e => e.stopPropagation()} style={{ position:"absolute", top:"calc(100% + 8px)", left:0, background:"#FFF", border:`1px solid ${C.border}`, borderRadius:14, boxShadow:"0 10px 32px rgba(0,0,0,0.14)", padding:16, minWidth:220, zIndex:50, cursor:"default" }}>
-          {children}
-        </div>
-      )}
-    </div>
-  );
-}
-
+// Panel filtrów na stronie głównej — jeden wspólny zaokrąglony pasek
+// podzielony cienkimi liniami (jak dawny pasek wyszukiwania). Pole, które
+// ma wybraną wartość, "wyskakuje" jako własny owalny kafelek w kolorze
+// wyboru (jak zaznaczona karta warsztatu/restauracji); puste pola są płaskie.
 function HomeFilterBar({ homeLocation, setHomeLocation, groupSize, setGroupSize, selectedDate, setSelectedDate, selectedTime, setSelectedTime }) {
   const [openField, setOpenField] = useState(null);
   const barRef = useRef(null);
@@ -673,35 +653,69 @@ function HomeFilterBar({ homeLocation, setHomeLocation, groupSize, setGroupSize,
     ? `${new Date(selectedDate).toLocaleDateString("pl-PL", { day:"numeric", month:"short" })}${selectedTime ? ", " + selectedTime : ""}`
     : "";
 
+  const segStyle = active => ({
+    flex:1, minWidth:0, padding: active ? "8px 20px" : "10px 20px", margin: active ? 2 : 0, cursor:"pointer", position:"relative",
+    borderRadius:999,
+    background: active ? C.selectedBg : "transparent",
+    border: `2px solid ${active ? C.primary : "transparent"}`,
+  });
+  const segLabel = active => ({ fontSize:9, fontWeight:700, color: active ? C.primary : C.muted, letterSpacing:"0.06em", whiteSpace:"nowrap" });
+  const segValue = active => ({ fontSize:13, color: active ? C.primary : C.text, fontWeight: active ? 600 : 400, whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis" });
+
   return (
-    <div ref={barRef} style={{ display:"flex", flexWrap:"wrap", gap:10, justifyContent:"center", marginBottom:28 }}>
-      <HomeFilterPill label="Miejsce" value={locationLabel} isOpen={openField === "location"} onToggle={() => toggle("location")}>
-        {LOCATION_OPTIONS.map(o => (
-          <div key={o.id} onClick={() => { setHomeLocation(o.id); setOpenField(null); }} style={{ padding:"10px 14px", borderRadius:9, cursor:"pointer", fontSize:14, background: homeLocation===o.id ? C.tagBg : "transparent", color: homeLocation===o.id ? C.primary : C.text, fontWeight: homeLocation===o.id ? 600 : 400, whiteSpace:"nowrap" }}>
-            {o.label}
-          </div>
-        ))}
-      </HomeFilterPill>
+    <div ref={barRef} style={{ maxWidth:640, margin:"0 auto 28px", position:"relative" }}>
+      <div className="search-bar" style={{ display:"flex", alignItems:"stretch", background:"#FFF", border:`1px solid ${C.border}`, borderRadius:999, boxShadow:"0 4px 18px rgba(0,0,0,0.07)", padding:5 }}>
 
-      <HomeFilterPill label="Liczba osób" value={`${groupSize} os.`} isOpen={openField === "people"} onToggle={() => toggle("people")}>
-        <div style={{ display:"flex", alignItems:"center", gap:16, justifyContent:"center" }}>
-          <button onClick={() => setGroupSize(Math.max(5, groupSize-1))} style={{ width:36, height:36, borderRadius:"50%", border:`1px solid ${C.border}`, background:"transparent", cursor:"pointer", fontSize:18, color:C.primary }}>−</button>
-          <span style={{ fontSize:22, fontWeight:600, color:C.primary, minWidth:30, textAlign:"center" }}>{groupSize}</span>
-          <button onClick={() => setGroupSize(Math.min(20, groupSize+1))} style={{ width:36, height:36, borderRadius:"50%", border:`1px solid ${C.border}`, background:"transparent", cursor:"pointer", fontSize:18, color:C.primary }}>+</button>
+        <div onClick={() => toggle("location")} style={segStyle(!!homeLocation)}>
+          <div style={segLabel(!!homeLocation)}>MIEJSCE</div>
+          <div style={segValue(!!homeLocation)}>{locationLabel || "Dowolne"}</div>
+          {openField === "location" && (
+            <div className="modal-fade" onClick={e => e.stopPropagation()} style={{ position:"absolute", top:"calc(100% + 8px)", left:0, background:"#FFF", border:`1px solid ${C.border}`, borderRadius:14, boxShadow:"0 10px 32px rgba(0,0,0,0.14)", padding:8, minWidth:200, zIndex:50, cursor:"default" }}>
+              {LOCATION_OPTIONS.map(o => (
+                <div key={o.id} onClick={() => { setHomeLocation(o.id); setOpenField(null); }} style={{ padding:"10px 14px", borderRadius:9, cursor:"pointer", fontSize:14, background: homeLocation===o.id ? C.tagBg : "transparent", color: homeLocation===o.id ? C.primary : C.text, fontWeight: homeLocation===o.id ? 600 : 400, whiteSpace:"nowrap" }}>
+                  {o.label}
+                </div>
+              ))}
+            </div>
+          )}
         </div>
-      </HomeFilterPill>
 
-      <HomeFilterPill label="Data i godzina" value={dateLabel} isOpen={openField === "date"} onToggle={() => toggle("date")}>
-        <div style={{ display:"flex", gap:10, flexWrap:"wrap" }}>
-          <input type="date" value={selectedDate} min={MIN_BOOKING_DATE} onChange={e => setSelectedDate(e.target.value)}
-            style={{ border:`1px solid ${C.border}`, borderRadius:8, background:"#FAFAF8", fontSize:14, color:C.primary, fontFamily:"'Montserrat', system-ui, sans-serif", fontWeight:500, padding:"9px 11px", minHeight:44 }} />
-          <select value={selectedTime} onChange={e => setSelectedTime(e.target.value)}
-            style={{ border:`1px solid ${C.border}`, borderRadius:8, background:"#FAFAF8", fontSize:14, color:C.primary, fontFamily:"'Montserrat', system-ui, sans-serif", fontWeight:500, padding:"9px 11px", minHeight:44 }}>
-            <option value="">Godzina</option>
-            {TIME_OPTIONS.map(t => <option key={t} value={t}>{t}</option>)}
-          </select>
+        <div className="search-divider" style={{ width:1, background:C.border, margin:"8px 0" }} />
+
+        <div onClick={() => toggle("people")} style={segStyle(true)}>
+          <div style={segLabel(true)}>LICZBA OSÓB</div>
+          <div style={segValue(true)}>{groupSize} os.</div>
+          {openField === "people" && (
+            <div className="modal-fade" onClick={e => e.stopPropagation()} style={{ position:"absolute", top:"calc(100% + 8px)", left:0, background:"#FFF", border:`1px solid ${C.border}`, borderRadius:14, boxShadow:"0 10px 32px rgba(0,0,0,0.14)", padding:20, minWidth:200, zIndex:50, cursor:"default" }}>
+              <div style={{ display:"flex", alignItems:"center", gap:16, justifyContent:"center" }}>
+                <button onClick={() => setGroupSize(Math.max(5, groupSize-1))} style={{ width:36, height:36, borderRadius:"50%", border:`1px solid ${C.border}`, background:"transparent", cursor:"pointer", fontSize:18, color:C.primary }}>−</button>
+                <span style={{ fontSize:22, fontWeight:600, color:C.primary, minWidth:30, textAlign:"center" }}>{groupSize}</span>
+                <button onClick={() => setGroupSize(Math.min(20, groupSize+1))} style={{ width:36, height:36, borderRadius:"50%", border:`1px solid ${C.border}`, background:"transparent", cursor:"pointer", fontSize:18, color:C.primary }}>+</button>
+              </div>
+            </div>
+          )}
         </div>
-      </HomeFilterPill>
+
+        <div className="search-divider" style={{ width:1, background:C.border, margin:"8px 0" }} />
+
+        <div onClick={() => toggle("date")} style={segStyle(!!selectedDate)}>
+          <div style={segLabel(!!selectedDate)}>DATA I GODZINA</div>
+          <div style={segValue(!!selectedDate)}>{dateLabel || "Dowolne"}</div>
+          {openField === "date" && (
+            <div className="modal-fade" onClick={e => e.stopPropagation()} style={{ position:"absolute", top:"calc(100% + 8px)", right:0, background:"#FFF", border:`1px solid ${C.border}`, borderRadius:14, boxShadow:"0 10px 32px rgba(0,0,0,0.14)", padding:20, minWidth:260, zIndex:50, cursor:"default" }}>
+              <div style={{ display:"flex", gap:10, flexWrap:"wrap" }}>
+                <input type="date" value={selectedDate} min={MIN_BOOKING_DATE} onChange={e => setSelectedDate(e.target.value)}
+                  style={{ border:`1px solid ${C.border}`, borderRadius:8, background:"#FAFAF8", fontSize:14, color:C.primary, fontFamily:"'Montserrat', system-ui, sans-serif", fontWeight:500, padding:"9px 11px", minHeight:44, flex:"1 1 150px", minWidth:0 }} />
+                <select value={selectedTime} onChange={e => setSelectedTime(e.target.value)}
+                  style={{ border:`1px solid ${C.border}`, borderRadius:8, background:"#FAFAF8", fontSize:14, color:C.primary, fontFamily:"'Montserrat', system-ui, sans-serif", fontWeight:500, padding:"9px 11px", minHeight:44, flex:"1 1 110px", minWidth:0 }}>
+                  <option value="">Godzina</option>
+                  {TIME_OPTIONS.map(t => <option key={t} value={t}>{t}</option>)}
+                </select>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
     </div>
   );
 }
