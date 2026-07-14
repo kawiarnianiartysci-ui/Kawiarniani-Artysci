@@ -911,13 +911,14 @@ function PickStep({ kind, items, selectedId, selectedVariantId, onToggle, onVari
 
 // ══ Krok 3 — podsumowanie i formularz kontaktowy ═════════════
 
-function Step4ContactForm({ restaurant, variant, workshop, groupSize, selectedDate, selectedTime, ppp, total, onEditStep, onSubmitted }) {
+function Step4ContactForm({ restaurant, variant, workshop, groupSize, selectedDate, onDateChange, selectedTime, onTimeChange, ppp, total, onEditStep, onSubmitted }) {
   const [form, setForm] = useState({ name:"", email:"", phone:"", message:"" });
   const [consent, setConsent] = useState(false);
   const [showPrivacy, setShowPrivacy] = useState(false);
   const [sending, setSending] = useState(false);
   const [errors, setErrors] = useState({});
   const [error, setError] = useState("");
+  const [editingTermin, setEditingTermin] = useState(false);
   const set = k => e => setForm({ ...form, [k]: e.target.value });
   const inp = { width:"100%", padding:"11px 13px", border:`1px solid ${C.border}`, borderRadius:8, fontSize:14, color:C.text, background:"#FAFAF8", minHeight:44 };
   const lbl = { display:"block", fontSize:11, fontWeight:600, color:C.muted, marginBottom:5, letterSpacing:"0.08em" };
@@ -956,13 +957,19 @@ function Step4ContactForm({ restaurant, variant, workshop, groupSize, selectedDa
       .catch(() => { setSending(false); setError("Nie udało się wysłać zapytania. Spróbuj ponownie."); });
   };
 
-  const summaryRows = [
+  const summaryRowsTop = [
     { label:"Warsztat", value: workshop ? `${workshop.name} (${workshop.artist})` : "—", step:1 },
     { label:"Miejsce", value: restaurant ? `${restaurant.name}${variant ? " · " + variant.label : ""}` : "—", step:2 },
-    { label:"Termin", value: selectedDate ? `${new Date(selectedDate).toLocaleDateString("pl-PL",{day:"numeric",month:"long",year:"numeric"})}${selectedTime ? ", " + selectedTime : ""}` : "do ustalenia" },
+  ];
+  const summaryRowsBottom = [
     { label:"Liczba osób", value: `${groupSize} osób` },
     { label:"Kwota", value: total > 0 ? `${total.toLocaleString("pl-PL")} zł` : "—" },
   ];
+  const terminValue = selectedDate
+    ? `${new Date(selectedDate).toLocaleDateString("pl-PL",{day:"numeric",month:"long",year:"numeric"})}${selectedTime ? ", " + selectedTime : ""}`
+    : "do ustalenia";
+  const rowStyle = { display:"flex", justifyContent:"space-between", alignItems:"center", padding:"12px 0", borderBottom:`1px solid ${C.border}` };
+  const zmienBtnStyle = { background:"none", border:"none", color:C.primary, fontSize:11, textDecoration:"underline", cursor:"pointer", padding:"10px 0", minHeight:44, flexShrink:0 };
 
   return (
     <div style={{ maxWidth:480, margin:"0 auto", padding:"24px 16px 60px" }}>
@@ -971,15 +978,44 @@ function Step4ContactForm({ restaurant, variant, workshop, groupSize, selectedDa
       </h2>
 
       <div style={{ background:C.card, border:`1px solid ${C.border}`, borderRadius:14, padding:"6px 20px", marginBottom:20 }}>
-        {summaryRows.map((row, i) => (
-          <div key={row.label} style={{ display:"flex", justifyContent:"space-between", alignItems:"center", padding:"12px 0", borderBottom: i < summaryRows.length - 1 ? `1px solid ${C.border}` : "none" }}>
+        {summaryRowsTop.map(row => (
+          <div key={row.label} style={rowStyle}>
             <div>
               <div style={{ fontSize:10, color:C.muted, letterSpacing:"0.08em" }}>{row.label.toUpperCase()}</div>
               <div style={{ fontSize:13, color:C.text }}>{row.value}</div>
             </div>
             {onEditStep && row.step && (
-              <button onClick={() => onEditStep(row.step)} style={{ background:"none", border:"none", color:C.primary, fontSize:11, textDecoration:"underline", cursor:"pointer", padding:"10px 0", minHeight:44 }}>zmień</button>
+              <button onClick={() => onEditStep(row.step)} style={zmienBtnStyle}>zmień</button>
             )}
+          </div>
+        ))}
+
+        <div style={rowStyle}>
+          <div style={{ flex:1, minWidth:0 }}>
+            <div style={{ fontSize:10, color:C.muted, letterSpacing:"0.08em" }}>TERMIN</div>
+            {editingTermin ? (
+              <div style={{ display:"flex", gap:8, marginTop:6, flexWrap:"wrap" }}>
+                <input type="date" value={selectedDate} min={MIN_BOOKING_DATE} onChange={e => onDateChange(e.target.value)}
+                  style={{ border:`1px solid ${C.border}`, borderRadius:8, background:"#FAFAF8", fontSize:13, color:C.text, fontFamily:"'Montserrat', system-ui, sans-serif", padding:"7px 9px", minHeight:38, flex:"1 1 130px", minWidth:0 }} />
+                <select value={selectedTime} onChange={e => onTimeChange(e.target.value)}
+                  style={{ border:`1px solid ${C.border}`, borderRadius:8, background:"#FAFAF8", fontSize:13, color:C.text, fontFamily:"'Montserrat', system-ui, sans-serif", padding:"7px 9px", minHeight:38, flex:"1 1 100px", minWidth:0 }}>
+                  <option value="">Godzina</option>
+                  {TIME_OPTIONS.map(t => <option key={t} value={t}>{t}</option>)}
+                </select>
+              </div>
+            ) : (
+              <div style={{ fontSize:13, color:C.text }}>{terminValue}</div>
+            )}
+          </div>
+          <button onClick={() => setEditingTermin(v => !v)} style={zmienBtnStyle}>{editingTermin ? "gotowe" : "zmień"}</button>
+        </div>
+
+        {summaryRowsBottom.map((row, i) => (
+          <div key={row.label} style={i === summaryRowsBottom.length - 1 ? { ...rowStyle, borderBottom:"none" } : rowStyle}>
+            <div>
+              <div style={{ fontSize:10, color:C.muted, letterSpacing:"0.08em" }}>{row.label.toUpperCase()}</div>
+              <div style={{ fontSize:13, color:C.text }}>{row.value}</div>
+            </div>
           </div>
         ))}
       </div>
@@ -1341,7 +1377,9 @@ export default function App() {
                 {wizardStep === 3 && (
                   <Step4ContactForm
                     restaurant={restaurant} variant={variant} workshop={workshop}
-                    groupSize={groupSize} selectedDate={selectedDate} selectedTime={selectedTime}
+                    groupSize={groupSize}
+                    selectedDate={selectedDate} onDateChange={setSelectedDate}
+                    selectedTime={selectedTime} onTimeChange={setSelectedTime}
                     ppp={ppp} total={total}
                     onEditStep={n => setWizardStep(n)}
                     onSubmitted={() => setSubmitted(true)}
