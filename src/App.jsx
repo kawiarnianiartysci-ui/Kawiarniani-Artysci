@@ -1145,6 +1145,33 @@ export default function App() {
     style.textContent = globalCSS; document.head.appendChild(style);
   }, []);
 
+  // Podpięcie pod historię przeglądarki — strzałka "wstecz" (na komputerze
+  // i telefonie) ma cofać o krok WEWNĄTRZ aplikacji, a nie wychodzić z niej.
+  // Każde przejście "do przodu" (wybór ścieżki, kolejny krok kreatora, tryb
+  // Współpraca, wysłanie zapytania) dopisuje wpis do historii; przycisk
+  // wstecz przegląda przez te wpisy zamiast opuszczać stronę od razu.
+  const isPoppingRef = useRef(false);
+  useEffect(() => {
+    const onPopState = e => {
+      isPoppingRef.current = true;
+      const s = e.state;
+      if (s) {
+        setMode(s.mode); setPath(s.path); setWizardStep(s.wizardStep); setSubmitted(s.submitted);
+      } else {
+        setMode("client"); setPath(null); setWizardStep(1); setSubmitted(false);
+      }
+    };
+    window.addEventListener("popstate", onPopState);
+    return () => window.removeEventListener("popstate", onPopState);
+  }, []);
+
+  useEffect(() => {
+    if (isPoppingRef.current) { isPoppingRef.current = false; return; }
+    const atRoot = mode === "client" && path === null && wizardStep === 1 && !submitted;
+    if (atRoot) return;
+    window.history.pushState({ mode, path, wizardStep, submitted }, "");
+  }, [mode, path, wizardStep, submitted]);
+
   const handleToggleR = rId => {
     if (selectedR === rId) { setSelectedR(null); setSelectedVariant(null); return; }
     setSelectedR(rId);
@@ -1287,7 +1314,7 @@ export default function App() {
                     onVariantSelect={vid => setSelectedVariant(vid)}
                     onProfile={item => setProfileItem({ item, type: step2Kind })}
                     onFallback={() => setWizardStep(4)}
-                    onBackToStep1={() => setWizardStep(1)}
+                    onBackToStep1={() => window.history.back()}
                   />
                 )}
                 {wizardStep === 3 && (
@@ -1316,7 +1343,7 @@ export default function App() {
                   canAdvance={wizardStep === 1 ? step1Selected : wizardStep === 2 ? step2Selected : true}
                   nextLabel={wizardStep === 3 ? "Przejdź do podsumowania →" : "Dalej →"}
                   onNext={() => setWizardStep(s => s + 1)}
-                  onBack={() => wizardStep === 1 ? setPath(null) : setWizardStep(s => s - 1)}
+                  onBack={() => window.history.back()}
                 />
               )}
             </>
