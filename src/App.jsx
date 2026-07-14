@@ -873,24 +873,12 @@ function PickStep({ kind, items, selectedId, selectedVariantId, onToggle, onVari
 
 // ══ Krok 3 — liczba osób, termin, cena na żywo ═══════════════
 
-function Step3PriceAndDate({ groupSize, minGroup, maxGroup, onGroupSizeChange, selectedDate, onDateChange, selectedTime, onTimeChange, ppp, total }) {
+function Step3PriceAndDate({ groupSize, selectedDate, onDateChange, selectedTime, onTimeChange, ppp, total }) {
   return (
     <div style={{ maxWidth:480, margin:"0 auto", padding:"24px 16px 20px" }}>
       <h2 style={{ fontFamily:"'Montserrat', system-ui, sans-serif", fontSize:24, fontWeight:400, margin:"0 0 22px", textAlign:"center", color:C.text }}>
-        Liczba osób, termin i cena
+        Termin i cena
       </h2>
-
-      <div style={{ background:C.card, border:`1px solid ${C.border}`, borderRadius:14, padding:20, marginBottom:16 }}>
-        <div style={{ fontSize:11, fontWeight:700, color:C.text, letterSpacing:"0.05em", marginBottom:12 }}>LICZBA OSÓB</div>
-        <div style={{ display:"flex", alignItems:"center", gap:18, justifyContent:"center" }}>
-          <button onClick={() => onGroupSizeChange(Math.max(minGroup, groupSize - 1))} style={{ width:44, height:44, borderRadius:"50%", border:`1px solid ${C.border}`, background:"transparent", cursor:"pointer", fontSize:20, color:C.primary }}>−</button>
-          <span style={{ fontSize:26, fontWeight:600, color:C.primary, minWidth:36, textAlign:"center" }}>{groupSize}</span>
-          <button onClick={() => onGroupSizeChange(Math.min(maxGroup, groupSize + 1))} style={{ width:44, height:44, borderRadius:"50%", border:`1px solid ${C.border}`, background:"transparent", cursor:"pointer", fontSize:20, color:C.primary }}>+</button>
-        </div>
-        <div style={{ textAlign:"center", fontSize:11, color:C.muted, marginTop:10 }}>
-          Dopuszczalny zakres dla tego wyboru: {minGroup}–{maxGroup} os.
-        </div>
-      </div>
 
       <div style={{ background:C.card, border:`1px solid ${C.border}`, borderRadius:14, padding:20, marginBottom:16, display:"flex", gap:12, flexWrap:"wrap" }}>
         <div style={{ flex:"1 1 160px" }}>
@@ -969,7 +957,7 @@ function Step4ContactForm({ restaurant, variant, workshop, groupSize, selectedDa
     { label:"Warsztat", value: workshop ? `${workshop.name} (${workshop.artist})` : "—", step:1 },
     { label:"Miejsce", value: restaurant ? `${restaurant.name}${variant ? " · " + variant.label : ""}` : "—", step:2 },
     { label:"Termin", value: selectedDate ? `${new Date(selectedDate).toLocaleDateString("pl-PL",{day:"numeric",month:"long",year:"numeric"})}${selectedTime ? ", " + selectedTime : ""}` : "do ustalenia", step:3 },
-    { label:"Liczba osób", value: `${groupSize} osób`, step:3 },
+    { label:"Liczba osób", value: `${groupSize} osób` },
     { label:"Kwota", value: total > 0 ? `${total.toLocaleString("pl-PL")} zł` : "—", step:3 },
   ];
 
@@ -986,7 +974,7 @@ function Step4ContactForm({ restaurant, variant, workshop, groupSize, selectedDa
               <div style={{ fontSize:10, color:C.muted, letterSpacing:"0.08em" }}>{row.label.toUpperCase()}</div>
               <div style={{ fontSize:13, color:C.text }}>{row.value}</div>
             </div>
-            {onEditStep && (
+            {onEditStep && row.step && (
               <button onClick={() => onEditStep(row.step)} style={{ background:"none", border:"none", color:C.primary, fontSize:11, textDecoration:"underline", cursor:"pointer", padding:"10px 0", minHeight:44 }}>zmień</button>
             )}
           </div>
@@ -1206,15 +1194,15 @@ export default function App() {
   const ppp        = (variant?.price ?? 0) + (workshop?.pricePerPerson ?? 0);
   const total      = ppp * groupSize;
 
-  const minGroup = Math.max(workshop?.minPeople ?? 1, restaurant?.minPeople ?? 1);
-  const maxGroup = Math.min(workshop?.maxPeople ?? Infinity, restaurant?.maxPeople ?? Infinity);
-
-  // Gdy zmienia się wybrany warsztat lub restauracja, ustaw liczbę osób na
-  // minimum wspólne dla obu (nie odpala się przy samym "Wstecz"/"Dalej").
+  // Liczba osób jest wybierana raz, na samym początku (pasek na stronie
+  // głównej) — tu tylko dopilnowujemy, żeby mieściła się w zakresie
+  // wspólnym dla wybranego warsztatu i restauracji, bez nadpisywania
+  // wyboru klienta, jeśli już się mieści.
   useEffect(() => {
-    if (workshop || restaurant) {
-      setGroupSize(Math.max(workshop?.minPeople ?? 1, restaurant?.minPeople ?? 1));
-    }
+    if (!workshop && !restaurant) return;
+    const lo = Math.max(workshop?.minPeople ?? 1, restaurant?.minPeople ?? 1);
+    const hi = Math.min(workshop?.maxPeople ?? Infinity, restaurant?.maxPeople ?? Infinity);
+    setGroupSize(gs => Math.min(hi, Math.max(lo, gs)));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [workshop?.id, restaurant?.id]);
 
@@ -1319,8 +1307,7 @@ export default function App() {
                 )}
                 {wizardStep === 3 && (
                   <Step3PriceAndDate
-                    groupSize={groupSize} minGroup={minGroup} maxGroup={maxGroup}
-                    onGroupSizeChange={setGroupSize}
+                    groupSize={groupSize}
                     selectedDate={selectedDate} onDateChange={setSelectedDate}
                     selectedTime={selectedTime} onTimeChange={setSelectedTime}
                     ppp={ppp} total={total}
