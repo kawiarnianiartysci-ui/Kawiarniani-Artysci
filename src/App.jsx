@@ -771,6 +771,46 @@ function PathTiles({ activeKey, onSelect }) {
   );
 }
 
+// Sekcja "Kim jesteśmy" — wspólna dla ekranu klienta i widoku Współpraca.
+// Trzy kafelki "Jak to działa" używają dokładnie tego samego stylu co
+// PathTiles (obramowanie, wyśrodkowany tekst, bez strzałek), tylko jako
+// zwykłe <div> zamiast <button> — czysto informacyjne, bez interakcji.
+function AboutUsSection() {
+  const infoTiles = [
+    { title: "Wybierz ofertę", sub: "Miejsce i warsztat" },
+    { title: "Wyślij zapytanie", sub: "Krótki formularz" },
+    { title: "Twórzcie razem", sub: "Wspólne wydarzenie" },
+  ];
+  return (
+    <div style={{ maxWidth:760, margin:"0 auto", padding:"0 16px 56px", textAlign:"center" }}>
+      <h2 style={{ fontFamily:"'Montserrat', system-ui, sans-serif", fontSize:"clamp(26px,3.5vw,36px)", fontWeight:300, margin:"0 0 20px", color:C.text }}>
+        Kim jesteśmy
+      </h2>
+      <p style={{ fontSize:14, color:C.muted, lineHeight:1.75, margin:"0 auto 16px", maxWidth:600, fontWeight:300 }}>
+        Kawiarnie i restauracje od zawsze były czymś więcej niż miejscem na jedzenie — to tam rodziły się rozmowy, pomysły i sztuka. Kawiarniani Artyści to nasz sposób, żeby to przywrócić: łączymy lokalne restauracje i kawiarnie z artystami prowadzącymi warsztaty artystyczne i nie tylko, tworząc nowy sposób spędzania czasu w gronie znajomych, rodziny czy współpracowników.
+      </p>
+      <p style={{ fontSize:14, color:C.muted, lineHeight:1.75, margin:"0 auto 36px", maxWidth:600, fontWeight:300 }}>
+        Prowadzi nas Joanna — z zawodu grafik, z zamiłowania organizatorka kameralnych warsztatów malarskich. Wierzy, że najlepsze wspomnienia rodzą się tam, gdzie jest dobra kawa i jedzenie, dobre towarzystwo i odrobina wspólnej twórczości.
+      </p>
+
+      <div style={{ fontSize:11, color:C.muted, letterSpacing:"0.1em", marginBottom:14 }}>JAK TO DZIAŁA</div>
+      <div className="home-cta-grid" style={{ marginBottom:36 }}>
+        {infoTiles.map(t => (
+          <div key={t.title} style={{ flex:1, textAlign:"center", background:C.card, border:`1px solid ${C.primary}`, borderRadius:999, padding:"14px 20px" }}>
+            <div style={{ fontFamily:"'Montserrat', system-ui, sans-serif", fontSize:16, fontWeight:500, marginBottom:3, color:C.primary }}>{t.title}</div>
+            <div style={{ fontSize:12, color:C.muted }}>{t.sub}</div>
+          </div>
+        ))}
+      </div>
+
+      <div style={{ fontSize:13, color:C.muted, lineHeight:2 }}>
+        <div>E-mail: <a href="mailto:kawiarnianiartysci@gmail.com" style={{ color:C.primary }}>kawiarnianiartysci@gmail.com</a></div>
+        <div>Instagram: <a href="https://www.instagram.com/kawiarniani_artysci/" target="_blank" rel="noreferrer" style={{ color:C.primary }}>@kawiarniani_artysci</a></div>
+      </div>
+    </div>
+  );
+}
+
 function HomeScreen({ restaurants, workshops, onStart, homeLocation, setHomeLocation, groupSize, setGroupSize, selectedDate, setSelectedDate, selectedTime, setSelectedTime }) {
   const videoRef = useRef(null);
   const activeRestaurants = restaurants.filter(r => !r.comingSoon);
@@ -838,6 +878,8 @@ function HomeScreen({ restaurants, workshops, onStart, homeLocation, setHomeLoca
           )}
         </div>
       </div>
+
+      <AboutUsSection />
     </div>
   );
 }
@@ -1141,7 +1183,11 @@ function PartnersView() {
           </div>
         ))}
       </div>
+    </div>
 
+    <AboutUsSection />
+
+    <div style={{ maxWidth:760, margin:"0 auto", padding:"0 16px 80px" }}>
       <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fit, minmax(260px,1fr))", gap:16 }}>
         <div style={{ textAlign:"center", padding:"30px 24px", background:C.card, borderRadius:14, border:`1px solid ${C.border}` }}>
           <div style={{ fontFamily:"'Montserrat', system-ui, sans-serif", fontSize:20, fontWeight:400, marginBottom:8 }}>Jestem artystą / prowadzę warsztaty</div>
