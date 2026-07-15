@@ -785,12 +785,12 @@ function AboutUsSection() {
     { title: "Twórzcie razem", sub: "Wspólne wydarzenie" },
   ];
   return (
-    <div style={{ maxWidth:760, margin:"0 auto", padding:"0 16px 56px", textAlign:"center" }}>
+    <div style={{ maxWidth:760, margin:"0 auto", padding:"0 16px 48px", textAlign:"center" }}>
       <h2 style={{ fontFamily:"'Montserrat', system-ui, sans-serif", fontSize:"clamp(26px,3.5vw,36px)", fontWeight:300, margin:"0 0 20px", color:C.text }}>
         Kim jesteśmy
       </h2>
       <p style={{ fontSize:14, color:C.muted, lineHeight:1.75, margin:"0 auto 16px", maxWidth:600, fontWeight:300 }}>
-        Kawiarnie i restauracje od zawsze były czymś więcej niż miejscem na jedzenie — to tam rodziły się rozmowy, pomysły i sztuka. Kawiarniani Artyści to nasz sposób, żeby to przywrócić: łączymy lokalne restauracje i kawiarnie z artystami prowadzącymi warsztaty artystyczne i nie tylko, tworząc nowy sposób spędzania czasu w gronie znajomych, rodziny czy współpracowników.
+        Kawiarnie i restauracje od zawsze były czymś więcej niż miejscem spożywania posiłków — to tam rodziły się rozmowy, pomysły i sztuka. Kawiarniani Artyści to nasz sposób, żeby to przywrócić: łączymy lokalne restauracje i kawiarnie z artystami prowadzącymi warsztaty artystyczne i nie tylko, tworząc nowy sposób spędzania czasu w gronie znajomych, rodziny czy współpracowników.
       </p>
       <p style={{ fontSize:14, color:C.muted, lineHeight:1.75, margin:"0 auto 36px", maxWidth:600, fontWeight:300 }}>
         Prowadzi nas Joanna — z zawodu grafik, z zamiłowania organizatorka kameralnych warsztatów malarskich. Wierzy, że najlepsze wspomnienia rodzą się tam, gdzie jest dobra kawa i jedzenie, dobre towarzystwo i odrobina wspólnej twórczości.
@@ -1165,7 +1165,7 @@ function PartnersView() {
 
   return (
     <>
-    <div style={{ maxWidth:760, margin:"0 auto", padding:"56px 16px 80px" }}>
+    <div style={{ maxWidth:760, margin:"0 auto", padding:"56px 16px 48px" }}>
       <div style={{ textAlign:"center", marginBottom:44 }}>
         <h1 style={{ fontFamily:"'Montserrat', system-ui, sans-serif", fontSize:"clamp(28px,4vw,42px)", fontWeight:300, margin:"0 0 14px", lineHeight:1.15 }}>
           Współpraca dla artystów i restauracji
@@ -1188,7 +1188,7 @@ function PartnersView() {
       </div>
     </div>
 
-    <div style={{ maxWidth:760, margin:"0 auto", padding:"0 16px 56px" }}>
+    <div style={{ maxWidth:760, margin:"0 auto", padding:"0 16px 48px" }}>
       <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fit, minmax(260px,1fr))", gap:16 }}>
         <div style={{ textAlign:"center", padding:"30px 24px", background:C.card, borderRadius:14, border:`1px solid ${C.border}` }}>
           <div style={{ fontFamily:"'Montserrat', system-ui, sans-serif", fontSize:20, fontWeight:400, marginBottom:8 }}>Jestem artystą / prowadzę warsztaty</div>
