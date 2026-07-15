@@ -1188,9 +1188,7 @@ function PartnersView() {
       </div>
     </div>
 
-    <AboutUsSection />
-
-    <div style={{ maxWidth:760, margin:"0 auto", padding:"0 16px 80px" }}>
+    <div style={{ maxWidth:760, margin:"0 auto", padding:"0 16px 56px" }}>
       <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fit, minmax(260px,1fr))", gap:16 }}>
         <div style={{ textAlign:"center", padding:"30px 24px", background:C.card, borderRadius:14, border:`1px solid ${C.border}` }}>
           <div style={{ fontFamily:"'Montserrat', system-ui, sans-serif", fontSize:20, fontWeight:400, marginBottom:8 }}>Jestem artystą / prowadzę warsztaty</div>
@@ -1204,6 +1202,9 @@ function PartnersView() {
         </div>
       </div>
     </div>
+
+    <AboutUsSection />
+
     <Footer />
     </>
   );
