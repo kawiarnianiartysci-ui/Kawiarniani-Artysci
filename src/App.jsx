@@ -41,7 +41,7 @@ const C = {
 // ══════════════════════════════════════════════════════════════
 const COPY = {
   siteName:    "Kawiarniani Artyści",
-  tagline:     "Eventy grupowe · Poznań i okolice",
+  tagline:     "Platforma do organizacji spotkań · Poznań i okolice",
   heroTitle:   "Zaplanuj niezapomniane spotkanie.",
   heroSubtitle:"Łączymy restauracje i kawiarnie z artystycznymi działaniami podczas spotkań rodzinnych, wieczorów panieńskich, baby shower, urodzin lub integracji firmowych.",
   contactEmail:"kawiarnianiartysci@gmail.com",
@@ -206,6 +206,9 @@ const globalCSS = `
   @media (max-width: 640px) {
     .wizard-nav-bar { position:fixed; left:0; right:0; bottom:0; top:auto; max-width:none !important; margin:0 !important; padding:10px 16px !important; background:${C.bg}; box-shadow:0 -6px 20px rgba(0,0,0,0.14); z-index:200; }
     .wizard-nav-spacer { display:block; height:76px; }
+  }
+  @media (min-width: 641px) {
+    .hero-video { transform: scale(1.35); transform-origin: 75% 55%; }
   }
 `;
 
@@ -823,7 +826,7 @@ function HomeScreen({ restaurants, workshops, onStart, homeLocation, setHomeLoca
   return (
     <div>
       <div style={{ position:"relative", width:"100%", height:"clamp(400px, 58vw, 560px)", overflow:"hidden" }}>
-        <video ref={videoRef} autoPlay muted playsInline preload="auto" poster={HERO_PHOTO}
+        <video ref={videoRef} className="hero-video" autoPlay muted playsInline preload="auto" poster={HERO_PHOTO}
           onLoadedMetadata={seekToStart} onEnded={handleEnded}
           style={{ position:"absolute", inset:0, width:"100%", height:"100%", objectFit:"cover", objectPosition:"center 55%" }}>
           <source src="/videos/hero.mov" />
@@ -836,7 +839,7 @@ function HomeScreen({ restaurants, workshops, onStart, homeLocation, setHomeLoca
 
       <div style={{ maxWidth:760, margin:"0 auto", padding:"0 16px 56px" }}>
         <div style={{ textAlign:"center", marginBottom:36 }}>
-          <h1 style={{ fontFamily:"'Pan Pizza', cursive", fontSize:"clamp(38px,6.5vw,58px)", fontWeight:400, margin:"0 0 14px", lineHeight:1.2, color:C.primary }}>
+          <h1 style={{ fontFamily:"'Pan Pizza', cursive", fontSize:"clamp(48px,8.5vw,76px)", fontWeight:400, margin:"0 0 14px", lineHeight:1.2, color:C.primary }}>
             {COPY.siteName}
           </h1>
           <p style={{ fontSize:16, color:C.text, fontWeight:500, margin:"0 auto", maxWidth:500, lineHeight:1.65 }}>
