@@ -208,7 +208,7 @@ const globalCSS = `
     .wizard-nav-spacer { display:block; height:76px; }
   }
   @media (min-width: 641px) {
-    .hero-video { transform: scale(1.35); transform-origin: 75% 55%; }
+    .hero-video { transform: scale(1.15); transform-origin: 70% 55%; }
   }
 `;
 
