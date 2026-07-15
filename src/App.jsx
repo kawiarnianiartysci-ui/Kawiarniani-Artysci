@@ -202,6 +202,11 @@ const globalCSS = `
     .search-bar { flex-direction: column !important; border-radius: 20px !important; }
     .search-divider { width:100%; height:1px; align-self:auto; margin:2px 0; }
   }
+  .wizard-nav-spacer { display:none; }
+  @media (max-width: 640px) {
+    .wizard-nav-bar { position:fixed; left:0; right:0; bottom:0; top:auto; max-width:none !important; margin:0 !important; padding:10px 16px !important; background:${C.bg}; box-shadow:0 -6px 20px rgba(0,0,0,0.14); z-index:200; }
+    .wizard-nav-spacer { display:block; height:76px; }
+  }
 `;
 
 // ══ Profil modal ════════════════════════════════════════════
@@ -1081,17 +1086,18 @@ function WizardStickyBar({ restaurant, workshop, groupSize, ppp, total, canAdvan
   const summary = restaurant || workshop
     ? [restaurant?.name, workshop?.name].filter(Boolean).join(" + ")
     : "";
+  const navBtn = { border:"none", borderRadius:999, fontWeight:600, minHeight:44, width:104, padding:"8px 10px", fontSize:13, lineHeight:1.25, textAlign:"center" };
   return (
     <div style={{ maxWidth:900, margin:"0 auto 20px", padding:"0 16px" }}>
       <div style={{ display:"grid", gridTemplateColumns:"auto 1fr auto", alignItems:"center", gap:10, background:C.tagBg, borderRadius:999, padding:6 }}>
-        <button onClick={onBack} style={{ background:C.primary, border:"none", color:"#FFF", borderRadius:999, padding:"12px 18px", fontSize:13, fontWeight:600, cursor:"pointer", minHeight:44, whiteSpace:"nowrap" }}>Wstecz</button>
+        <button onClick={onBack} style={{ ...navBtn, background:C.primary, color:"#FFF", cursor:"pointer" }}>Wstecz</button>
         <div style={{ textAlign:"center", minWidth:0, overflow:"hidden" }}>
           <div style={{ fontFamily:"'Montserrat', system-ui, sans-serif", fontSize:18, color:C.text, fontWeight:600, whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis" }}>
             {total > 0 ? `${total.toLocaleString("pl-PL")} zł` : summary}
           </div>
           {total > 0 && <div style={{ fontSize:12, color:C.muted, whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis" }}>{groupSize} os. × {ppp} zł</div>}
         </div>
-        <button onClick={onNext} disabled={!canAdvance} style={{ background: canAdvance ? C.primary : "#DDD9D2", color: canAdvance ? "#FFF" : "#9A968D", border:"none", borderRadius:999, padding:"8px 14px", fontSize:12, fontWeight:600, cursor: canAdvance ? "pointer" : "default", minHeight:44, maxWidth:96, lineHeight:1.3, textAlign:"center" }}>
+        <button onClick={onNext} disabled={!canAdvance} style={{ ...navBtn, background: canAdvance ? C.primary : "#DDD9D2", color: canAdvance ? "#FFF" : "#9A968D", cursor: canAdvance ? "pointer" : "default" }}>
           {nextLabel}
         </button>
       </div>
@@ -1351,7 +1357,7 @@ export default function App() {
             <>
               <WizardProgressBar step={wizardStep} path={path} />
               {wizardStep < 3 && (
-                <div style={{ marginTop:20 }}>
+                <div className="wizard-nav-bar" style={{ marginTop:20 }}>
                   <WizardStickyBar
                     restaurant={restaurant} workshop={workshop}
                     groupSize={groupSize} ppp={ppp} total={total}
@@ -1404,6 +1410,7 @@ export default function App() {
                   />
                 )}
               </div>
+              {wizardStep < 3 && <div className="wizard-nav-spacer" />}
             </>
           )}
         </>
