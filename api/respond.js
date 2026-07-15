@@ -1,5 +1,5 @@
 import { Resend } from "resend";
-import { FROM_EMAIL, OWNER_EMAIL, htmlPage, verifyAndDecode, emailHtml } from "./_shared.js";
+import { FROM_EMAIL, OWNER_EMAIL, SITE_URL, htmlPage, verifyAndDecode, signPayload, emailHtml } from "./_shared.js";
 
 export default async function handler(req, res) {
   const { action, data, sig, confirm } = req.query;
@@ -38,7 +38,7 @@ export default async function handler(req, res) {
 
   try {
     const resend = new Resend(process.env.RESEND_API_KEY);
-    const { clientEmail, clientPhone, restaurantEmail, artistName, artistInvoicing, artistRequirements } = payload;
+    const { clientEmail, clientPhone, restaurantEmail, artistEmail, artistName, artistInvoicing, artistRequirements } = payload;
     const sends = [];
 
     if (restaurantEmail) {
@@ -48,6 +48,29 @@ export default async function handler(req, res) {
       const clientContact = accepted
         ? `<p>Kontakt do klienta (np. w sprawie menu):<br>${clientName || ""}${clientEmail ? ` · ${clientEmail}` : ""}${clientPhone ? ` · ${clientPhone}` : ""}</p>`
         : "";
+      // Gdy artysta zaakceptował, restauracja musi jeszcze dogadać szczegóły
+      // z klientem — ten drugi, osobno podpisany link daje jej możliwość
+      // ostatecznego potwierdzenia lub zgłoszenia, że jednak się nie udało.
+      let finalizeButtons = "";
+      if (accepted) {
+        const confirmPayload = {
+          clientName, clientEmail: clientEmail || "", clientPhone: clientPhone || "",
+          restaurantName, restaurantEmail,
+          artistName: artistName || "", workshopName: workshopName || "", artistEmail: artistEmail || "",
+          date: date || "", groupSize: groupSize || "",
+          ts: Date.now(),
+        };
+        const { data: cData, sig: cSig } = signPayload(confirmPayload);
+        const confirmUrl = `${SITE_URL}/api/confirm?action=confirm&data=${cData}&sig=${cSig}`;
+        const cancelUrl = `${SITE_URL}/api/confirm?action=cancel&data=${cData}&sig=${cSig}`;
+        finalizeButtons = `
+          <p>Gdy dogadacie się z klientem co do ostatnich szczegółów, dajcie nam znać:</p>
+          <p>
+            <a href="${confirmUrl}" style="background:#432A16;color:#fff;padding:12px 20px;border-radius:8px;text-decoration:none;margin-right:10px;display:inline-block;">Potwierdzam — wszystko ustalone</a>
+            <a href="${cancelUrl}" style="background:#999;color:#fff;padding:12px 20px;border-radius:8px;text-decoration:none;display:inline-block;">Nieaktualne — nie udało się dogadać</a>
+          </p>
+        `;
+      }
       sends.push(resend.emails.send({
         from: FROM_EMAIL,
         to: restaurantEmail,
@@ -55,7 +78,7 @@ export default async function handler(req, res) {
           ? `Potwierdzone! ${workshopName || ""} — ${date || ""}`
           : `Artysta nie może w tym terminie — ${workshopName || ""}`,
         html: emailHtml(accepted
-          ? `<p>Dobra wiadomość! <strong>${artistName || workshopName || ""}</strong> potwierdził termin <strong>${date || ""}</strong> dla ${groupSize || "-"} osób — event jest ustalony z obu stron.</p>${detailsList}${clientContact}<p>Pozdrawiamy,<br>Kawiarniani Artyści</p>`
+          ? `<p>Dobra wiadomość! <strong>${artistName || workshopName || ""}</strong> potwierdził termin <strong>${date || ""}</strong> dla ${groupSize || "-"} osób — event jest ustalony z obu stron.</p>${detailsList}${clientContact}${finalizeButtons}<p>Pozdrawiamy,<br>Kawiarniani Artyści</p>`
           : `<p>Niestety <strong>${artistName || workshopName || ""}</strong> nie może w zaproponowanym terminie. Skontaktujemy się z klientem w sprawie innego terminu i damy Wam znać.</p><p>Pozdrawiamy,<br>Kawiarniani Artyści</p>`),
       }));
     }
