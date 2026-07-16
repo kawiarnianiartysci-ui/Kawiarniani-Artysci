@@ -918,7 +918,7 @@ function AboutUsSection() {
         <div>Instagram: <a href="https://www.instagram.com/kawiarniani_artysci/" target="_blank" rel="noreferrer" style={{ color:C.primary }}>@kawiarniani_artysci</a></div>
       </div>
 
-      <img src={LOGO_IMG} alt={COPY.siteName} style={{ width:64, height:64, objectFit:"contain", display:"block", margin:"28px auto 0" }} />
+      <img src={LOGO_IMG} alt={COPY.siteName} style={{ width:75, height:75, objectFit:"contain", display:"block", margin:"28px auto 0" }} />
     </div>
   );
 }
