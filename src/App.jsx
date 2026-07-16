@@ -776,8 +776,6 @@ const LOCATION_OPTIONS = [
 function HomeFilterBar({ homeLocation, setHomeLocation, groupSize, setGroupSize, selectedDate, setSelectedDate, selectedTime, setSelectedTime }) {
   const [openField, setOpenField] = useState(null);
   const barRef = useRef(null);
-  const dateInputRef = useRef(null);
-  const timeSelectRef = useRef(null);
   const toggle = f => setOpenField(openField === f ? null : f);
 
   useEffect(() => {
@@ -787,21 +785,7 @@ function HomeFilterBar({ homeLocation, setHomeLocation, groupSize, setGroupSize,
     return () => document.removeEventListener("mousedown", onOutside);
   }, [openField]);
 
-  // Otwiera panel wyboru (kalendarz / lista godzin) od razu po pierwszym
-  // kliknięciu w pole, zamiast wymagać drugiego kliknięcia w sam input.
-  useEffect(() => {
-    if (openField === "date" && dateInputRef.current) {
-      dateInputRef.current.focus();
-      try { dateInputRef.current.showPicker(); } catch { /* przeglądarka bez wsparcia showPicker() — zostaje samo focus */ }
-    }
-    if (openField === "time" && timeSelectRef.current) {
-      timeSelectRef.current.focus();
-      try { timeSelectRef.current.showPicker(); } catch { /* jw. */ }
-    }
-  }, [openField]);
-
   const locationLabel = LOCATION_OPTIONS.find(o => o.id === homeLocation)?.label;
-  const dateLabel = selectedDate ? new Date(selectedDate).toLocaleDateString("pl-PL", { day:"numeric", month:"short" }) : "";
 
   const openPeople = () => { if (groupSize == null) setGroupSize(10); toggle("people"); };
 
@@ -849,31 +833,21 @@ function HomeFilterBar({ homeLocation, setHomeLocation, groupSize, setGroupSize,
 
         <div className="search-divider" style={{ background:C.border }} />
 
-        <div onClick={() => toggle("date")} style={segStyle(!!selectedDate)}>
+        <div style={segStyle(!!selectedDate)}>
           <div style={segLabel(!!selectedDate)}>DATA</div>
-          <div style={segValue(!!selectedDate)}>{dateLabel}</div>
-          {openField === "date" && (
-            <div className="modal-fade" onClick={e => e.stopPropagation()} style={{ position:"absolute", top:"calc(100% + 8px)", left:0, background:"#FFF", border:`1px solid ${C.border}`, borderRadius:14, boxShadow:"0 10px 32px rgba(0,0,0,0.14)", padding:16, minWidth:200, zIndex:50, cursor:"default" }}>
-              <input ref={dateInputRef} type="date" value={selectedDate} min={MIN_BOOKING_DATE} onChange={e => { setSelectedDate(e.target.value); setOpenField(null); }}
-                style={{ width:"100%", border:`1px solid ${C.border}`, borderRadius:8, background:"#FAFAF8", fontSize:14, color:C.primary, fontFamily:"'Montserrat', system-ui, sans-serif", fontWeight:500, padding:"9px 11px", minHeight:44 }} />
-            </div>
-          )}
+          <input type="date" value={selectedDate} min={MIN_BOOKING_DATE} onChange={e => setSelectedDate(e.target.value)}
+            style={{ ...segValue(!!selectedDate), border:"none", background:"transparent", padding:0, width:"100%", cursor:"pointer", fontFamily:"'Montserrat', system-ui, sans-serif" }} />
         </div>
 
         <div className="search-divider" style={{ background:C.border }} />
 
-        <div onClick={() => toggle("time")} style={segStyle(!!selectedTime)}>
+        <div style={segStyle(!!selectedTime)}>
           <div style={segLabel(!!selectedTime)}>GODZINA</div>
-          <div style={segValue(!!selectedTime)}>{selectedTime}</div>
-          {openField === "time" && (
-            <div className="modal-fade" onClick={e => e.stopPropagation()} style={{ position:"absolute", top:"calc(100% + 8px)", right:0, background:"#FFF", border:`1px solid ${C.border}`, borderRadius:14, boxShadow:"0 10px 32px rgba(0,0,0,0.14)", padding:16, minWidth:160, zIndex:50, cursor:"default" }}>
-              <select ref={timeSelectRef} value={selectedTime} onChange={e => { setSelectedTime(e.target.value); setOpenField(null); }}
-                style={{ width:"100%", border:`1px solid ${C.border}`, borderRadius:8, background:"#FAFAF8", fontSize:14, color:C.primary, fontFamily:"'Montserrat', system-ui, sans-serif", fontWeight:500, padding:"9px 11px", minHeight:44 }}>
-                <option value="">Godzina</option>
-                {TIME_OPTIONS.map(t => <option key={t} value={t}>{t}</option>)}
-              </select>
-            </div>
-          )}
+          <select value={selectedTime} onChange={e => setSelectedTime(e.target.value)}
+            style={{ ...segValue(!!selectedTime), border:"none", background:"transparent", padding:0, width:"100%", cursor:"pointer", fontFamily:"'Montserrat', system-ui, sans-serif", appearance:"none", WebkitAppearance:"none" }}>
+            <option value=""></option>
+            {TIME_OPTIONS.map(t => <option key={t} value={t}>{t}</option>)}
+          </select>
         </div>
       </div>
     </div>
