@@ -917,6 +917,8 @@ function AboutUsSection() {
         <div>E-mail: <a href="mailto:kawiarnianiartysci@gmail.com" style={{ color:C.primary }}>kawiarnianiartysci@gmail.com</a></div>
         <div>Instagram: <a href="https://www.instagram.com/kawiarniani_artysci/" target="_blank" rel="noreferrer" style={{ color:C.primary }}>@kawiarniani_artysci</a></div>
       </div>
+
+      <img src={LOGO_IMG} alt={COPY.siteName} style={{ width:64, height:64, objectFit:"contain", display:"block", margin:"28px auto 0" }} />
     </div>
   );
 }
@@ -1487,8 +1489,8 @@ export default function App() {
       {/* Nagłówek */}
       <header style={{ background:C.card, padding:"14px 28px", display:"flex", justifyContent:"space-between", alignItems:"center", flexWrap:"wrap", gap:12, borderBottom:`1px solid ${C.border}` }}>
         <div onClick={() => { setMode("client"); resetToHome(); }} style={{ display:"flex", alignItems:"center", gap:12, flex:"1 1 0", marginLeft:"clamp(4px, 3vw, 44px)", cursor:"pointer" }}>
-          <div style={{ width:58, height:58, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
-            <img src={LOGO_IMG} alt={COPY.siteName} style={{ width:58, height:58, objectFit:"contain" }} />
+          <div style={{ width:70, height:70, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
+            <img src={LOGO_IMG} alt={COPY.siteName} style={{ width:70, height:70, objectFit:"contain" }} />
           </div>
           <div>
             <div style={{ fontFamily:"'Pan Pizza', cursive", fontSize:36, fontWeight:400, color:C.primary, letterSpacing:"0.01em" }}>{COPY.siteName}</div>
