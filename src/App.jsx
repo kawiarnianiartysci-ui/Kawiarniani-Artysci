@@ -609,7 +609,7 @@ const PARTNER_TERMS_SECTIONS = [
     "2. Platforma pełni funkcję wyłącznie technologicznego pośrednika umożliwiającego kontakt i rezerwację. Platforma nie jest organizatorem Eventu ani stroną umowy zawieranej pomiędzy Klientem a Partnerami.",
     "3. Platforma świadczy usługi w zakresie umożliwienia rezerwacji restauracji oraz warsztatów artystycznych na potrzeby eventów grupowych, obejmujących swoim zasięgiem Poznań i okolice.",
     "4. Regulamin jest udostępniany nieodpłatnie na stronie Platformy w formie umożliwiającej jego pobranie, utrwalenie i wydrukowanie, przed zawarciem jakiejkolwiek umowy, zgodnie z ustawą z dnia 18 lipca 2002 r. o świadczeniu usług drogą elektroniczną.",
-    "5. Administratorem Platformy jest [imię i nazwisko / nazwa działalności gospodarczej — do uzupełnienia], z którym można się skontaktować pod adresem e-mail: kawiarnianiartysci@gmail.com, w tym w sprawach zgłoszeń dotyczących treści niezgodnych z prawem.",
+    "5. Administratorem Platformy jest Joanna Cybulska, z którą można się skontaktować pod adresem e-mail: kawiarnianiartysci@gmail.com, w tym w sprawach zgłoszeń dotyczących treści niezgodnych z prawem.",
   ]},
   { title:"§ 2. Definicje", items: [
     "Użyte w Regulaminie pojęcia oznaczają:",
