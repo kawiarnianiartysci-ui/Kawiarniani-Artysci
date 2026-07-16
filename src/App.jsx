@@ -900,7 +900,7 @@ function AboutUsSection() {
         Kawiarnie i restauracje od zawsze były czymś więcej niż miejscem spożywania posiłków — to tam rodziły się rozmowy, pomysły i sztuka. Kawiarniani Artyści to nasz sposób, żeby to przywrócić: łączymy lokalne restauracje i kawiarnie z artystami prowadzącymi warsztaty artystyczne i nie tylko, tworząc nowy sposób spędzania czasu w gronie znajomych, rodziny czy współpracowników.
       </p>
       <p style={{ fontSize:14, color:C.muted, lineHeight:1.75, margin:"0 auto 36px", maxWidth:600, fontWeight:300 }}>
-        Prowadzi nas Joanna — z zawodu grafik, z zamiłowania organizatorka kameralnych warsztatów malarskich. Wierzy, że najlepsze wspomnienia rodzą się tam, gdzie jest dobra kawa i jedzenie, dobre towarzystwo i odrobina wspólnej twórczości.
+        Prowadzi nas Joanna — z zawodu grafik komputerowy, z zamiłowania organizatorka kameralnych warsztatów malarskich. Wierzy, że najlepsze wspomnienia rodzą się tam, gdzie jest dobra kawa, jedzenie, dobre towarzystwo oraz odrobina wspólnej twórczości.
       </p>
 
       <div style={{ fontSize:11, color:C.muted, letterSpacing:"0.1em", marginBottom:14 }}>JAK TO DZIAŁA</div>
