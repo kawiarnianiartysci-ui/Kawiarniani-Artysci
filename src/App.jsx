@@ -614,12 +614,12 @@ function Footer() {
   );
 }
 
-// Klient nie może zarezerwować terminu wcześniej niż za 7 dni roboczych
+// Klient nie może zarezerwować terminu wcześniej niż za 14 dni roboczych
 function minBookingDateStr() {
   const d = new Date();
   d.setHours(0, 0, 0, 0);
   let added = 0;
-  while (added < 7) {
+  while (added < 14) {
     d.setDate(d.getDate() + 1);
     const day = d.getDay();
     if (day !== 0 && day !== 6) added++;
@@ -634,9 +634,9 @@ function minBookingDateStr() {
 const MIN_BOOKING_DATE = minBookingDateStr();
 
 const TIME_OPTIONS = [];
-for (let h = 8; h <= 23; h++) {
+for (let h = 7; h <= 21; h++) {
   TIME_OPTIONS.push(`${String(h).padStart(2, "0")}:00`);
-  TIME_OPTIONS.push(`${String(h).padStart(2, "0")}:30`);
+  if (h < 21) TIME_OPTIONS.push(`${String(h).padStart(2, "0")}:30`);
 }
 
 // ══ Ekran powitalny ══════════════════════════════════════════
@@ -658,6 +658,8 @@ const LOCATION_OPTIONS = [
 function HomeFilterBar({ homeLocation, setHomeLocation, groupSize, setGroupSize, selectedDate, setSelectedDate, selectedTime, setSelectedTime }) {
   const [openField, setOpenField] = useState(null);
   const barRef = useRef(null);
+  const dateInputRef = useRef(null);
+  const timeSelectRef = useRef(null);
   const toggle = f => setOpenField(openField === f ? null : f);
 
   useEffect(() => {
@@ -665,6 +667,19 @@ function HomeFilterBar({ homeLocation, setHomeLocation, groupSize, setGroupSize,
     const onOutside = e => { if (barRef.current && !barRef.current.contains(e.target)) setOpenField(null); };
     document.addEventListener("mousedown", onOutside);
     return () => document.removeEventListener("mousedown", onOutside);
+  }, [openField]);
+
+  // Otwiera panel wyboru (kalendarz / lista godzin) od razu po pierwszym
+  // kliknięciu w pole, zamiast wymagać drugiego kliknięcia w sam input.
+  useEffect(() => {
+    if (openField === "date" && dateInputRef.current) {
+      dateInputRef.current.focus();
+      try { dateInputRef.current.showPicker(); } catch { /* przeglądarka bez wsparcia showPicker() — zostaje samo focus */ }
+    }
+    if (openField === "time" && timeSelectRef.current) {
+      timeSelectRef.current.focus();
+      try { timeSelectRef.current.showPicker(); } catch { /* jw. */ }
+    }
   }, [openField]);
 
   const locationLabel = LOCATION_OPTIONS.find(o => o.id === homeLocation)?.label;
@@ -721,7 +736,7 @@ function HomeFilterBar({ homeLocation, setHomeLocation, groupSize, setGroupSize,
           <div style={segValue(!!selectedDate)}>{dateLabel}</div>
           {openField === "date" && (
             <div className="modal-fade" onClick={e => e.stopPropagation()} style={{ position:"absolute", top:"calc(100% + 8px)", left:0, background:"#FFF", border:`1px solid ${C.border}`, borderRadius:14, boxShadow:"0 10px 32px rgba(0,0,0,0.14)", padding:16, minWidth:200, zIndex:50, cursor:"default" }}>
-              <input type="date" value={selectedDate} min={MIN_BOOKING_DATE} onChange={e => { setSelectedDate(e.target.value); setOpenField(null); }}
+              <input ref={dateInputRef} type="date" value={selectedDate} min={MIN_BOOKING_DATE} onChange={e => { setSelectedDate(e.target.value); setOpenField(null); }}
                 style={{ width:"100%", border:`1px solid ${C.border}`, borderRadius:8, background:"#FAFAF8", fontSize:14, color:C.primary, fontFamily:"'Montserrat', system-ui, sans-serif", fontWeight:500, padding:"9px 11px", minHeight:44 }} />
             </div>
           )}
@@ -734,7 +749,7 @@ function HomeFilterBar({ homeLocation, setHomeLocation, groupSize, setGroupSize,
           <div style={segValue(!!selectedTime)}>{selectedTime}</div>
           {openField === "time" && (
             <div className="modal-fade" onClick={e => e.stopPropagation()} style={{ position:"absolute", top:"calc(100% + 8px)", right:0, background:"#FFF", border:`1px solid ${C.border}`, borderRadius:14, boxShadow:"0 10px 32px rgba(0,0,0,0.14)", padding:16, minWidth:160, zIndex:50, cursor:"default" }}>
-              <select value={selectedTime} onChange={e => { setSelectedTime(e.target.value); setOpenField(null); }}
+              <select ref={timeSelectRef} value={selectedTime} onChange={e => { setSelectedTime(e.target.value); setOpenField(null); }}
                 style={{ width:"100%", border:`1px solid ${C.border}`, borderRadius:8, background:"#FAFAF8", fontSize:14, color:C.primary, fontFamily:"'Montserrat', system-ui, sans-serif", fontWeight:500, padding:"9px 11px", minHeight:44 }}>
                 <option value="">Godzina</option>
                 {TIME_OPTIONS.map(t => <option key={t} value={t}>{t}</option>)}
