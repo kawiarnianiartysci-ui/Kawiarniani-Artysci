@@ -1289,8 +1289,14 @@ const ARTIST_FORM_URL     = "https://docs.google.com/forms/d/e/1FAIpQLSf1rSqcKIa
 const RESTAURANT_FORM_URL = "https://docs.google.com/forms/d/e/1FAIpQLSexblazM7leUObytgMAh3Ek8mQBdMnYYFunpI4peNGMUhVmVg/viewform?usp=header";
 
 // Widok "Współpraca" — informacje o procesie + linki do formularzy zgłoszeniowych
-function PartnersView() {
+function PartnersView({ openTermsOnMount }) {
   const [showTerms, setShowTerms] = useState(false);
+
+  useEffect(() => {
+    if (openTermsOnMount) setShowTerms(true);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const steps = [
     { n:"1", t:"Klient wybiera lokal i artystę", d:"Na stronie klient wybiera restaurację/kawiarnię oraz warsztat, który chce zorganizować u siebie." },
     { n:"2", t:"Artysta akceptuje termin", d:"Artysta dostaje zapytanie z proponowaną datą i liczbą osób — potwierdza je lub proponuje zmianę." },
@@ -1352,7 +1358,11 @@ function PartnersView() {
 
 export default function App() {
   const { restaurants, workshops, dataLoading, dataError } = useSheetData();
-  const [mode,            setMode]            = useState("client"); // "client" | "b2b"
+  // Pozwala na bezpośredni link do regulaminu Partnerów (np. wklejony w
+  // Google Formsie), np. https://www.kawiarnianiartysci.pl/?regulamin=partnerzy
+  // — otwiera od razu widok Współpraca z rozwiniętym regulaminem.
+  const openPartnerTermsOnLoad = new URLSearchParams(window.location.search).get("regulamin") === "partnerzy";
+  const [mode,            setMode]            = useState(openPartnerTermsOnLoad ? "b2b" : "client"); // "client" | "b2b"
   const [path,            setPath]            = useState(null);     // null | "workshop" | "restaurant" — null = ekran powitalny
   const [wizardStep,      setWizardStep]      = useState(1);         // 1..3
   const [submitted,       setSubmitted]       = useState(false);
@@ -1523,7 +1533,7 @@ export default function App() {
       </header>
 
       {/* Widok Współpraca */}
-      {mode === "b2b" && <PartnersView />}
+      {mode === "b2b" && <PartnersView openTermsOnMount={openPartnerTermsOnLoad} />}
 
       {/* Widok klienta */}
       {mode === "client" && (
