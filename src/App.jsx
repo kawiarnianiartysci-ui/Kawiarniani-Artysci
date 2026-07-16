@@ -833,7 +833,7 @@ function HomeFilterBar({ homeLocation, setHomeLocation, groupSize, setGroupSize,
 
         <div className="search-divider" style={{ background:C.border }} />
 
-        <div style={segStyle(!!selectedDate)}>
+        <div onClick={() => setOpenField(null)} style={segStyle(!!selectedDate)}>
           <div style={segLabel(!!selectedDate)}>DATA</div>
           <input type="date" value={selectedDate} min={MIN_BOOKING_DATE} onChange={e => setSelectedDate(e.target.value)} onFocus={() => setOpenField(null)}
             style={{ ...segValue(!!selectedDate), border:"none", background:"transparent", padding:0, width:"100%", cursor:"pointer", fontFamily:"'Montserrat', system-ui, sans-serif" }} />
@@ -841,7 +841,7 @@ function HomeFilterBar({ homeLocation, setHomeLocation, groupSize, setGroupSize,
 
         <div className="search-divider" style={{ background:C.border }} />
 
-        <div style={segStyle(!!selectedTime)}>
+        <div onClick={() => setOpenField(null)} style={segStyle(!!selectedTime)}>
           <div style={segLabel(!!selectedTime)}>GODZINA</div>
           <select value={selectedTime} onChange={e => setSelectedTime(e.target.value)} onFocus={() => setOpenField(null)}
             style={{ ...segValue(!!selectedTime), border:"none", background:"transparent", padding:0, width:"100%", cursor:"pointer", fontFamily:"'Montserrat', system-ui, sans-serif", appearance:"none", WebkitAppearance:"none" }}>
