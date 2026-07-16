@@ -204,7 +204,7 @@ const globalCSS = `
   }
   .wizard-nav-spacer { display:none; }
   @media (max-width: 640px) {
-    .wizard-nav-bar { position:fixed; left:0; right:0; bottom:0; top:auto; max-width:none !important; margin:0 !important; padding:10px 16px !important; background:${C.bg}; box-shadow:0 -6px 20px rgba(0,0,0,0.14); z-index:200; }
+    .wizard-nav-bar { position:fixed; left:0; right:0; bottom:0; top:auto; max-width:none !important; margin:0 !important; padding:10px 28px !important; background:${C.bg}; box-shadow:0 -6px 20px rgba(0,0,0,0.14); z-index:200; }
     .wizard-nav-spacer { display:block; height:76px; }
   }
   @media (min-width: 641px) {
