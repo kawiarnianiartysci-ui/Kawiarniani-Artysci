@@ -996,7 +996,7 @@ function HomeScreen({ restaurants, workshops, onStart, homeLocation, setHomeLoca
 
 // ══ Pasek postępu kreatora ═══════════════════════════════════
 
-function WizardProgressBar({ step, path }) {
+function WizardProgressBar({ step, path, onStepClick }) {
   const labels = path === "workshop"
     ? ["Warsztat", "Miejsce", "Podsumowanie"]
     : ["Miejsce", "Warsztat", "Podsumowanie"];
@@ -1006,9 +1006,13 @@ function WizardProgressBar({ step, path }) {
         const n = i + 1;
         const active = n === step;
         const done = n < step;
+        const clickable = done && !!onStepClick;
         return (
           <div key={l} style={{ display:"flex", alignItems:"center", flex: n < labels.length ? 1 : "0 0 auto" }}>
-            <div style={{ display:"flex", flexDirection:"column", alignItems:"center", gap:4, minWidth:0 }}>
+            <div
+              onClick={clickable ? () => onStepClick(n) : undefined}
+              style={{ display:"flex", flexDirection:"column", alignItems:"center", gap:4, minWidth:0, padding:"6px 8px", borderRadius:10, cursor: clickable ? "pointer" : "default" }}
+            >
               <div style={{ width:26, height:26, borderRadius:"50%", flexShrink:0, display:"flex", alignItems:"center", justifyContent:"center", fontSize:12, fontWeight:700, background: active || done ? C.primary : C.tagBg, color: active || done ? "#FFF" : C.muted }}>
                 {done ? "✓" : n}
               </div>
@@ -1529,7 +1533,7 @@ export default function App() {
             </>
           ) : (
             <>
-              <WizardProgressBar step={wizardStep} path={path} />
+              <WizardProgressBar step={wizardStep} path={path} onStepClick={n => setWizardStep(n)} />
               {wizardStep < 3 && (
                 <div className="wizard-nav-bar" style={{ marginTop:20 }}>
                   <WizardStickyBar
