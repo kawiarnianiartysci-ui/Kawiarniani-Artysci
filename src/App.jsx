@@ -599,6 +599,124 @@ function PrivacyPolicyModal({ onClose }) {
   );
 }
 
+// Regulamin dla Partnerów (Restauracja/Artysta) — treść przekazana przez
+// Joannę (plik "Kawiarniani_Artysci_Regulamin_Partnerzy..."). Sekcje mają
+// numerację dokładnie jak w oryginale (niektóre paragrafy celowo pomijają
+// numer — tak było w źródłowym dokumencie, nie poprawiam tego tutaj).
+const PARTNER_TERMS_SECTIONS = [
+  { title:"§ 1. Postanowienia ogólne", items: [
+    "1. Platforma „Kawiarniani Artyści” (dalej: „Platforma”) jest serwisem internetowym dostępnym pod adresem kawiarnianiartysci.pl, którego celem jest umożliwienie kontaktu i rezerwacji eventów grupowych łączących ofertę gastronomiczną restauracji/kawiarni („Restauracja”) z warsztatami artystycznymi prowadzonymi przez artystów („Artysta”), zwanych dalej łącznie „Partnerami”.",
+    "2. Platforma pełni funkcję wyłącznie technologicznego pośrednika umożliwiającego kontakt i rezerwację. Platforma nie jest organizatorem Eventu ani stroną umowy zawieranej pomiędzy Klientem a Partnerami.",
+    "3. Platforma świadczy usługi w zakresie umożliwienia rezerwacji restauracji oraz warsztatów artystycznych na potrzeby eventów grupowych, obejmujących swoim zasięgiem Poznań i okolice.",
+    "4. Regulamin jest udostępniany nieodpłatnie na stronie Platformy w formie umożliwiającej jego pobranie, utrwalenie i wydrukowanie, przed zawarciem jakiejkolwiek umowy, zgodnie z ustawą z dnia 18 lipca 2002 r. o świadczeniu usług drogą elektroniczną.",
+    "5. Administratorem Platformy jest [imię i nazwisko / nazwa działalności gospodarczej — do uzupełnienia], z którym można się skontaktować pod adresem e-mail: kawiarnianiartysci@gmail.com, w tym w sprawach zgłoszeń dotyczących treści niezgodnych z prawem.",
+  ]},
+  { title:"§ 2. Definicje", items: [
+    "Użyte w Regulaminie pojęcia oznaczają:",
+    "1. Platforma — serwis internetowy „Kawiarniani Artyści” dostępny pod adresem kawiarnianiartysci.pl wraz z jego funkcjonalnościami.",
+    "2. Klient — osoba fizyczna dokonująca za pośrednictwem Platformy Zapytania o rezerwację Eventu; w zakresie, w jakim działa jako konsument w rozumieniu art. 22¹ Kodeksu cywilnego, zwana dalej „Konsumentem”, w pozostałych przypadkach — „Przedsiębiorcą”.",
+    "3. Artysta — Partner prowadzący warsztaty artystyczne lub inne aktywności twórcze prezentowane na Platformie.",
+    "4. Restauracja — Partner udostępniający lokal gastronomiczny oraz ofertę restauracyjną prezentowaną na Platformie.",
+    "5. Partner — odpowiednio Artysta i/lub Restauracja.",
+    "6. Event — wydarzenie organizowane przez Klienta z wykorzystaniem usług Restauracji i/lub Artysty, zarezerwowane za pośrednictwem Platformy.",
+    "7. Zapytanie — zgłoszenie wysłane przez Klienta za pomocą formularza na Platformie, wyrażające wolę rezerwacji Eventu, przekazywane jednocześnie do wybranej Restauracji i wybranego Artysty.",
+    "8. Zadatek — wpłata dokonywana przez Klienta po potwierdzeniu terminu Eventu przez Restaurację i Artystę, w wysokości 30% łącznej szacowanej kwoty Eventu.",
+  ]},
+  { title:"§ 3. Rejestracja i konta Partnerów (Restauracja, Artysta)", items: [
+    "1. Restauracja lub Artysta mogą dołączyć do Platformy jako Partner poprzez wypełnienie formularza zgłoszeniowego dostępnego na Platformie, podając dane niezbędne do utworzenia profilu (nazwa, adres, numer NIP i numer KRS (jeżeli występuje), opis, oferta cenowa, dane kontaktowe, zdjęcia).",
+    "2. Partner oświadcza, że dane oraz treści zamieszczane w jego profilu (w tym opisy, ceny, zdjęcia, informacje o pojemności lokalu) są prawdziwe, aktualne i nie naruszają praw osób trzecich ani przepisów prawa. Platforma nie ponosi odpowiedzialności za treść informacji zamieszczanych w profilach Restauracji i Partnerów.",
+    "3. Platforma zastrzega sobie prawo do weryfikacji zgłoszenia Partnera przed publikacją profilu, a także do zawieszenia lub usunięcia profilu Partnera w przypadku uzyskania wiarygodnych informacji o nierzetelności Partnera, naruszeniu niniejszego Regulaminu lub przepisów prawa.",
+    "4. Partner ponosi wyłączną odpowiedzialność za aktualność swojej oferty, w tym cennika i dostępnych terminów.",
+  ]},
+  { title:"§ 4. Zasady korzystania z Platformy przez Klienta", items: [
+    "1. Korzystanie z formularza Zapytania nie wymaga założenia konta przez Klienta (chyba że funkcjonalność ta zostanie wprowadzona w przyszłości).",
+    "2. Osoba dokonująca Zapytania oświadcza, że jest pełnoletnia — ze względu na charakter części ofert, w tym pakiety obejmujące napoje alkoholowe (np. wino, piwo, prosecco).",
+    "3. Klient zobowiązany jest do podania prawdziwych danych kontaktowych niezbędnych do realizacji Zapytania (imię i nazwisko, adres e-mail, numer telefonu).",
+  ]},
+  { title:"§ 5. Procedura rezerwacji i płatności", items: [
+    "1. Klient wybiera na Platformie Restaurację wraz z wybranym pakietem gastronomicznym oraz Warsztat artystyczny; Platforma prezentuje orientacyjny koszt na osobę oraz łączną szacowaną kwotę Eventu.",
+    "2. Klient wysyła Zapytanie za pomocą formularza — Zapytanie trafia jednocześnie do wybranego Artysty oraz wybranej Restauracji.",
+    "3. Artysta potwierdza dostępność terminu oraz liczbę uczestników; potwierdzenie przekazywane jest Restauracji.",
+    "4. Po potwierdzeniu terminu przez Artystę, Restauracja potwierdza dostępność terminu Klientowi i informuje o konieczności wniesienia Zadatku w wysokości 30% łącznej szacowanej kwoty Eventu, płatnego w całości na rachunek Restauracji.",
+    "5. Pozostałą część należności (70%) Klient wpłaca w całości na rachunek Restauracji, po zrealizowaniu Eventu.",
+    "6. Po otrzymaniu Zadatku Restauracja przekazuje cześć Zadatku proporcjonalnie przypadającego na wynagrodzenie Artyście temu Artyście.",
+    "7. Restauracja, po zrealizowaniu Eventu, przekazuje Artyście należną część wynagrodzenia za przeprowadzony Warsztat, zgodnie z ustaleniami dokonanymi między Restauracją a Artystą przy potwierdzaniu Zapytania.",
+    "8. Rozliczenie należności między Restauracją a Artystą następuje w jeden z poniższych sposobów, zależnie od formy prowadzonej przez Artystę działalności:",
+    "— jeżeli Artysta prowadzi zarejestrowaną działalność gospodarczą — wystawia Restauracji fakturę za swoją część wynagrodzenia;",
+    "— jeżeli Artysta nie prowadzi działalności gospodarczej — Restauracja i Artysta zawierają odrębną umowę o dzieło regulującą to rozliczenie, wraz z wynikającymi z niej obowiązkami Restauracji jako płatnika.",
+    "9. Platforma nie pośredniczy w przepływie środków pieniężnych — cała płatność od Klienta trafia na rachunek Restauracji, a rozliczenie z Artystą odbywa się bezpośrednio między Restauracją a Artystą, poza Platformą.",
+    "10. Dokument sprzedaży wobec Klienta (fakturę lub paragon na łączną kwotę Eventu) wystawia Restauracja.",
+    "11. Platforma nie ponosi odpowiedzialności za błędy w zakresie ceny wskazanej przez Partnera.",
+  ]},
+  { title:"§ 6. Zasady anulowania rezerwacji i zwrotu Zadatku", items: [
+    "1. Odwołanie rezerwacji przez Klienta następuje poprzez zgłoszenie w formie wiadomości e-mail na adres kontaktowy Platformy lub bezpośrednio do Restauracji/Artysty, z potwierdzeniem otrzymania zgłoszenia.",
+    "2. Zasady zwrotu Zadatku w przypadku odwołania Eventu przez Klienta:",
+    "— odwołanie na więcej niż 14 dni przed Eventem — pełny zwrot Zadatku;",
+    "— odwołanie na mniej niż 14 dni przed Eventem — Zadatek nie podlega zwrotowi.",
+    "3. W przypadku odwołania Eventu przez Restaurację lub Artystę, Restauracja zwraca Klientowi pełną wpłaconą kwotę Zadatku, bez obowiązku zwrotu kwoty dwukrotnie wyższej. Jeżeli przyczyną odwołania jest Artysta, rozliczenie z tego tytułu między Restauracją a Artystą następuje odrębnie, poza Platformą.",
+  ]},
+  { title:"§ 7. Prawo odstąpienia od umowy zawartej na odległość", items: [
+    "1. Zgodnie z art. 38 pkt 12 ustawy z dnia 30 maja 2014 r. o prawach konsumenta, Konsumentowi nie przysługuje prawo odstąpienia od umowy o świadczenie usług związanych z wydarzeniami rozrywkowymi, sportowymi lub kulturalnymi, jeżeli w umowie oznaczono dzień lub okres świadczenia usługi — co dotyczy usług rezerwowanych za pośrednictwem Platformy.",
+    "2. Przed potwierdzeniem rezerwacji Klient zostanie w sposób wyraźny poinformowany o wyłączeniu prawa odstąpienia, o którym mowa w ust. 1 (np. poprzez odpowiedni checkbox lub czytelny komunikat w formularzu Zapytania).",
+  ]},
+  { title:"§ 8. Odpowiedzialność Platformy i wyłączenia odpowiedzialności", items: [
+    "1. Platforma pełni funkcję wyłącznie technologicznego pośrednika umożliwiającego kontakt i rezerwację pomiędzy Klientem a Partnerami.",
+    "2. Umowa o realizację Eventu zawierana jest bezpośrednio pomiędzy Klientem a Restauracją i/lub Artystą — Platforma nie jest stroną tej umowy.",
+    "3. Platforma nie ponosi odpowiedzialności za jakość, terminowość ani sposób wykonania usługi przez Restaurację lub Artystę.",
+    "4. Powyższe wyłączenie nie dotyczy odpowiedzialności Platformy za jej własne działania, a także szkody wyrządzone z winy umyślnej lub wskutek rażącego niedbalstwa w zakresie funkcjonowania samej Platformy.",
+  ]},
+  { title:"§ 9. Odpowiedzialność za treści i profile Partnerów", items: [
+    "1. Treści zamieszczane w profilach Partnerów (opisy, zdjęcia, ceny, informacje o pojemności lokalu itp.) są wprowadzane za pośrednictwem platformy przez formularz zgłoszeniowy.",
+    "3. Klient może zgłosić nieprawidłowość lub nieaktualność informacji zamieszczonych w profilu Partnera na adres e-mail kontaktowy Platformy. Platforma podejmie działania wyjaśniające i, w uzasadnionych przypadkach, może zawiesić widoczność profilu do czasu wyjaśnienia zgłoszenia.",
+  ]},
+  { title:"§ 10. Reklamacje i rozwiązywanie sporów między stronami", items: [
+    "1. Platforma nie jest stroną umowy o realizację Eventu, nie ponosi odpowiedzialności za spory dotyczące jej wykonania powstałe między Klientem a Partnerem.",
+    "3. Reklamacje dotyczące wyłącznie funkcjonowania samej Platformy (np. błędów technicznych formularza rezerwacyjnego) można zgłaszać na adres e-mail kontaktowy Platformy.",
+  ]},
+  { title:"§ 11. Zmiana Regulaminu i warunków współpracy z Partnerami", items: [
+    "1. Platforma zastrzega sobie prawo do zmiany niniejszego Regulaminu, w tym warunków współpracy z Partnerami oraz wprowadzenia opłat za korzystanie z Platformy przez Partnerów.",
+    "2. O planowanej zmianie zarejestrowani Partnerzy zostaną poinformowani z co najmniej 14-dniowym wyprzedzeniem, bezpośrednio na wskazany adres e-mail.",
+    "3. Partner, który nie akceptuje zmiany, ma prawo usunąć swoje konto przed jej wejściem w życie, bez dodatkowych sankcji.",
+    "4. Zmiany Regulaminu nie mają zastosowania do rezerwacji już potwierdzonych i opłaconych przed dniem wejścia zmian w życie.",
+  ]},
+  { title:"§ 12. Ochrona danych osobowych (RODO)", items: [
+    "1. Administratorem danych osobowych Klienta zbieranych w formularzu Zapytania (imię i nazwisko, adres e-mail, numer telefonu, preferowany termin Eventu, treść wiadomości) jest Platforma.",
+    "2. Restauracja oraz Artysta, którym przekazywane są dane Klienta w celu realizacji Zapytania, są wobec tych danych odrębnymi administratorami — przekazanie danych nie stanowi powierzenia przetwarzania.",
+    "3. Dane przetwarzane są w celu i na podstawie niezbędności do podjęcia działań przed zawarciem umowy oraz jej wykonania (art. 6 ust. 1 lit. b RODO).",
+    "4. Przy formularzu Zapytania Klient jest informowany, do jakich konkretnie podmiotów (nazwa wybranej Restauracji i Artysty) zostaną przekazane jego dane, oraz proszony o odrębną zgodę na to przekazanie.",
+    "5. Szczegółowe informacje dotyczące przetwarzania danych osobowych, w tym praw osoby, której dane dotyczą (dostęp, sprostowanie, usunięcie, sprzeciw), znajdują się w Polityce Prywatności dostępnej na Platformie.",
+  ]},
+  { title:"§ 13. Postanowienia końcowe", items: [
+    "1. Prawem właściwym dla niniejszego Regulaminu jest prawo polskie.",
+    "2. W sprawach nieuregulowanych niniejszym Regulaminem zastosowanie mają powszechnie obowiązujące przepisy prawa polskiego.",
+    "3. Regulamin wchodzi w życie z dniem 16.07.2026.",
+  ]},
+];
+
+function PartnerTermsModal({ onClose }) {
+  const section = { marginBottom: 18 };
+  const h = { fontFamily:"'Montserrat', system-ui, sans-serif", fontSize:15, fontWeight:600, color:C.text, marginBottom:6 };
+  const p = { fontSize:13, color:C.muted, lineHeight:1.7, margin:"0 0 6px" };
+  return (
+    <div onClick={e => e.target === e.currentTarget && onClose()} style={{ position:"fixed", inset:0, background:"rgba(0,0,0,0.65)", zIndex:600, overflowY:"auto", padding:"20px 12px", display:"flex", alignItems:"flex-start", justifyContent:"center" }}>
+      <div style={{ background:"#FFF", borderRadius:16, maxWidth:640, width:"100%", padding:"32px 28px", marginBottom:40 }}>
+        <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", marginBottom:6 }}>
+          <div style={{ fontFamily:"'Montserrat', system-ui, sans-serif", fontSize:24, fontWeight:400 }}>Regulamin Platformy „Kawiarniani Artyści”</div>
+          <button onClick={onClose} style={{ background:"none", border:"none", fontSize:20, cursor:"pointer", color:C.muted, padding:4, lineHeight:1 }}>✕</button>
+        </div>
+        <p style={{ ...p, marginBottom:22, fontStyle:"italic" }}>Regulamin dla Partnerów (Restauracji i Artystów) oraz zasad korzystania z Platformy przez Klientów.</p>
+
+        {PARTNER_TERMS_SECTIONS.map(s => (
+          <div key={s.title} style={section}>
+            <div style={h}>{s.title}</div>
+            {s.items.map((it, i) => <p key={i} style={p}>{it}</p>)}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 function Footer() {
   const [showPrivacy, setShowPrivacy] = useState(false);
   return (
@@ -1172,6 +1290,7 @@ const RESTAURANT_FORM_URL = "https://docs.google.com/forms/d/e/1FAIpQLSexblazM7l
 
 // Widok "Współpraca" — informacje o procesie + linki do formularzy zgłoszeniowych
 function PartnersView() {
+  const [showTerms, setShowTerms] = useState(false);
   const steps = [
     { n:"1", t:"Klient wybiera lokal i artystę", d:"Na stronie klient wybiera restaurację/kawiarnię oraz warsztat, który chce zorganizować u siebie." },
     { n:"2", t:"Artysta akceptuje termin", d:"Artysta dostaje zapytanie z proponowaną datą i liczbą osób — potwierdza je lub proponuje zmianę." },
@@ -1216,11 +1335,17 @@ function PartnersView() {
           <a href={RESTAURANT_FORM_URL} target="_blank" rel="noreferrer" style={{ display:"inline-block", background:C.primary, color:"#FFF", textDecoration:"none", borderRadius:9, padding:"12px 24px", fontSize:14, fontWeight:600 }}>Formularz zgłoszeniowy</a>
         </div>
       </div>
+      <div style={{ textAlign:"center", marginTop:20 }}>
+        <button onClick={() => setShowTerms(true)} style={{ background:"none", border:"none", color:C.muted, textDecoration:"underline", cursor:"pointer", fontSize:12, padding:0 }}>
+          Regulamin dla Partnerów
+        </button>
+      </div>
     </div>
 
     <AboutUsSection />
 
     <Footer />
+    {showTerms && <PartnerTermsModal onClose={() => setShowTerms(false)} />}
     </>
   );
 }
