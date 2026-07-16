@@ -967,16 +967,6 @@ function HomeScreen({ restaurants, workshops, onStart, homeLocation, setHomeLoca
           <PathTiles activeKey="workshop" onSelect={onStart} />
         </div>
 
-        <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", gap:12, background:"#F1EFEA", border:`1px solid ${C.border}`, borderRadius:999, padding:"10px 10px 10px 24px", marginBottom:36, opacity:0.55 }}>
-          <div>
-            <div style={{ fontSize:10, color:C.muted, letterSpacing:"0.08em" }}>SUMA</div>
-            <div style={{ fontSize:16, color:C.muted, fontWeight:600 }}>—</div>
-          </div>
-          <button disabled style={{ background:"#CFCAC0", color:"#FFF", border:"none", borderRadius:999, padding:"13px 24px", fontSize:14, fontWeight:600, cursor:"default" }}>
-            Wyślij zapytanie
-          </button>
-        </div>
-
         <div style={{ textAlign:"center" }}>
           <div style={{ fontSize:11, color:C.muted, letterSpacing:"0.08em", marginBottom:14 }}>
             {activeWorkshops.length} warsztatów · {activeRestaurants.length} miejsc w Poznaniu
