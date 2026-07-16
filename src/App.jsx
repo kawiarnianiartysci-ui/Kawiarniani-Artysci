@@ -1536,8 +1536,16 @@ export default function App() {
                     restaurant={restaurant} workshop={workshop}
                     groupSize={groupSize} ppp={ppp} total={total}
                     canAdvance={wizardStep === 1 ? step1Selected : step2Selected}
-                    nextLabel={wizardStep === 2 ? "Wyślij zapytanie" : "Dalej"}
-                    onNext={() => setWizardStep(s => s + 1)}
+                    nextLabel="Dalej"
+                    onNext={() => {
+                      // Przełącznik ścieżki na górze kroku 1 pozwala wybrać
+                      // OBA elementy (warsztat i restaurację) bez opuszczania
+                      // kroku 1 — w takim wypadku krok 2 (wybór tego samego,
+                      // co już wybrane) jest zbędny, więc przechodzimy od
+                      // razu do podsumowania zamiast pokazywać go ponownie.
+                      if (wizardStep === 1 && selectedW && selectedR) setWizardStep(3);
+                      else setWizardStep(s => s + 1);
+                    }}
                     onBack={() => window.history.back()}
                   />
                 </div>
