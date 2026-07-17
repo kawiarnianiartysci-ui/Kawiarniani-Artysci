@@ -41,9 +41,9 @@ const C = {
 // ══════════════════════════════════════════════════════════════
 const COPY = {
   siteName:    "Kawiarniani Artyści",
-  tagline:     "Platforma do organizacji spotkań · Poznań i okolice",
+  tagline:     "Warsztaty artystyczne w poznańskich kawiarniach — na panieński, urodziny i integracje",
   heroTitle:   "Zaplanuj niezapomniane spotkanie.",
-  heroSubtitle:"Warsztaty artystyczne w poznańskich kawiarniach — na panieński, urodziny i integracje",
+  heroSubtitle:"Łączymy restauracje i kawiarnie z artystycznymi działaniami podczas spotkań rodzinnych, wieczorów panieńskich, baby shower, urodzin lub integracji firmowych.",
   contactEmail:"kawiarnianiartysci@gmail.com",
 };
 
