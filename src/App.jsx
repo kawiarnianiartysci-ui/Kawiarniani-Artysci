@@ -198,6 +198,14 @@ const globalCSS = `
   @media (min-width: 640px) {
     .hero-cta-btn { display:inline-block; width:auto; }
   }
+  .hero-copy-wrap { margin-bottom:28px; }
+  .hero-title { margin:0 0 14px; }
+  .hero-subtitle { font-size:16px; line-height:1.65; margin:0 auto 20px; }
+  @media (max-width: 640px) {
+    .hero-copy-wrap { margin-bottom:14px; }
+    .hero-title { margin:0 0 6px; }
+    .hero-subtitle { font-size:14px; line-height:1.45; margin:0 auto 10px; }
+  }
   @media (max-width: 480px) {
     .wizard-progress-label { display:none; }
   }
@@ -940,14 +948,14 @@ function HomeScreen({ restaurants, workshops, onStart, groupSize, setGroupSize, 
       </div>
 
       <div style={{ maxWidth:760, margin:"0 auto", padding:"0 16px 56px" }}>
-        <div style={{ textAlign:"center", marginBottom:28 }}>
-          <h1 style={{ fontFamily:"'Pan Pizza', cursive", fontSize:"clamp(48px,8.5vw,76px)", fontWeight:400, margin:"0 0 14px", lineHeight:1.2, color:C.primary }}>
+        <div className="hero-copy-wrap" style={{ textAlign:"center" }}>
+          <h1 className="hero-title" style={{ fontFamily:"'Pan Pizza', cursive", fontSize:"clamp(48px,8.5vw,76px)", fontWeight:400, lineHeight:1.2, color:C.primary }}>
             {COPY.siteName}
           </h1>
-          <p style={{ fontSize:16, color:C.text, fontWeight:500, margin:"0 auto 20px", maxWidth:500, lineHeight:1.65 }}>
+          <p className="hero-subtitle" style={{ color:C.text, fontWeight:500, maxWidth:500, marginLeft:"auto", marginRight:"auto" }}>
             {COPY.heroSubtitle}
           </p>
-          <button onClick={scrollToPathTiles} className="hero-cta-btn" style={{ background:C.primary, color:"#FFF", border:"none", borderRadius:999, padding:"12px 32px", fontSize:15, fontWeight:600, fontFamily:"'Montserrat', system-ui, sans-serif", cursor:"pointer" }}>
+          <button onClick={scrollToPathTiles} className="hero-cta-btn" style={{ background:C.primary, color:"#FFF", border:"none", borderRadius:999, padding:"11px 32px", fontSize:15, fontWeight:600, fontFamily:"'Montserrat', system-ui, sans-serif", cursor:"pointer" }}>
             Zobacz warsztaty
           </button>
         </div>
