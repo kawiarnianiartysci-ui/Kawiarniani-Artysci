@@ -1520,8 +1520,6 @@ export default function App() {
             Współpraca
           </button>
         </div>
-
-        <div style={{ fontSize:10, color:C.muted, textAlign:"right", fontWeight:300, flex:"1 1 0" }}>Ceny orientacyjne<br/>aktualizacja: czerwiec 2026</div>
       </header>
 
       {/* Widok Współpraca */}
