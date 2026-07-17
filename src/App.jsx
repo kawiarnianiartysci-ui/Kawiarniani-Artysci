@@ -852,15 +852,7 @@ function PathTiles({ activeKey, onSelect }) {
 }
 
 // Sekcja "Kim jesteśmy" — wspólna dla ekranu klienta i widoku Współpraca.
-// Trzy kafelki "Jak to działa" używają dokładnie tego samego stylu co
-// PathTiles (obramowanie, wyśrodkowany tekst, bez strzałek), tylko jako
-// zwykłe <div> zamiast <button> — czysto informacyjne, bez interakcji.
-function AboutUsSection({ includeHowItWorks = true }) {
-  const infoTiles = [
-    { title: "Wybierz ofertę", sub: "Miejsce i warsztat" },
-    { title: "Wyślij zapytanie", sub: "Krótki formularz" },
-    { title: "Twórzcie razem", sub: "Wspólne wydarzenie" },
-  ];
+function AboutUsSection() {
   return (
     <div style={{ maxWidth:760, margin:"0 auto", padding:"0 16px 48px", textAlign:"center" }}>
       <h2 style={{ fontFamily:"'Montserrat', system-ui, sans-serif", fontSize:"clamp(26px,3.5vw,36px)", fontWeight:300, margin:"0 0 20px", color:C.text }}>
@@ -872,20 +864,6 @@ function AboutUsSection({ includeHowItWorks = true }) {
       <p style={{ fontSize:14, color:C.text, lineHeight:1.75, margin:"0 auto 36px", maxWidth:600, fontWeight:300 }}>
         Prowadzi nas Joanna — z zawodu grafik komputerowy, z zamiłowania organizatorka kameralnych warsztatów malarskich. Wierzy, że najlepsze wspomnienia rodzą się tam, gdzie jest dobra kawa, jedzenie, dobre towarzystwo oraz odrobina wspólnej twórczości.
       </p>
-
-      {includeHowItWorks && (
-        <>
-          <div style={{ fontSize:11, color:C.muted, letterSpacing:"0.1em", marginBottom:14 }}>JAK TO DZIAŁA</div>
-          <div className="home-cta-grid" style={{ marginBottom:36 }}>
-            {infoTiles.map(t => (
-              <div key={t.title} style={{ flex:1, textAlign:"center", background:C.card, border:`1px solid ${C.primary}`, borderRadius:999, padding:"14px 20px" }}>
-                <div style={{ fontFamily:"'Montserrat', system-ui, sans-serif", fontSize:16, fontWeight:500, marginBottom:3, color:C.primary }}>{t.title}</div>
-                <div style={{ fontSize:12, color:C.muted }}>{t.sub}</div>
-              </div>
-            ))}
-          </div>
-        </>
-      )}
 
       <div style={{ fontSize:13, color:C.text, lineHeight:2 }}>
         <div>E-mail: <a href="mailto:kawiarnianiartysci@gmail.com" style={{ color:C.primary }}>kawiarnianiartysci@gmail.com</a></div>
@@ -1004,7 +982,7 @@ function HomeScreen({ restaurants, workshops, onStart, groupSize, setGroupSize, 
       </div>
 
       {/* 6. Kim jesteśmy */}
-      <AboutUsSection includeHowItWorks={false} />
+      <AboutUsSection />
     </div>
   );
 }
