@@ -43,7 +43,7 @@ const COPY = {
   siteName:    "Kawiarniani Artyści",
   tagline:     "Platforma do organizacji spotkań · Poznań i okolice",
   heroTitle:   "Zaplanuj niezapomniane spotkanie.",
-  heroSubtitle:"Łączymy restauracje i kawiarnie z artystycznymi działaniami podczas spotkań rodzinnych, wieczorów panieńskich, baby shower, urodzin lub integracji firmowych.",
+  heroSubtitle:"Warsztaty artystyczne w poznańskich kawiarniach — na panieński, urodziny i integracje",
   contactEmail:"kawiarnianiartysci@gmail.com",
 };
 
@@ -193,6 +193,10 @@ const globalCSS = `
   .home-cta-grid { display:flex; flex-direction:column; gap:16px; }
   @media (min-width: 640px) {
     .home-cta-grid { flex-direction:row; }
+  }
+  .hero-cta-btn { display:block; width:100%; box-sizing:border-box; }
+  @media (min-width: 640px) {
+    .hero-cta-btn { display:inline-block; width:auto; }
   }
   @media (max-width: 480px) {
     .wizard-progress-label { display:none; }
@@ -763,17 +767,12 @@ for (let h = 7; h <= 21; h++) {
 // początek klipu, żeby szybciej było widać ludzi przy malowaniu.
 const HERO_VIDEO_START = 5;
 
-// Na ten moment tylko Poznań — kolejne miejscowości dojdą tutaj, gdy
-// pojawią się nowe restauracje/warsztaty poza Poznaniem.
-const LOCATION_OPTIONS = [
-  { id:"poznan", label:"Poznań" },
-];
-
 // Panel filtrów na stronie głównej — jeden wspólny zaokrąglony pasek
-// podzielony cienkimi liniami. Pole z wybraną wartością dostaje tylko
+// podzielony cienką linią. Pole z wybraną wartością dostaje tylko
 // delikatne brązowe obramowanie (bez wypełnienia); puste pola są całkiem
-// puste, bez tekstu zastępczego typu "Dowolne".
-function HomeFilterBar({ homeLocation, setHomeLocation, groupSize, setGroupSize, selectedDate, setSelectedDate, selectedTime, setSelectedTime }) {
+// puste, bez tekstu zastępczego typu "Dowolne". Tylko Liczba osób i Data —
+// Miejsce i Godzina celowo pominięte na starcie (patrz brief reorganizacji).
+function HomeFilterBar({ groupSize, setGroupSize, selectedDate, setSelectedDate }) {
   const [openField, setOpenField] = useState(null);
   const barRef = useRef(null);
   const toggle = f => setOpenField(openField === f ? null : f);
@@ -784,8 +783,6 @@ function HomeFilterBar({ homeLocation, setHomeLocation, groupSize, setGroupSize,
     document.addEventListener("mousedown", onOutside);
     return () => document.removeEventListener("mousedown", onOutside);
   }, [openField]);
-
-  const locationLabel = LOCATION_OPTIONS.find(o => o.id === homeLocation)?.label;
 
   const openPeople = () => { if (groupSize == null) setGroupSize(10); toggle("people"); };
 
@@ -798,24 +795,8 @@ function HomeFilterBar({ homeLocation, setHomeLocation, groupSize, setGroupSize,
   const segValue = active => ({ fontSize:13, color: active ? C.primary : C.text, fontWeight: active ? 600 : 400, whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis", minHeight:16 });
 
   return (
-    <div ref={barRef} style={{ maxWidth:640, margin:"0 auto 28px", position:"relative" }}>
+    <div ref={barRef} style={{ maxWidth:420, margin:"0 auto 28px", position:"relative" }}>
       <div className="search-bar" style={{ display:"flex", alignItems:"stretch", background:"#FFF", border:`1px solid ${C.border}`, borderRadius:999, boxShadow:"0 4px 18px rgba(0,0,0,0.07)", padding:5 }}>
-
-        <div onClick={() => toggle("location")} style={segStyle(!!homeLocation)}>
-          <div style={segLabel(!!homeLocation)}>MIEJSCE</div>
-          <div style={segValue(!!homeLocation)}>{locationLabel || ""}</div>
-          {openField === "location" && (
-            <div className="modal-fade" onClick={e => e.stopPropagation()} style={{ position:"absolute", top:"calc(100% + 8px)", left:0, background:"#FFF", border:`1px solid ${C.border}`, borderRadius:14, boxShadow:"0 10px 32px rgba(0,0,0,0.14)", padding:8, minWidth:200, zIndex:50, cursor:"default" }}>
-              {LOCATION_OPTIONS.map(o => (
-                <div key={o.id} onClick={() => { setHomeLocation(o.id); setOpenField(null); }} style={{ padding:"10px 14px", borderRadius:9, cursor:"pointer", fontSize:14, background: homeLocation===o.id ? C.tagBg : "transparent", color: homeLocation===o.id ? C.primary : C.text, fontWeight: homeLocation===o.id ? 600 : 400, whiteSpace:"nowrap" }}>
-                  {o.label}
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-
-        <div className="search-divider" style={{ background:C.border }} />
 
         <div onClick={openPeople} style={segStyle(!!groupSize)}>
           <div style={segLabel(!!groupSize)}>LICZBA OSÓB</div>
@@ -837,17 +818,6 @@ function HomeFilterBar({ homeLocation, setHomeLocation, groupSize, setGroupSize,
           <div style={segLabel(!!selectedDate)}>DATA</div>
           <input type="date" value={selectedDate} min={MIN_BOOKING_DATE} onChange={e => setSelectedDate(e.target.value)} onFocus={() => setOpenField(null)}
             style={{ ...segValue(!!selectedDate), border:"none", background:"transparent", padding:0, width:"100%", cursor:"pointer", fontFamily:"'Montserrat', system-ui, sans-serif" }} />
-        </div>
-
-        <div className="search-divider" style={{ background:C.border }} />
-
-        <div onClick={() => setOpenField(null)} style={segStyle(!!selectedTime)}>
-          <div style={segLabel(!!selectedTime)}>GODZINA</div>
-          <select value={selectedTime} onChange={e => setSelectedTime(e.target.value)} onFocus={() => setOpenField(null)}
-            style={{ ...segValue(!!selectedTime), border:"none", background:"transparent", padding:0, width:"100%", cursor:"pointer", fontFamily:"'Montserrat', system-ui, sans-serif", appearance:"none", WebkitAppearance:"none" }}>
-            <option value=""></option>
-            {TIME_OPTIONS.map(t => <option key={t} value={t}>{t}</option>)}
-          </select>
         </div>
       </div>
     </div>
@@ -885,7 +855,7 @@ function PathTiles({ activeKey, onSelect }) {
 // Trzy kafelki "Jak to działa" używają dokładnie tego samego stylu co
 // PathTiles (obramowanie, wyśrodkowany tekst, bez strzałek), tylko jako
 // zwykłe <div> zamiast <button> — czysto informacyjne, bez interakcji.
-function AboutUsSection() {
+function AboutUsSection({ includeHowItWorks = true }) {
   const infoTiles = [
     { title: "Wybierz ofertę", sub: "Miejsce i warsztat" },
     { title: "Wyślij zapytanie", sub: "Krótki formularz" },
@@ -896,24 +866,28 @@ function AboutUsSection() {
       <h2 style={{ fontFamily:"'Montserrat', system-ui, sans-serif", fontSize:"clamp(26px,3.5vw,36px)", fontWeight:300, margin:"0 0 20px", color:C.text }}>
         Kim jesteśmy
       </h2>
-      <p style={{ fontSize:14, color:C.muted, lineHeight:1.75, margin:"0 auto 16px", maxWidth:600, fontWeight:300 }}>
+      <p style={{ fontSize:14, color:C.text, lineHeight:1.75, margin:"0 auto 16px", maxWidth:600, fontWeight:300 }}>
         Kawiarnie i restauracje od zawsze były czymś więcej niż miejscem spożywania posiłków — to tam rodziły się rozmowy, pomysły i sztuka. Kawiarniani Artyści to nasz sposób, żeby to przywrócić: łączymy lokalne restauracje i kawiarnie z artystami prowadzącymi warsztaty artystyczne i nie tylko, tworząc nowy sposób spędzania czasu w gronie znajomych, rodziny czy współpracowników.
       </p>
-      <p style={{ fontSize:14, color:C.muted, lineHeight:1.75, margin:"0 auto 36px", maxWidth:600, fontWeight:300 }}>
+      <p style={{ fontSize:14, color:C.text, lineHeight:1.75, margin:"0 auto 36px", maxWidth:600, fontWeight:300 }}>
         Prowadzi nas Joanna — z zawodu grafik komputerowy, z zamiłowania organizatorka kameralnych warsztatów malarskich. Wierzy, że najlepsze wspomnienia rodzą się tam, gdzie jest dobra kawa, jedzenie, dobre towarzystwo oraz odrobina wspólnej twórczości.
       </p>
 
-      <div style={{ fontSize:11, color:C.muted, letterSpacing:"0.1em", marginBottom:14 }}>JAK TO DZIAŁA</div>
-      <div className="home-cta-grid" style={{ marginBottom:36 }}>
-        {infoTiles.map(t => (
-          <div key={t.title} style={{ flex:1, textAlign:"center", background:C.card, border:`1px solid ${C.primary}`, borderRadius:999, padding:"14px 20px" }}>
-            <div style={{ fontFamily:"'Montserrat', system-ui, sans-serif", fontSize:16, fontWeight:500, marginBottom:3, color:C.primary }}>{t.title}</div>
-            <div style={{ fontSize:12, color:C.muted }}>{t.sub}</div>
+      {includeHowItWorks && (
+        <>
+          <div style={{ fontSize:11, color:C.muted, letterSpacing:"0.1em", marginBottom:14 }}>JAK TO DZIAŁA</div>
+          <div className="home-cta-grid" style={{ marginBottom:36 }}>
+            {infoTiles.map(t => (
+              <div key={t.title} style={{ flex:1, textAlign:"center", background:C.card, border:`1px solid ${C.primary}`, borderRadius:999, padding:"14px 20px" }}>
+                <div style={{ fontFamily:"'Montserrat', system-ui, sans-serif", fontSize:16, fontWeight:500, marginBottom:3, color:C.primary }}>{t.title}</div>
+                <div style={{ fontSize:12, color:C.muted }}>{t.sub}</div>
+              </div>
+            ))}
           </div>
-        ))}
-      </div>
+        </>
+      )}
 
-      <div style={{ fontSize:13, color:C.muted, lineHeight:2 }}>
+      <div style={{ fontSize:13, color:C.text, lineHeight:2 }}>
         <div>E-mail: <a href="mailto:kawiarnianiartysci@gmail.com" style={{ color:C.primary }}>kawiarnianiartysci@gmail.com</a></div>
         <div>Instagram: <a href="https://www.instagram.com/kawiarniani_artysci/" target="_blank" rel="noreferrer" style={{ color:C.primary }}>@kawiarniani_artysci</a></div>
       </div>
@@ -923,17 +897,58 @@ function AboutUsSection() {
   );
 }
 
-function HomeScreen({ restaurants, workshops, onStart, homeLocation, setHomeLocation, groupSize, setGroupSize, selectedDate, setSelectedDate, selectedTime, setSelectedTime }) {
+// Krótki, NIEklikalny opis 3-krokowego procesu — wizualnie inny niż
+// kafelki akcji (bez ramki-pigułki, bez cienia), żeby nie sugerować
+// interakcji. Używany tylko na HomeScreen (widok klienta).
+function HowItWorksSteps() {
+  const steps = [
+    { n:"1", t:"Wybieracie warsztat i miejsce", d:"Malowanie, ebru albo inna aktywność — w kawiarni lub restauracji, która Wam pasuje." },
+    { n:"2", t:"Wysyłacie krótkie zapytanie", d:"Termin, liczba osób, kilka słów od Was. Zajmuje chwilę." },
+    { n:"3", t:"My łączymy Was z artystą", d:"Kontaktujemy się z restauracją i artystą, potwierdzamy szczegóły i dogrywamy termin." },
+  ];
+  return (
+    <div style={{ maxWidth:640, margin:"0 auto", padding:"8px 16px 48px" }}>
+      <h2 style={{ fontFamily:"'Montserrat', system-ui, sans-serif", fontSize:"clamp(24px,3vw,30px)", fontWeight:300, textAlign:"center", margin:"0 0 28px", color:C.text }}>
+        Jak to działa
+      </h2>
+      <div style={{ display:"grid", gap:20 }}>
+        {steps.map(s => (
+          <div key={s.n} style={{ display:"flex", gap:16, alignItems:"flex-start" }}>
+            <div style={{ width:32, height:32, borderRadius:"50%", background:C.tagBg, color:C.primary, fontWeight:700, fontSize:14, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>{s.n}</div>
+            <div>
+              <div style={{ fontWeight:600, fontSize:15, marginBottom:4, color:C.text }}>{s.t}</div>
+              <div style={{ fontSize:13, color:C.muted, lineHeight:1.6 }}>{s.d}</div>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// Odmiana polska: 1 -> forma jednostkowa, 2-4 (poza 12-14) -> forma "kilka",
+// pozostałe (5+ i 12-14) -> forma dopełniaczowa.
+function pluralPL(n, [one, few, many]) {
+  if (n === 1) return one;
+  const mod10 = n % 10, mod100 = n % 100;
+  if (mod10 >= 2 && mod10 <= 4 && !(mod100 >= 12 && mod100 <= 14)) return few;
+  return many;
+}
+
+function HomeScreen({ restaurants, workshops, onStart, groupSize, setGroupSize, selectedDate, setSelectedDate }) {
   const videoRef = useRef(null);
+  const pathTilesRef = useRef(null);
   const activeRestaurants = restaurants.filter(r => !r.comingSoon);
   const activeWorkshops = workshops.filter(w => !w.comingSoon);
   const partnerLogos = [...activeRestaurants, ...activeWorkshops].filter(x => x.logo).slice(0, 6);
 
   const seekToStart = () => { if (videoRef.current) videoRef.current.currentTime = HERO_VIDEO_START; };
   const handleEnded = () => { seekToStart(); videoRef.current?.play(); };
+  const scrollToPathTiles = () => pathTilesRef.current?.scrollIntoView({ behavior:"smooth", block:"start" });
 
   return (
     <div>
+      {/* 1. Hero — wideo + nazwa + podtytuł + CTA */}
       <div style={{ position:"relative", width:"100%", height:"clamp(400px, 58vw, 560px)", overflow:"hidden" }}>
         <video ref={videoRef} className="hero-video" autoPlay muted playsInline preload="auto" poster={HERO_PHOTO}
           onLoadedMetadata={seekToStart} onEnded={handleEnded}
@@ -947,41 +962,49 @@ function HomeScreen({ restaurants, workshops, onStart, homeLocation, setHomeLoca
       </div>
 
       <div style={{ maxWidth:760, margin:"0 auto", padding:"0 16px 56px" }}>
-        <div style={{ textAlign:"center", marginBottom:36 }}>
+        <div style={{ textAlign:"center", marginBottom:28 }}>
           <h1 style={{ fontFamily:"'Pan Pizza', cursive", fontSize:"clamp(48px,8.5vw,76px)", fontWeight:400, margin:"0 0 14px", lineHeight:1.2, color:C.primary }}>
             {COPY.siteName}
           </h1>
-          <p style={{ fontSize:16, color:C.text, fontWeight:500, margin:"0 auto", maxWidth:500, lineHeight:1.65 }}>
+          <p style={{ fontSize:16, color:C.text, fontWeight:500, margin:"0 auto 20px", maxWidth:500, lineHeight:1.65 }}>
             {COPY.heroSubtitle}
           </p>
+          <button onClick={scrollToPathTiles} className="hero-cta-btn" style={{ background:C.primary, color:"#FFF", border:"none", borderRadius:999, padding:"12px 32px", fontSize:15, fontWeight:600, fontFamily:"'Montserrat', system-ui, sans-serif", cursor:"pointer" }}>
+            Zobacz warsztaty
+          </button>
         </div>
 
+        {/* 2. Panel: liczba osób + data */}
         <HomeFilterBar
-          homeLocation={homeLocation} setHomeLocation={setHomeLocation}
           groupSize={groupSize} setGroupSize={setGroupSize}
           selectedDate={selectedDate} setSelectedDate={setSelectedDate}
-          selectedTime={selectedTime} setSelectedTime={setSelectedTime}
         />
 
-        <div style={{ marginBottom:16 }}>
+        {/* 3. Dwa kafelki startowe */}
+        <div ref={pathTilesRef} style={{ marginBottom:16, scrollMarginTop:20 }}>
           <PathTiles activeKey="workshop" onSelect={onStart} />
-        </div>
-
-        <div style={{ textAlign:"center" }}>
-          <div style={{ fontSize:11, color:C.muted, letterSpacing:"0.08em", marginBottom:14 }}>
-            {activeWorkshops.length} warsztatów · {activeRestaurants.length} miejsc w Poznaniu
-          </div>
-          {partnerLogos.length > 0 && (
-            <div style={{ display:"flex", gap:18, justifyContent:"center", flexWrap:"wrap", alignItems:"center" }}>
-              {partnerLogos.map(p => (
-                <img key={p.id} src={p.logo} alt={p.name} style={{ height:40, objectFit:"contain", opacity:0.75 }} />
-              ))}
-            </div>
-          )}
         </div>
       </div>
 
-      <AboutUsSection />
+      {/* 4. Jak to działa */}
+      <HowItWorksSteps />
+
+      {/* 5. Pasek zaufania */}
+      <div style={{ maxWidth:760, margin:"0 auto", padding:"0 16px 56px", textAlign:"center" }}>
+        <div style={{ fontSize:11, color:C.muted, letterSpacing:"0.08em", marginBottom:14 }}>
+          {activeWorkshops.length} {pluralPL(activeWorkshops.length, ["warsztat","warsztaty","warsztatów"])} · {activeRestaurants.length} {pluralPL(activeRestaurants.length, ["miejsce","miejsca","miejsc"])} w Poznaniu
+        </div>
+        {partnerLogos.length > 0 && (
+          <div style={{ display:"flex", gap:18, justifyContent:"center", flexWrap:"wrap", alignItems:"center" }}>
+            {partnerLogos.map(p => (
+              <img key={p.id} src={p.logo} alt={p.name} style={{ height:40, objectFit:"contain", opacity:0.75 }} />
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* 6. Kim jesteśmy */}
+      <AboutUsSection includeHowItWorks={false} />
     </div>
   );
 }
@@ -1343,7 +1366,6 @@ export default function App() {
   const [profileItem,     setProfileItem]     = useState(null);
   const [selectedDate,    setSelectedDate]    = useState("");
   const [selectedTime,    setSelectedTime]    = useState("");
-  const [homeLocation,    setHomeLocation]    = useState(null);
 
   useEffect(() => {
     const link = document.createElement("link");
@@ -1511,10 +1533,8 @@ export default function App() {
           {path === null ? (
             <>
               <HomeScreen restaurants={restaurants} workshops={workshops} onStart={p => { setPath(p); setWizardStep(1); }}
-                homeLocation={homeLocation} setHomeLocation={setHomeLocation}
                 groupSize={groupSize} setGroupSize={setGroupSize}
                 selectedDate={selectedDate} setSelectedDate={setSelectedDate}
-                selectedTime={selectedTime} setSelectedTime={setSelectedTime}
               />
               <Footer />
             </>
