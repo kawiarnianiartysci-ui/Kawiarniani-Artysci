@@ -902,9 +902,9 @@ function AboutUsSection({ includeHowItWorks = true }) {
 // interakcji. Używany tylko na HomeScreen (widok klienta).
 function HowItWorksSteps() {
   const steps = [
-    { n:"1", t:"Wybieracie warsztat i miejsce", d:"Malowanie, ebru albo inna aktywność — w kawiarni lub restauracji, która Wam pasuje." },
-    { n:"2", t:"Wysyłacie krótkie zapytanie", d:"Termin, liczba osób, kilka słów od Was. Zajmuje chwilę." },
-    { n:"3", t:"My łączymy Was z artystą", d:"Kontaktujemy się z restauracją i artystą, potwierdzamy szczegóły i dogrywamy termin." },
+    { n:"1", t:"Wybieracie warsztat i miejsce", d:"Malowanie, rękodzieło albo inna aktywność — w kawiarni lub restauracji, która Wam pasuje." },
+    { n:"2", t:"Wysyłacie krótkie zapytanie", d:"Termin, liczba osób, kilka słów od Was." },
+    { n:"3", t:"Dogrywamy szczegóły i potwierdzamy", d:"Kontaktujemy się z restauracją i artystą, ustalamy menu i finalną cenę, a potem potwierdzamy termin." },
   ];
   return (
     <div style={{ maxWidth:640, margin:"0 auto", padding:"8px 16px 48px" }}>
