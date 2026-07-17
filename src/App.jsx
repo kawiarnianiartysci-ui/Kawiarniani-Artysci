@@ -1212,7 +1212,7 @@ function Step4ContactForm({ restaurant, variant, workshop, groupSize, selectedDa
       </label>
       {errors.consent && <div style={{ ...errStyle, marginBottom:12 }}>{errors.consent}</div>}
       {error && <p style={{ color:"#C0392B", fontSize:12, marginBottom:12 }}>{error}</p>}
-      <button onClick={send} disabled={sending} style={{ width:"100%", background:C.primary, color:"#FFF", border:"none", borderRadius:9, padding:16, fontSize:15, fontWeight:600, cursor: sending ? "default" : "pointer", opacity: sending ? 0.7 : 1, minHeight:52 }}>
+      <button onClick={send} disabled={sending} style={{ width:"100%", background:C.primary, color:"#FFF", border:"none", borderRadius:999, padding:16, fontSize:15, fontWeight:600, cursor: sending ? "default" : "pointer", opacity: sending ? 0.7 : 1, minHeight:52 }}>
         {sending ? "Wysyłanie..." : "Wyślij zapytanie"}
       </button>
       <p style={{ fontSize:11, color:"#B8B4AE", textAlign:"center", marginTop:12, marginBottom:0 }}>Odpowiadamy w ciągu 24 godz.</p>
