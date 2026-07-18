@@ -117,6 +117,7 @@ function restaurantFromRow(row) {
     id: row.id, name: row.name, comingSoon: toBool(row.comingSoon) || undefined,
     logo: imgPath(row.logo), photo: cover, photos,
     vibe: row.vibe, location: row.location, description: row.description, fullDescription: row.fullDescription,
+    tagline: row.tagline || undefined,
     capacity: row.capacity, minPeople: toNum(row.minPeople), maxPeople: toNum(row.maxPeople),
     address: row.address, website: row.website, instagram: row.instagram,
     instagramUrl: row.instagramUrl || undefined, facebookUrl: row.facebookUrl || undefined,
@@ -325,6 +326,9 @@ function ProfileModal({ item, type, isSelected, onToggleSelect, selectedVariantI
           <div style={{ fontSize:11, color:C.muted, letterSpacing:"0.12em" }}>
             {isRestaurant ? `${item.vibe} · ${item.location}` : item.artist}
           </div>
+          {isRestaurant && item.tagline && (
+            <div style={{ fontSize:13, color:C.primary, fontStyle:"italic", marginTop:10 }}>{item.tagline}</div>
+          )}
         </div>
 
         {/* Content */}
