@@ -309,7 +309,7 @@ function ProfileModal({ item, type, isSelected, onToggleSelect, selectedVariantI
             <PhotoGallery photos={item.photos} />
           ) : item.photo ? (
             <div style={{ borderRadius:10, overflow:"hidden", marginBottom:20 }}>
-              <img src={item.photo} alt={item.name} style={{ width:"100%", height:180, objectFit:"cover", display:"block" }} />
+              <img src={item.photo} alt={item.name} style={{ width:"100%", height:180, objectFit:"cover", objectPosition: item.photo.includes("workshop-painting-photo") ? "center 25%" : "center", display:"block" }} />
             </div>
           ) : (
             <div style={{ marginBottom:20 }}>
@@ -498,7 +498,7 @@ function WorkshopCard({ w, isSelected, onToggle, onProfile }) {
     <div className={soon ? "" : "card-h"} style={{ background: isSelected ? C.selectedBg : soon ? "#F5F4F1" : C.card, border:`2px solid ${isSelected ? C.primary : "transparent"}`, borderRadius:14, overflow:"hidden", boxShadow: isSelected ? "0 4px 16px rgba(67,42,22,0.14)" : soon ? "none" : "0 1px 5px rgba(0,0,0,0.07)", position:"relative", opacity: soon ? 0.78 : 1, display:"flex", flexDirection:"column", width:"100%" }}>
       {w.photo ? (
         <div style={{ height:140, overflow:"hidden", position:"relative" }}>
-          <img src={w.photo} alt={w.name} style={{ width:"100%", height:"100%", objectFit:"cover", display:"block" }} />
+          <img src={w.photo} alt={w.name} style={{ width:"100%", height:"100%", objectFit:"cover", objectPosition: w.photo.includes("workshop-painting-photo") ? "center 25%" : "center", display:"block" }} />
         </div>
       ) : w.logo ? (
         <div style={{ height:140, overflow:"hidden", position:"relative", background:"#ECE4D7", display:"flex", alignItems:"center", justifyContent:"center" }}>
