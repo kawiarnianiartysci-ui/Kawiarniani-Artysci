@@ -206,9 +206,6 @@ const globalCSS = `
     .hero-title { margin:0 0 6px; }
     .hero-subtitle { font-size:14px; line-height:1.45; margin:0 auto 10px; }
   }
-  @media (max-width: 480px) {
-    .wizard-progress-label { display:none; }
-  }
   .search-divider { width:1px; align-self:stretch; margin:8px 0; }
   @media (max-width: 640px) {
     .search-bar { flex-direction: column !important; border-radius: 20px !important; }
@@ -551,12 +548,19 @@ function WorkshopCard({ w, isSelected, onToggle, onProfile }) {
         )}
 
         <div style={{ borderTop:`1px solid ${C.border}`, paddingTop:12, margin:"12px 0 14px" }}>
+          <div style={{ fontSize:10, color:C.muted, letterSpacing:"0.08em", marginBottom:8 }}>W CENIE:</div>
           {w.includes.map((item, i) => (
             <div key={i} style={{ fontSize:12, color: soon ? "#BBB" : C.muted, marginBottom:5, display:"flex", gap:7 }}>
               <span style={{ color: soon ? "#CCC" : C.primary, fontWeight:600 }}>+</span> {item}
             </div>
           ))}
         </div>
+
+        {w.requiresSeparateRoom && !soon && (
+          <div style={{ fontSize:11, color:C.muted, lineHeight:1.5, marginBottom:8 }}>
+            Ten warsztat wymaga osobnej sali — na kolejnym kroku pokażemy miejsca, które ją mają.
+          </div>
+        )}
 
         {soon ? (
           <div style={{ fontSize:13, color:"#BBB", fontStyle:"italic" }}>Cena wkrótce</div>
@@ -572,9 +576,6 @@ function WorkshopCard({ w, isSelected, onToggle, onProfile }) {
         <button onClick={e => { e.stopPropagation(); onProfile(); }} style={{ fontSize:12, color: soon ? "#BBB" : C.primary, background:"transparent", border:"none", cursor:"pointer", padding:"11px 0", minHeight:44, display:"inline-flex", alignItems:"center", fontWeight:500, textDecoration: soon ? "none" : "underline", fontFamily:"'Montserrat', system-ui, sans-serif" }}>
           {soon ? "Profil w przygotowaniu" : "Zobacz profil artysty →"}
         </button>
-        {w.requiresSeparateRoom && (
-          <div style={{ fontSize:10, color:C.muted, marginTop:8 }}>* potrzebna osobna sala</div>
-        )}
       </div>
     </div>
   );
@@ -1056,11 +1057,14 @@ function WizardProgressBar({ step, path, onStepClick }) {
 
 // ══ Krok 1 / krok 2 — wybór warsztatu lub restauracji ═══════
 
-function PickStep({ kind, items, selectedId, selectedVariantId, onToggle, onVariantSelect, onProfile, onFallback, onBackToStep1 }) {
+function PickStep({ kind, items, selectedId, selectedVariantId, onToggle, onVariantSelect, onProfile, onFallback, onBackToStep1, notice }) {
   const isRestaurant = kind === "restaurant";
   const empty = items.length === 0;
   return (
     <div style={{ maxWidth:900, margin:"0 auto", padding:"20px 16px 20px" }}>
+      {!empty && notice && (
+        <div style={{ fontSize:12, color:C.muted, marginBottom:14 }}>{notice}</div>
+      )}
       {empty ? (
         <div style={{ textAlign:"center", padding:"40px 20px", background:C.card, borderRadius:14, border:`1px solid ${C.border}` }}>
           <p style={{ fontSize:14, color:C.muted, lineHeight:1.6, maxWidth:420, margin:"0 auto 20px" }}>
@@ -1278,12 +1282,12 @@ function WizardStickyBar({ restaurant, workshop, groupSize, ppp, total, canAdvan
   return (
     <div style={{ maxWidth:900, margin:"0 auto 20px", padding:"0 16px" }}>
       <div style={{ display:"grid", gridTemplateColumns:"auto 1fr auto", alignItems:"center", gap:10, background:C.tagBg, borderRadius:999, padding:6 }}>
-        <button onClick={onBack} style={{ ...navBtn, background:C.primary, color:"#FFF", cursor:"pointer" }}>Wstecz</button>
+        <button onClick={onBack} style={{ ...navBtn, background:"transparent", border:`1.5px solid ${C.primary}`, color:C.primary, cursor:"pointer" }}>Wstecz</button>
         <div style={{ textAlign:"center", minWidth:0, overflow:"hidden" }}>
           <div style={{ fontFamily:"'Montserrat', system-ui, sans-serif", fontSize:18, color:C.text, fontWeight:600, whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis" }}>
             {total > 0 ? `${total.toLocaleString("pl-PL")} zł` : summary}
           </div>
-          {total > 0 && <div style={{ fontSize:12, color:C.muted, whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis" }}>{groupSize} os. × {ppp} zł</div>}
+          {total > 0 && <div style={{ fontSize:11, color:C.muted, whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis" }}>{groupSize} × {ppp} zł</div>}
         </div>
         <button onClick={onNext} disabled={!canAdvance} style={{ ...navBtn, background: canAdvance ? C.primary : "#DDD9D2", color: canAdvance ? "#FFF" : "#9A968D", cursor: canAdvance ? "pointer" : "default" }}>
           {nextLabel}
@@ -1609,6 +1613,7 @@ export default function App() {
                     onProfile={item => setProfileItem({ item, type: step2Kind })}
                     onFallback={() => setWizardStep(3)}
                     onBackToStep1={() => window.history.back()}
+                    notice={step2Kind === "restaurant" && workshop?.requiresSeparateRoom ? "Pokazujemy miejsca z osobną salą — tego wymaga wybrany warsztat." : null}
                   />
                 )}
                 {wizardStep === 3 && (
