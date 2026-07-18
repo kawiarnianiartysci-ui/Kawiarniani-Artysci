@@ -1185,6 +1185,10 @@ function Step4ContactForm({ restaurant, variant, workshop, groupSize, selectedDa
             </div>
           </div>
         ))}
+
+        <div style={{ fontSize:11, color:C.muted, lineHeight:1.5, padding:"0 0 12px" }}>
+          Kwota orientacyjna. Ostateczną cenę potwierdza restauracja przy ustalaniu menu.
+        </div>
       </div>
 
       {[
