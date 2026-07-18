@@ -269,6 +269,20 @@ function PhotoGallery({ photos }) {
   );
 }
 
+const InstagramIcon = ({ size = 20, color = C.primary }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <rect x="3" y="3" width="18" height="18" rx="5" stroke={color} strokeWidth="1.8" />
+    <circle cx="12" cy="12" r="4.2" stroke={color} strokeWidth="1.8" />
+    <circle cx="17.3" cy="6.7" r="1.1" fill={color} />
+  </svg>
+);
+
+const FacebookIcon = ({ size = 20, color = C.primary }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M15 8.5h-2c-.6 0-1 .5-1 1V12h3l-.4 3h-2.6v7h-3v-7H9v-3h2V9c0-2.2 1.8-4 4-4h2v3.5z" fill={color} />
+  </svg>
+);
+
 function ProfileModal({ item, type, isSelected, onToggleSelect, selectedVariantId, onVariantSelect, onClose }) {
   const isRestaurant = type === "restaurant";
 
@@ -348,13 +362,13 @@ function ProfileModal({ item, type, isSelected, onToggleSelect, selectedVariantI
                 </a>
               )}
               {item.instagramUrl && (
-                <a href={item.instagramUrl} target="_blank" rel="noreferrer" style={{ display:"flex", alignItems:"center", gap:8, padding:"10px 18px", borderRadius:10, background:C.tagBg, color:C.text, textDecoration:"none", fontSize:13, fontWeight:500 }}>
-                  Instagram
+                <a href={item.instagramUrl} target="_blank" rel="noreferrer" aria-label="Instagram" style={{ display:"flex", alignItems:"center", justifyContent:"center", width:40, height:40, borderRadius:"50%", background:C.tagBg }}>
+                  <InstagramIcon />
                 </a>
               )}
               {item.facebookUrl && (
-                <a href={item.facebookUrl} target="_blank" rel="noreferrer" style={{ display:"flex", alignItems:"center", gap:8, padding:"10px 18px", borderRadius:10, background:C.tagBg, color:C.text, textDecoration:"none", fontSize:13, fontWeight:500 }}>
-                  Facebook
+                <a href={item.facebookUrl} target="_blank" rel="noreferrer" aria-label="Facebook" style={{ display:"flex", alignItems:"center", justifyContent:"center", width:40, height:40, borderRadius:"50%", background:C.tagBg }}>
+                  <FacebookIcon />
                 </a>
               )}
             </div>
