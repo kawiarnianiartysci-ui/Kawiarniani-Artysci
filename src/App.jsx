@@ -313,11 +313,15 @@ function ProfileModal({ item, type, isSelected, onToggleSelect, selectedVariantI
         <div style={{ background:C.card, padding:"28px 28px 20px", position:"relative", textAlign:"center", borderBottom:`1px solid ${C.border}` }}>
           <button onClick={onClose} style={{ position:"absolute", top:10, right:10, background:C.tagBg, border:"none", color:C.muted, borderRadius:"50%", width:44, height:44, cursor:"pointer", fontSize:16, display:"flex", alignItems:"center", justifyContent:"center" }}>✕</button>
 
-          {item.logo && (
+          {item.logo ? (
             <div style={{ width:72, height:72, margin:"0 auto 14px" }}>
               <img src={item.logo} alt={item.name} style={{ width:"100%", height:"100%", objectFit:"contain" }} />
             </div>
-          )}
+          ) : item.photo ? (
+            <div style={{ width:72, height:72, margin:"0 auto 14px", borderRadius:14, overflow:"hidden" }}>
+              <img src={item.photo} alt={item.name} style={{ width:"100%", height:"100%", objectFit:"cover" }} />
+            </div>
+          ) : null}
           <div style={{ fontFamily:"'Montserrat', system-ui, sans-serif", fontSize:28, fontWeight:400, color:C.text, marginBottom:4 }}>{item.name}</div>
           <div style={{ fontSize:11, color:C.muted, letterSpacing:"0.12em" }}>
             {isRestaurant ? `${item.vibe} · ${item.location}` : item.artist}
