@@ -468,7 +468,7 @@ function RestaurantCard({ r, isSelected, selectedVariantId, onToggle, onVariantS
 
       {r.photo ? (
         <div style={{ height:140, overflow:"hidden", position:"relative" }}>
-          <img src={r.photo} alt={r.name} style={{ width:"100%", height:"100%", objectFit:"cover", display:"block" }} />
+          <img src={r.photo} alt={r.name} style={{ width:"100%", height:"100%", objectFit:"cover", objectPosition: r.photo.includes("magazyn-gallery-1") ? "center 12%" : r.photo.includes("zuk-gallery-0") ? "center 85%" : "center", display:"block" }} />
         </div>
       ) : r.logo ? (
         <div style={{ height:140, overflow:"hidden", position:"relative", background:"#FFFFFF", display:"flex", alignItems:"center", justifyContent:"center" }}>
