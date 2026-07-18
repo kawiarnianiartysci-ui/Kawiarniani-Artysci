@@ -220,7 +220,7 @@ const globalCSS = `
     .wizard-nav-spacer { display:block; height:76px; }
   }
   @media (min-width: 641px) {
-    .hero-video { transform: scale(1.15); transform-origin: 70% 55%; }
+    .hero-video { transform: scale(1.15); transform-origin: 70% 68%; }
   }
 `;
 
@@ -935,10 +935,10 @@ function HomeScreen({ restaurants, workshops, onStart, groupSize, setGroupSize, 
   return (
     <div>
       {/* 1. Hero — wideo + nazwa + podtytuł + CTA */}
-      <div style={{ position:"relative", width:"100%", height:"clamp(400px, 58vw, 560px)", overflow:"hidden" }}>
+      <div style={{ position:"relative", width:"100%", height:"clamp(340px, 46vw, 460px)", overflow:"hidden" }}>
         <video ref={videoRef} className="hero-video" autoPlay muted playsInline preload="auto" poster={HERO_PHOTO}
           onLoadedMetadata={seekToStart} onEnded={handleEnded}
-          style={{ position:"absolute", inset:0, width:"100%", height:"100%", objectFit:"cover", objectPosition:"center 55%" }}>
+          style={{ position:"absolute", inset:0, width:"100%", height:"100%", objectFit:"cover", objectPosition:"center 68%" }}>
           <source src="/videos/hero.mov" />
         </video>
         {/* delikatna faktura papieru/tektury */}
