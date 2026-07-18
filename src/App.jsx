@@ -279,7 +279,16 @@ const InstagramIcon = ({ size = 20, color = C.primary }) => (
 
 const FacebookIcon = ({ size = 20, color = C.primary }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <path d="M15 8.5h-2c-.6 0-1 .5-1 1V12h3l-.4 3h-2.6v7h-3v-7H9v-3h2V9c0-2.2 1.8-4 4-4h2v3.5z" fill={color} />
+    <path fillRule="evenodd" clipRule="evenodd"
+      d="M13 21V13H16L16.5 10H13V8C13 7.17 13.5 6.5 14.5 6.5H16.5V3.5C16.5 3.5 14.9 3.2 13.4 3.2C10.5 3.2 8.7 5 8.7 8V10H6V13H8.7V21H13Z"
+      fill={color} />
+  </svg>
+);
+
+const WebsiteIcon = ({ size = 20, color = C.primary }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <circle cx="12" cy="12" r="9" stroke={color} strokeWidth="1.8" />
+    <path d="M3 12h18M12 3c2.5 2.5 4 5.5 4 9s-1.5 6.5-4 9c-2.5-2.5-4-5.5-4-9s1.5-6.5 4-9z" stroke={color} strokeWidth="1.6" />
   </svg>
 );
 
@@ -357,8 +366,8 @@ function ProfileModal({ item, type, isSelected, onToggleSelect, selectedVariantI
           {(item.website && item.website !== "#" || item.instagramUrl || item.facebookUrl) && (
             <div style={{ display:"flex", gap:10, justifyContent:"center", marginBottom:22, flexWrap:"wrap" }}>
               {item.website && item.website !== "#" && (
-                <a href={item.website} target="_blank" rel="noreferrer" style={{ display:"flex", alignItems:"center", gap:8, padding:"10px 18px", borderRadius:10, background:C.tagBg, color:C.text, textDecoration:"none", fontSize:13, fontWeight:500 }}>
-                  Strona www
+                <a href={item.website} target="_blank" rel="noreferrer" aria-label="Strona www" style={{ display:"flex", alignItems:"center", justifyContent:"center", width:40, height:40, borderRadius:"50%", background:C.tagBg }}>
+                  <WebsiteIcon />
                 </a>
               )}
               {item.instagramUrl && (
