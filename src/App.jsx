@@ -111,9 +111,11 @@ const parseVariants = text => splitList(text).map(part => {
 });
 
 function restaurantFromRow(row) {
+  const photos = imgListPath(row.photos);
+  const cover = photos[0] ? (typeof photos[0] === "string" ? photos[0] : photos[0].src) : undefined;
   return {
     id: row.id, name: row.name, comingSoon: toBool(row.comingSoon) || undefined,
-    logo: imgPath(row.logo), photos: imgListPath(row.photos),
+    logo: imgPath(row.logo), photo: cover, photos,
     vibe: row.vibe, location: row.location, description: row.description, fullDescription: row.fullDescription,
     capacity: row.capacity, minPeople: toNum(row.minPeople), maxPeople: toNum(row.maxPeople),
     address: row.address, website: row.website, instagram: row.instagram,
@@ -350,8 +352,16 @@ function ProfileModal({ item, type, isSelected, onToggleSelect, selectedVariantI
 
           {/* Informacje (czas trwania / lokalizacja) */}
           <div style={{ marginBottom:16, display:"flex", alignItems:"center", gap:8, flexWrap:"wrap" }}>
-            {isRestaurant && <InfoPill text={item.address} />}
-            {isRestaurant && item.hasSeparateRoom && <InfoPill text="Osobna sala" />}
+            {isRestaurant && item.address && (
+              <a href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(item.address.replace(/;/g, ","))}`} target="_blank" rel="noreferrer"
+                style={{ fontSize:12, color:C.primary, textDecoration:"underline", marginRight:6, marginBottom:6 }}>
+                {item.address.replace(/;/g, ",")}
+              </a>
+            )}
+            {isRestaurant && item.hasSeparateRoom && (
+              <span style={{ display:"inline-flex", alignItems:"center", fontSize:12, padding:"5px 11px", background:"transparent", border:`1px solid ${C.primary}`, borderRadius:20, color:C.primary, marginRight:6, marginBottom:6 }}>Osobna sala</span>
+            )}
+            {isRestaurant && item.maxPeople && <InfoPill text={`Mieści do ${item.maxPeople} osób`} />}
             {!isRestaurant && <InfoPill text={item.duration} />}
             {!isRestaurant && item.requiresSeparateRoom && (
               <span style={{ fontSize:11, color:C.muted }}>* potrzebna osobna sala</span>
@@ -402,11 +412,12 @@ function ProfileModal({ item, type, isSelected, onToggleSelect, selectedVariantI
                       <div style={{ fontSize:13, fontWeight: sel ? 600 : 500, color:C.text }}>{v.label}</div>
                       <div style={{ fontSize:11, color:C.muted, marginTop:2 }}>{v.detail}</div>
                     </div>
-                    <div style={{ fontFamily:"'Montserrat', system-ui, sans-serif", fontSize:20, color:C.primary, fontWeight:400 }}>{v.priceMax ? `${v.price}–${v.priceMax}` : v.price} zł</div>
+                    <div style={{ fontFamily:"'Montserrat', system-ui, sans-serif", fontSize:20, color:C.primary, fontWeight:400 }}>
+                      {v.priceMax ? `${v.price}–${v.priceMax}` : v.price} zł<span style={{ fontSize:11, color:C.muted, fontWeight:400, marginLeft:2 }}>/os.</span>
+                    </div>
                   </div>
                 );
               })}
-              <div style={{ fontSize:11, color:C.muted, marginTop:6 }}>* dokładne menu ustalane z restauracją indywidualnie wg życzenia, cena pokazuje orientacyjny zakres cenowy każdego pakietu.</div>
             </>
           ) : (
             <>
@@ -423,10 +434,16 @@ function ProfileModal({ item, type, isSelected, onToggleSelect, selectedVariantI
             </>
           )}
 
+          {isRestaurant && (
+            <div style={{ fontSize:12, color:C.muted, lineHeight:1.5, marginTop:20 }}>
+              Ceny pakietów są orientacyjne — dokładne menu ustalicie bezpośrednio z restauracją.
+            </div>
+          )}
+
           {/* CTA */}
           <button
             onClick={() => { if (!isSelected) onToggleSelect(); onClose(); }}
-            style={{ marginTop:24, width:"100%", background:C.primary, color:"#FFF", border:"none", borderRadius:999, padding:16, fontSize:14, fontWeight:600, cursor:"pointer" }}>
+            style={{ marginTop: isRestaurant ? 12 : 24, width:"100%", background:C.primary, color:"#FFF", border:"none", borderRadius:999, padding:16, fontSize:14, fontWeight:600, cursor:"pointer" }}>
             {isSelected
               ? "Dodaj ten pakiet"
               : isRestaurant ? "Wybierz tę restaurację" : "Dodaj ten warsztat"}
@@ -1278,7 +1295,7 @@ function WizardStickyBar({ restaurant, workshop, groupSize, ppp, total, canAdvan
   const summary = restaurant || workshop
     ? [restaurant?.name, workshop?.name].filter(Boolean).join(" + ")
     : "";
-  const navBtn = { border:"none", borderRadius:999, fontWeight:600, minHeight:44, width:104, padding:"8px 10px", fontSize:13, lineHeight:1.25, textAlign:"center" };
+  const navBtn = { WebkitAppearance:"none", appearance:"none", border:"none", borderRadius:999, fontWeight:600, minHeight:44, width:104, padding:"8px 10px", fontSize:13, lineHeight:1.25, textAlign:"center" };
   return (
     <div style={{ maxWidth:900, margin:"0 auto 20px", padding:"0 16px" }}>
       <div style={{ display:"grid", gridTemplateColumns:"auto 1fr auto", alignItems:"center", gap:10, background:C.tagBg, borderRadius:999, padding:6 }}>
