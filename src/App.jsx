@@ -1480,7 +1480,7 @@ export default function App() {
   const resetToHome = () => {
     setPath(null); setWizardStep(1); setSubmitted(false);
     setSelectedR(null); setSelectedVariant(null); setSelectedW(null);
-    setGroupSize(null); setSelectedDate(""); setSelectedTime(""); setHomeLocation(null);
+    setGroupSize(null); setSelectedDate(""); setSelectedTime("");
   };
 
   const workshop   = workshops.find(w => w.id === selectedW);
