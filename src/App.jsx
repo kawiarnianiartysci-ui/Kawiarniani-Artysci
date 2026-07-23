@@ -377,8 +377,10 @@ function ProfileModal({ item, type, isSelected, onToggleSelect, selectedVariantI
             {isRestaurant ? item.fullDescription : item.bio}
           </p>
 
-          {/* Social media — na środku profilu */}
-          {(item.website && item.website !== "#" || item.instagramUrl || item.facebookUrl) && (
+          {/* Social media — na środku profilu. Tylko dla restauracji: przy
+              warsztatach jedyną ścieżką kontaktu ma być kreator zapytania,
+              nie bezpośrednie dane artysty. */}
+          {isRestaurant && (item.website && item.website !== "#" || item.instagramUrl || item.facebookUrl) && (
             <div style={{ display:"flex", gap:10, justifyContent:"center", marginBottom:22, flexWrap:"wrap" }}>
               {item.website && item.website !== "#" && (
                 <a href={item.website} target="_blank" rel="noreferrer" aria-label="Strona www" style={{ display:"flex", alignItems:"center", justifyContent:"center", width:40, height:40, borderRadius:"50%", background:C.tagBg }}>
