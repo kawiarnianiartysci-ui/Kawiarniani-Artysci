@@ -855,6 +855,13 @@ for (let h = 7; h <= 21; h++) {
   TIME_OPTIONS.push(`${String(h).padStart(2, "0")}:00`);
   if (h < 21) TIME_OPTIONS.push(`${String(h).padStart(2, "0")}:30`);
 }
+// Węższy zakres godzin tylko dla panelu wyszukiwania na stronie głównej —
+// edycja terminu w podsumowaniu (krok 3) zostaje przy pełnym TIME_OPTIONS.
+const HOME_TIME_OPTIONS = [];
+for (let h = 10; h <= 18; h++) {
+  HOME_TIME_OPTIONS.push(`${String(h).padStart(2, "0")}:00`);
+  if (h < 18) HOME_TIME_OPTIONS.push(`${String(h).padStart(2, "0")}:30`);
+}
 
 // ══ Ekran powitalny ══════════════════════════════════════════
 
@@ -924,7 +931,7 @@ function HomeFilterBar({ groupSize, setGroupSize, selectedDate, setSelectedDate,
           <select value={selectedTime} onChange={e => setSelectedTime(e.target.value)} onFocus={() => setOpenField(null)}
             style={{ ...segValue(!!selectedTime), border:"none", background:"transparent", padding:0, width:"100%", cursor:"pointer", fontFamily:"'Montserrat', system-ui, sans-serif", appearance:"none", WebkitAppearance:"none" }}>
             <option value=""></option>
-            {TIME_OPTIONS.map(t => <option key={t} value={t}>{t}</option>)}
+            {HOME_TIME_OPTIONS.map(t => <option key={t} value={t}>{t}</option>)}
           </select>
         </div>
       </div>
