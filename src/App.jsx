@@ -109,6 +109,16 @@ const parseVariants = text => splitList(text).map(part => {
   if (priceMax) v.priceMax = Number(priceMax);
   return v;
 });
+// Wyciąga liczbę godzin z tekstu typu "2 godz.", "1,5 godz." albo "2-3 godz"
+// (zakres — bierzemy górną granicę, żeby nie umówić warsztatu, który realnie
+// nie zdąży się skończyć przed zamknięciem lokalu). Używane tylko do
+// wyliczenia godziny zamknięcia, nie do wyświetlania (na to zostaje `duration`).
+const parseDurationHours = text => {
+  const nums = (text || "").replace(/,/g, ".").match(/\d+(\.\d+)?/g);
+  return nums ? Math.max(...nums.map(Number)) : 0;
+};
+// "HH:MM" -> minuty od północy, do porównań czasu.
+const timeToMinutes = t => { const [h, m] = t.split(":").map(Number); return h * 60 + (m || 0); };
 
 function restaurantFromRow(row) {
   const photos = imgListPath(row.photos);
@@ -126,6 +136,7 @@ function restaurantFromRow(row) {
     variants: parseVariants(row.variants),
     email: row.email || undefined,
     requiresInvoice: toBool(row.requiresInvoice) || undefined,
+    closingTime: row.closingTime || undefined,
   };
 }
 
@@ -829,9 +840,11 @@ const HERO_VIDEO_START = 5;
 // Panel filtrów na stronie głównej — jeden wspólny zaokrąglony pasek
 // podzielony cienką linią. Pole z wybraną wartością dostaje tylko
 // delikatne brązowe obramowanie (bez wypełnienia); puste pola są całkiem
-// puste, bez tekstu zastępczego typu "Dowolne". Tylko Liczba osób i Data —
-// Miejsce i Godzina celowo pominięte na starcie (patrz brief reorganizacji).
-function HomeFilterBar({ groupSize, setGroupSize, selectedDate, setSelectedDate }) {
+// puste, bez tekstu zastępczego typu "Dowolne". Liczba osób, Data i Godzina —
+// Godzina wybierana tu (nie dopiero w podsumowaniu), żeby filtr godzin
+// zamknięcia restauracji mógł zawężać listę miejsc w kroku 2. Miejsce
+// zostaje pominięte (patrz brief reorganizacji).
+function HomeFilterBar({ groupSize, setGroupSize, selectedDate, setSelectedDate, selectedTime, setSelectedTime }) {
   const [openField, setOpenField] = useState(null);
   const barRef = useRef(null);
   const toggle = f => setOpenField(openField === f ? null : f);
@@ -854,7 +867,7 @@ function HomeFilterBar({ groupSize, setGroupSize, selectedDate, setSelectedDate 
   const segValue = active => ({ fontSize:13, color: active ? C.primary : C.text, fontWeight: active ? 600 : 400, whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis", minHeight:16 });
 
   return (
-    <div ref={barRef} style={{ maxWidth:420, margin:"0 auto 28px", position:"relative" }}>
+    <div ref={barRef} style={{ maxWidth:560, margin:"0 auto 28px", position:"relative" }}>
       <div className="search-bar" style={{ display:"flex", alignItems:"stretch", background:"#FFF", border:`1px solid ${C.border}`, borderRadius:999, boxShadow:"0 4px 18px rgba(0,0,0,0.07)", padding:5 }}>
 
         <div onClick={openPeople} style={segStyle(!!groupSize)}>
@@ -877,6 +890,17 @@ function HomeFilterBar({ groupSize, setGroupSize, selectedDate, setSelectedDate 
           <div style={segLabel(!!selectedDate)}>DATA</div>
           <input type="date" value={selectedDate} min={MIN_BOOKING_DATE} onChange={e => setSelectedDate(e.target.value)} onFocus={() => setOpenField(null)}
             style={{ ...segValue(!!selectedDate), border:"none", background:"transparent", padding:0, width:"100%", cursor:"pointer", fontFamily:"'Montserrat', system-ui, sans-serif" }} />
+        </div>
+
+        <div className="search-divider" style={{ background:C.border }} />
+
+        <div onClick={() => setOpenField(null)} style={segStyle(!!selectedTime)}>
+          <div style={segLabel(!!selectedTime)}>GODZINA</div>
+          <select value={selectedTime} onChange={e => setSelectedTime(e.target.value)} onFocus={() => setOpenField(null)}
+            style={{ ...segValue(!!selectedTime), border:"none", background:"transparent", padding:0, width:"100%", cursor:"pointer", fontFamily:"'Montserrat', system-ui, sans-serif", appearance:"none", WebkitAppearance:"none" }}>
+            <option value=""></option>
+            {TIME_OPTIONS.map(t => <option key={t} value={t}>{t}</option>)}
+          </select>
         </div>
       </div>
     </div>
@@ -972,7 +996,7 @@ function pluralPL(n, [one, few, many]) {
   return many;
 }
 
-function HomeScreen({ restaurants, workshops, onStart, groupSize, setGroupSize, selectedDate, setSelectedDate }) {
+function HomeScreen({ restaurants, workshops, onStart, groupSize, setGroupSize, selectedDate, setSelectedDate, selectedTime, setSelectedTime }) {
   const videoRef = useRef(null);
   const pathTilesRef = useRef(null);
   const activeRestaurants = restaurants.filter(r => !r.comingSoon);
@@ -1011,10 +1035,11 @@ function HomeScreen({ restaurants, workshops, onStart, groupSize, setGroupSize, 
           </button>
         </div>
 
-        {/* 2. Panel: liczba osób + data */}
+        {/* 2. Panel: liczba osób + data + godzina */}
         <HomeFilterBar
           groupSize={groupSize} setGroupSize={setGroupSize}
           selectedDate={selectedDate} setSelectedDate={setSelectedDate}
+          selectedTime={selectedTime} setSelectedTime={setSelectedTime}
         />
 
         {/* 3. Dwa kafelki startowe */}
@@ -1085,8 +1110,10 @@ function PickStep({ kind, items, selectedId, selectedVariantId, onToggle, onVari
   const empty = items.length === 0;
   return (
     <div style={{ maxWidth:900, margin:"0 auto", padding:"20px 16px 20px" }}>
-      {!empty && notice && (
-        <div style={{ fontSize:12, color:C.muted, marginBottom:14 }}>{notice}</div>
+      {!empty && notice && (Array.isArray(notice) ? notice.length > 0 : true) && (
+        <div style={{ fontSize:12, color:C.muted, marginBottom:14, lineHeight:1.6 }}>
+          {Array.isArray(notice) ? notice.map((n, i) => <div key={i}>{n}</div>) : notice}
+        </div>
       )}
       {empty ? (
         <div style={{ textAlign:"center", padding:"40px 20px", background:C.card, borderRadius:14, border:`1px solid ${C.border}` }}>
@@ -1495,6 +1522,14 @@ export default function App() {
     if (!w || !r) return true;
     if (w.requiresSeparateRoom && !r.hasSeparateRoom) return false;
     if (r.requiresInvoice && w.canInvoice === false) return false;
+    // Warsztat musi się zdążyć skończyć przed zamknięciem lokalu — liczymy
+    // wybraną godzinę startu + czas trwania warsztatu (górna granica, gdy
+    // podany jest zakres np. "2-3 godz"). Bez wybranej godziny albo bez
+    // podanej godziny zamknięcia lokalu — nie filtrujemy.
+    if (selectedTime && r.closingTime) {
+      const endMinutes = timeToMinutes(selectedTime) + parseDurationHours(w.duration) * 60;
+      if (endMinutes > timeToMinutes(r.closingTime)) return false;
+    }
     return Math.max(w.minPeople, r.minPeople) <= Math.min(w.maxPeople, r.maxPeople);
   };
   // Krok 1 (nic jeszcze nie wybrane po drugiej stronie) pokazuje wszystko;
@@ -1577,6 +1612,7 @@ export default function App() {
               <HomeScreen restaurants={restaurants} workshops={workshops} onStart={p => { setPath(p); setWizardStep(1); }}
                 groupSize={groupSize} setGroupSize={setGroupSize}
                 selectedDate={selectedDate} setSelectedDate={setSelectedDate}
+                selectedTime={selectedTime} setSelectedTime={setSelectedTime}
               />
               <Footer />
             </>
@@ -1636,7 +1672,10 @@ export default function App() {
                     onProfile={item => setProfileItem({ item, type: step2Kind })}
                     onFallback={() => setWizardStep(3)}
                     onBackToStep1={() => window.history.back()}
-                    notice={step2Kind === "restaurant" && workshop?.requiresSeparateRoom ? "Pokazujemy miejsca z osobną salą — tego wymaga wybrany warsztat." : null}
+                    notice={step2Kind === "restaurant" ? [
+                      workshop?.requiresSeparateRoom && "Pokazujemy miejsca z osobną salą — tego wymaga wybrany warsztat.",
+                      selectedTime && "Pokazujemy miejsca, w których warsztat zdąży się skończyć przed zamknięciem.",
+                    ].filter(Boolean) : null}
                   />
                 )}
                 {wizardStep === 3 && (
