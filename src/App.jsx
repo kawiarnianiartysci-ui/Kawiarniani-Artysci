@@ -1601,14 +1601,8 @@ export default function App() {
 
   const step1Kind = path === "workshop" ? "workshop" : "restaurant";
   const step2Kind = path === "workshop" ? "restaurant" : "workshop";
-  // Gdy oba boki są już wybrane (np. przełącznik ścieżki na kroku 1 pozwala
-  // wybrać drugą stronę bez przechodzenia przez filtrowaną listę kroku 2),
-  // "Dalej" ma zostać zablokowane, jeśli ta konkretna para jednak nie pasuje
-  // do siebie (osobna sala / faktura / godziny otwarcia / liczba osób) —
-  // inaczej dałoby się ominąć te wszystkie filtry.
-  const pairCompatible = isCompatible(workshop, restaurant);
-  const step1Selected = (path === "workshop" ? !!selectedW : !!selectedR) && pairCompatible;
-  const step2Selected = (path === "workshop" ? !!selectedR : !!selectedW) && pairCompatible;
+  const step1Selected = path === "workshop" ? !!selectedW : !!selectedR;
+  const step2Selected = path === "workshop" ? !!selectedR : !!selectedW;
 
   return (
     <div style={{ fontFamily:"'Montserrat', system-ui, sans-serif", background:C.bg, minHeight:"100vh", color:C.text }}>
@@ -1686,21 +1680,16 @@ export default function App() {
                     <div style={{ maxWidth:900, margin:"0 auto", padding:"0 16px" }}>
                       <PathTiles activeKey={path} onSelect={switchPath} />
                     </div>
-                    {selectedW && selectedR && !pairCompatible && (
-                      <div style={{ maxWidth:900, margin:"0 auto 16px", padding:"0 16px" }}>
-                        <div style={{ background:C.card, border:`1px solid ${C.primary}`, borderRadius:12, padding:"14px 18px", fontSize:13, color:C.text, textAlign:"center" }}>
-                          Ten warsztat i to miejsce nie pasują do siebie (np. wymagania co do sali, faktury, godzin otwarcia lub liczby osób) — zmień jeden z wyborów, żeby przejść dalej.
-                        </div>
-                      </div>
-                    )}
                     <PickStep
                     kind={step1Kind}
-                    items={step1Kind === "workshop" ? workshops : restaurants}
+                    items={step1Kind === "workshop" ? compatibleWorkshops : compatibleRestaurants}
                     selectedId={step1Kind === "workshop" ? selectedW : selectedR}
                     selectedVariantId={selectedVariant}
                     onToggle={id => step1Kind === "workshop" ? setSelectedW(selectedW === id ? null : id) : handleToggleR(id)}
                     onVariantSelect={vid => setSelectedVariant(vid)}
                     onProfile={item => setProfileItem({ item, type: step1Kind })}
+                    onFallback={() => setWizardStep(3)}
+                    onBackToStep1={() => { if (step1Kind === "workshop") { setSelectedR(null); setSelectedVariant(null); } else setSelectedW(null); }}
                     />
                   </>
                 )}
