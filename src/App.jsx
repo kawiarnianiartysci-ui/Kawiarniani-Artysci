@@ -120,6 +120,32 @@ const parseDurationHours = text => {
 // "HH:MM" -> minuty od północy, do porównań czasu.
 const timeToMinutes = t => { const [h, m] = t.split(":").map(Number); return h * 60 + (m || 0); };
 
+// Godziny otwarcia lokalu, różne dla każdego dnia tygodnia — jedna kolumna
+// w arkuszu ("hours"), format: "pon=15:00-21:00;wt=15:00-21:00;sr=;czw=...".
+// Pusty zakres po "=" (albo brak dnia w tekście) = lokal zamknięty w ten dzień.
+// Brak kolumny w ogóle (pusty tekst) = brak danych, filtr godzin nieaktywny.
+const DAY_KEYS = ["nd", "pon", "wt", "sr", "czw", "pt", "sob"]; // index = Date.getDay()
+const parseHours = text => {
+  const byDay = {};
+  splitList(text).forEach(part => {
+    const [day, range] = part.split("=");
+    if (!day) return;
+    if (range) {
+      const [open, close] = range.split("-");
+      if (open && close) byDay[day.trim()] = { open: open.trim(), close: close.trim() };
+    } else {
+      byDay[day.trim()] = null; // jawnie zamknięte
+    }
+  });
+  return byDay;
+};
+// "YYYY-MM-DD" -> klucz dnia tygodnia ("pon".."nd"), bez przesunięć strefy
+// czasowej (stąd ręczne rozbicie zamiast new Date(string)).
+const dayKeyFromDate = dateStr => {
+  const [y, m, d] = dateStr.split("-").map(Number);
+  return DAY_KEYS[new Date(y, m - 1, d).getDay()];
+};
+
 function restaurantFromRow(row) {
   const photos = imgListPath(row.photos);
   const cover = photos[0] ? (typeof photos[0] === "string" ? photos[0] : photos[0].src) : undefined;
@@ -131,12 +157,11 @@ function restaurantFromRow(row) {
     capacity: row.capacity, minPeople: toNum(row.minPeople), maxPeople: toNum(row.maxPeople),
     address: row.address, website: row.website, instagram: row.instagram,
     instagramUrl: row.instagramUrl || undefined, facebookUrl: row.facebookUrl || undefined,
-    gradientBg: row.gradientBg, gradientText: row.gradientText,
     hasSeparateRoom: toBool(row.hasSeparateRoom) || undefined,
     variants: parseVariants(row.variants),
     email: row.email || undefined,
     requiresInvoice: toBool(row.requiresInvoice) || undefined,
-    closingTime: row.closingTime || undefined,
+    hours: parseHours(row.hours),
   };
 }
 
@@ -1522,13 +1547,18 @@ export default function App() {
     if (!w || !r) return true;
     if (w.requiresSeparateRoom && !r.hasSeparateRoom) return false;
     if (r.requiresInvoice && w.canInvoice === false) return false;
-    // Warsztat musi się zdążyć skończyć przed zamknięciem lokalu — liczymy
-    // wybraną godzinę startu + czas trwania warsztatu (górna granica, gdy
-    // podany jest zakres np. "2-3 godz"). Bez wybranej godziny albo bez
-    // podanej godziny zamknięcia lokalu — nie filtrujemy.
-    if (selectedTime && r.closingTime) {
-      const endMinutes = timeToMinutes(selectedTime) + parseDurationHours(w.duration) * 60;
-      if (endMinutes > timeToMinutes(r.closingTime)) return false;
+    // Warsztat musi zmieścić się w godzinach otwarcia lokalu W TEN KONKRETNY
+    // dzień tygodnia (różne dni = różne godziny, część dni bywa zamknięta
+    // całkowicie). Czas trwania liczony jako górna granica, gdy podany jest
+    // zakres np. "2-3 godz". Filtrujemy tylko gdy mamy komplet danych: datę,
+    // godzinę startu i wypełnione godziny otwarcia dla tego lokalu w ogóle
+    // (lokal bez żadnych godzin w arkuszu = jeszcze nie ograniczamy).
+    if (selectedDate && selectedTime && r.hours && Object.keys(r.hours).length > 0) {
+      const today = r.hours[dayKeyFromDate(selectedDate)];
+      if (today === undefined || today === null) return false; // brak wpisu dla tego dnia lub jawnie zamknięte
+      const start = timeToMinutes(selectedTime);
+      const end = start + parseDurationHours(w.duration) * 60;
+      if (start < timeToMinutes(today.open) || end > timeToMinutes(today.close)) return false;
     }
     return Math.max(w.minPeople, r.minPeople) <= Math.min(w.maxPeople, r.maxPeople);
   };
@@ -1674,7 +1704,7 @@ export default function App() {
                     onBackToStep1={() => window.history.back()}
                     notice={step2Kind === "restaurant" ? [
                       workshop?.requiresSeparateRoom && "Pokazujemy miejsca z osobną salą — tego wymaga wybrany warsztat.",
-                      selectedTime && "Pokazujemy miejsca, w których warsztat zdąży się skończyć przed zamknięciem.",
+                      selectedTime && selectedDate && "Pokazujemy miejsca otwarte o tej porze w wybranym dniu, w których warsztat zdąży się skończyć przed zamknięciem.",
                     ].filter(Boolean) : null}
                   />
                 )}
