@@ -47,8 +47,10 @@ export default async function handler(req, res) {
           <ul>
             <li>Termin: ${date || "do ustalenia"}</li>
             <li>Liczba osób: ${groupSize || "-"}</li>
+            <li>Kontakt do klienta: ${clientName}${clientEmail ? ` — ${clientEmail}` : ""}${clientPhone ? `, ${clientPhone}` : ""}</li>
             ${message ? `<li>Wiadomość od klienta: ${message}</li>` : ""}
           </ul>
+          <p>Jeśli zaproponowany termin Ci nie pasuje, możesz napisać bezpośrednio do klienta i zaproponować inny — dane kontaktowe wyżej.</p>
           <p>Daj nam znać, czy ten termin Ci pasuje:</p>
           <p>
             <a href="${acceptUrl}" style="background:#432A16;color:#fff;padding:12px 20px;border-radius:8px;text-decoration:none;margin-right:10px;display:inline-block;">Mogę — akceptuję</a>
