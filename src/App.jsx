@@ -1457,7 +1457,7 @@ export default function App() {
   // Google Formsie), np. https://www.kawiarnianiartysci.pl/?regulamin=partnerzy
   // — otwiera od razu widok Współpraca z rozwiniętym regulaminem.
   const openPartnerTermsOnLoad = new URLSearchParams(window.location.search).get("regulamin") === "partnerzy";
-  const [mode,            setMode]            = useState(openPartnerTermsOnLoad ? "b2b" : "client"); // "client" | "b2b"
+  const [mode,            setMode]            = useState(openPartnerTermsOnLoad ? "b2b" : "client"); // "client" | "b2b" | "kids"
   const [path,            setPath]            = useState(null);     // null | "workshop" | "restaurant" — null = ekran powitalny
   const [wizardStep,      setWizardStep]      = useState(1);         // 1..3
   const [submitted,       setSubmitted]       = useState(false);
@@ -1465,6 +1465,8 @@ export default function App() {
   const [selectedVariant, setSelectedVariant] = useState(null);
   const [selectedW,       setSelectedW]       = useState(null);
   const [groupSize,       setGroupSize]       = useState(null);
+  const [kidsCount,       setKidsCount]       = useState(null);      // tryb "kids" — liczba dzieci, liczy się do ceny
+  const [adultsCount,     setAdultsCount]     = useState(null);      // tryb "kids" — wyłącznie informacyjne
   const [profileItem,     setProfileItem]     = useState(null);
   const [selectedDate,    setSelectedDate]    = useState("");
   const [selectedTime,    setSelectedTime]    = useState("");
@@ -1506,7 +1508,7 @@ export default function App() {
 
   useEffect(() => {
     if (isPoppingRef.current) { isPoppingRef.current = false; return; }
-    const atRoot = mode === "client" && path === null && wizardStep === 1 && !submitted && !profileItem;
+    const atRoot = (mode === "client" || mode === "kids") && path === null && wizardStep === 1 && !submitted && !profileItem;
     if (atRoot) return;
     const profileState = profileItem ? { itemId: profileItem.item.id, type: profileItem.type } : null;
     window.history.pushState({ mode, path, wizardStep, submitted, profileItem: profileState }, "");
@@ -1541,6 +1543,7 @@ export default function App() {
     setPath(null); setWizardStep(1); setSubmitted(false);
     setSelectedR(null); setSelectedVariant(null); setSelectedW(null);
     setGroupSize(null); setSelectedDate(""); setSelectedTime("");
+    setKidsCount(null); setAdultsCount(null);
   };
 
   const workshop   = workshops.find(w => w.id === selectedW);
@@ -1626,12 +1629,16 @@ export default function App() {
         </div>
 
         {/* Przełącznik trybu */}
-        <div style={{ display:"flex", alignItems:"center", background:C.tagBg, borderRadius:999, padding:4 }}>
-          <button onClick={() => setMode("client")} style={{ padding:"9px 26px", borderRadius:999, border:"none", background: mode==="client" ? C.primary : "transparent", color: mode==="client" ? "#FFF" : C.muted, fontSize:14, fontWeight: mode==="client" ? 600 : 500, cursor:"pointer", transition:"all 0.15s", whiteSpace:"nowrap" }}>
+        <div style={{ display:"flex", alignItems:"center", background:C.tagBg, borderRadius:999, padding:4, flexWrap:"wrap" }}>
+          <button onClick={() => { if (mode !== "client") resetToHome(); setMode("client"); }} style={{ padding:"9px 22px", borderRadius:999, border:"none", background: mode==="client" ? C.primary : "transparent", color: mode==="client" ? "#FFF" : C.muted, fontSize:14, fontWeight: mode==="client" ? 600 : 500, cursor:"pointer", transition:"all 0.15s", whiteSpace:"nowrap" }}>
             Planuję event
           </button>
           <div style={{ width:1, alignSelf:"stretch", background:C.border, margin:"10px 2px" }} />
-          <button onClick={() => setMode("b2b")} style={{ padding:"9px 26px", borderRadius:999, border:"none", background: mode==="b2b" ? C.primary : "transparent", color: mode==="b2b" ? "#FFF" : C.muted, fontSize:14, fontWeight: mode==="b2b" ? 600 : 500, cursor:"pointer", transition:"all 0.15s", whiteSpace:"nowrap" }}>
+          <button onClick={() => { if (mode !== "kids") resetToHome(); setMode("kids"); }} style={{ padding:"9px 22px", borderRadius:999, border:"none", background: mode==="kids" ? C.primary : "transparent", color: mode==="kids" ? "#FFF" : C.muted, fontSize:14, fontWeight: mode==="kids" ? 600 : 500, cursor:"pointer", transition:"all 0.15s", whiteSpace:"nowrap" }}>
+            Eventy dla dzieci
+          </button>
+          <div style={{ width:1, alignSelf:"stretch", background:C.border, margin:"10px 2px" }} />
+          <button onClick={() => setMode("b2b")} style={{ padding:"9px 22px", borderRadius:999, border:"none", background: mode==="b2b" ? C.primary : "transparent", color: mode==="b2b" ? "#FFF" : C.muted, fontSize:14, fontWeight: mode==="b2b" ? 600 : 500, cursor:"pointer", transition:"all 0.15s", whiteSpace:"nowrap" }}>
             Współpraca
           </button>
         </div>
@@ -1639,6 +1646,9 @@ export default function App() {
 
       {/* Widok Współpraca */}
       {mode === "b2b" && <PartnersView openTermsOnMount={openPartnerTermsOnLoad} />}
+
+      {/* Widok Eventy dla dzieci — placeholder, pełny ekran w kolejnym zadaniu */}
+      {mode === "kids" && <div style={{ padding:60, textAlign:"center", color:C.muted }}>Eventy dla dzieci — wkrótce</div>}
 
       {/* Widok klienta */}
       {mode === "client" && (
