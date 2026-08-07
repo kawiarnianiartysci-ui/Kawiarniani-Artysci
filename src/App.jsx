@@ -1514,7 +1514,7 @@ function Step4ContactForm({ restaurant, variant, workshop, groupSize, selectedDa
 
         <div style={{ fontSize:11, color:C.muted, lineHeight:1.5, padding:"0 0 12px" }}>
           {kidsMode && total <= 0
-            ? "Cena warsztatu jest orientacyjna. Cenę restauracji ustalicie razem z nią przy rezerwacji."
+            ? "Cena warsztatu jest stała. Cenę menu restauracji ustalicie razem z nią przy rezerwacji."
             : "Kwota orientacyjna. Ostateczną cenę potwierdza restauracja przy ustalaniu menu."}
           {kidsMode && <><br />* Tort ustalacie indywidualnie z restauracją.</>}
         </div>
