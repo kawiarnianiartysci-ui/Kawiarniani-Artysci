@@ -332,7 +332,7 @@ const WebsiteIcon = ({ size = 20, color = C.primary }) => (
   </svg>
 );
 
-function ProfileModal({ item, type, isSelected, onToggleSelect, selectedVariantId, onVariantSelect, onClose }) {
+function ProfileModal({ item, type, isSelected, onToggleSelect, selectedVariantId, onVariantSelect, onClose, kidsMode = false }) {
   const isRestaurant = type === "restaurant";
 
   const InfoPill = ({ text, href }) => (
@@ -405,8 +405,12 @@ function ProfileModal({ item, type, isSelected, onToggleSelect, selectedVariantI
             {isRestaurant && item.hasSeparateRoom && (
               <span style={{ display:"inline-flex", alignItems:"center", fontSize:12, padding:"5px 11px", background:"transparent", border:`1px solid ${C.primary}`, borderRadius:20, color:C.primary, marginRight:6, marginBottom:6 }}>Osobna sala</span>
             )}
-            {isRestaurant && item.maxPeople && <InfoPill text={`Mieści do ${item.maxPeople} osób`} />}
+            {isRestaurant && kidsMode && (
+              <span style={{ display:"inline-flex", alignItems:"center", fontSize:12, padding:"5px 11px", background:"transparent", border:`1px solid ${C.primary}`, borderRadius:20, color:C.primary, marginRight:6, marginBottom:6 }}>Przyjazna dzieciom</span>
+            )}
+            {isRestaurant && item.maxPeople && <InfoPill text={kidsMode ? `Mieści do ${item.maxPeople} osób (dzieci + dorośli)` : `Mieści do ${item.maxPeople} osób`} />}
             {!isRestaurant && <InfoPill text={item.duration} />}
+            {!isRestaurant && kidsMode && item.kidsMinAge && <InfoPill text={`od ${item.kidsMinAge} lat`} />}
             {!isRestaurant && item.requiresSeparateRoom && (
               <span style={{ fontSize:11, color:C.muted }}>* potrzebna osobna sala</span>
             )}
@@ -459,7 +463,11 @@ function ProfileModal({ item, type, isSelected, onToggleSelect, selectedVariantI
                       <div style={{ fontSize:11, color:C.muted, marginTop:2 }}>{v.detail}</div>
                     </div>
                     <div style={{ fontFamily:"'Montserrat', system-ui, sans-serif", fontSize:20, color:C.primary, fontWeight:400 }}>
-                      {v.priceMax ? `${v.price}–${v.priceMax}` : v.price} zł<span style={{ fontSize:11, color:C.muted, fontWeight:400, marginLeft:2 }}>/os.</span>
+                      {v.price == null ? (
+                        "cena do ustalenia"
+                      ) : (
+                        <>{v.priceMax ? `${v.price}–${v.priceMax}` : v.price} zł<span style={{ fontSize:11, color:C.muted, fontWeight:400, marginLeft:2 }}>{kidsMode ? "/dziecko" : "/os."}</span></>
+                      )}
                     </div>
                   </div>
                 );
@@ -483,6 +491,7 @@ function ProfileModal({ item, type, isSelected, onToggleSelect, selectedVariantI
           {isRestaurant && (
             <div style={{ fontSize:12, color:C.muted, lineHeight:1.5, marginTop:20 }}>
               Ceny pakietów są orientacyjne — dokładne menu ustalicie bezpośrednio z restauracją.
+              {kidsMode && <><br />* Tort ustalacie indywidualnie z restauracją.</>}
             </div>
           )}
 
@@ -502,9 +511,11 @@ function ProfileModal({ item, type, isSelected, onToggleSelect, selectedVariantI
 
 // ══ Karta restauracji ════════════════════════════════════════
 
-function RestaurantCard({ r, isSelected, selectedVariantId, onToggle, onVariantSelect, onProfile }) {
+function RestaurantCard({ r, isSelected, selectedVariantId, onToggle, onVariantSelect, onProfile, kidsMode = false }) {
   const soon = r.comingSoon;
-  const minPrice = Math.min(...r.variants.map(v => v.price));
+  const pricedVariants = r.variants.filter(v => v.price != null);
+  const minPrice = pricedVariants.length ? Math.min(...pricedVariants.map(v => v.price)) : null;
+  const unitLabel = kidsMode ? "/dziecko" : "/os.";
   return (
     <div className={soon ? "" : "card-h"} style={{ background: isSelected ? C.selectedBg : soon ? "#F5F4F1" : C.card, border:`2px solid ${isSelected ? C.primary : "transparent"}`, borderRadius:14, overflow:"hidden", boxShadow: isSelected ? "0 4px 16px rgba(67,42,22,0.14)" : soon ? "none" : "0 1px 5px rgba(0,0,0,0.07)", position:"relative", opacity: soon ? 0.78 : 1, display:"flex", flexDirection:"column", width:"100%" }}>
 
@@ -550,7 +561,9 @@ function RestaurantCard({ r, isSelected, selectedVariantId, onToggle, onVariantS
                     <div style={{ fontSize:13, color:C.text, fontWeight: sel ? 600 : 400 }}>{v.label}</div>
                     {v.detail && <div style={{ fontSize:11, color:C.muted, marginTop:1 }}>{v.detail}</div>}
                   </div>
-                  <div style={{ fontFamily:"'Montserrat', system-ui, sans-serif", fontSize:17, color:C.primary }}>{v.priceMax ? `${v.price}–${v.priceMax}` : v.price} zł</div>
+                  <div style={{ fontFamily:"'Montserrat', system-ui, sans-serif", fontSize:17, color:C.primary }}>
+                    {v.price == null ? "cena do ustalenia" : `${v.priceMax ? `${v.price}–${v.priceMax}` : v.price} zł`}
+                  </div>
                 </div>
               );
             })}
@@ -561,8 +574,14 @@ function RestaurantCard({ r, isSelected, selectedVariantId, onToggle, onVariantS
           <div style={{ marginTop:12, fontSize:13, color:"#BBB", fontStyle:"italic" }}>Cena wkrótce</div>
         ) : !isSelected && (
           <div style={{ marginTop:12 }}>
-            <span style={{ fontFamily:"'Montserrat', system-ui, sans-serif", fontSize:22, color:C.primary }}>od {minPrice} zł</span>
-            <span style={{ fontSize:11, color:C.muted, marginLeft:4 }}>/os.</span>
+            {minPrice == null ? (
+              <span style={{ fontFamily:"'Montserrat', system-ui, sans-serif", fontSize:16, color:C.primary }}>cena do ustalenia</span>
+            ) : (
+              <>
+                <span style={{ fontFamily:"'Montserrat', system-ui, sans-serif", fontSize:22, color:C.primary }}>od {minPrice} zł</span>
+                <span style={{ fontSize:11, color:C.muted, marginLeft:4 }}>{unitLabel}</span>
+              </>
+            )}
           </div>
         )}
       </div>
@@ -579,7 +598,7 @@ function RestaurantCard({ r, isSelected, selectedVariantId, onToggle, onVariantS
 
 // ══ Karta warsztatu ══════════════════════════════════════════
 
-function WorkshopCard({ w, isSelected, onToggle, onProfile }) {
+function WorkshopCard({ w, isSelected, onToggle, onProfile, kidsMode = false }) {
   const soon = w.comingSoon;
   return (
     <div className={soon ? "" : "card-h"} style={{ background: isSelected ? C.selectedBg : soon ? "#F5F4F1" : C.card, border:`2px solid ${isSelected ? C.primary : "transparent"}`, borderRadius:14, overflow:"hidden", boxShadow: isSelected ? "0 4px 16px rgba(67,42,22,0.14)" : soon ? "none" : "0 1px 5px rgba(0,0,0,0.07)", position:"relative", opacity: soon ? 0.78 : 1, display:"flex", flexDirection:"column", width:"100%" }}>
@@ -630,7 +649,7 @@ function WorkshopCard({ w, isSelected, onToggle, onProfile }) {
         ) : (
           <div>
             <span style={{ fontFamily:"'Montserrat', system-ui, sans-serif", fontSize:26, fontWeight:400, color:C.primary }}>{w.pricePerPerson} zł</span>
-            <span style={{ fontSize:11, color:C.muted, marginLeft:4 }}>/os.</span>
+            <span style={{ fontSize:11, color:C.muted, marginLeft:4 }}>{kidsMode ? "/dziecko" : "/os."}</span>
           </div>
         )}
       </div>
@@ -1245,7 +1264,7 @@ function WizardProgressBar({ step, path, onStepClick }) {
 
 // ══ Krok 1 / krok 2 — wybór warsztatu lub restauracji ═══════
 
-function PickStep({ kind, items, selectedId, selectedVariantId, onToggle, onVariantSelect, onProfile, onFallback, onBackToStep1, notice }) {
+function PickStep({ kind, items, selectedId, selectedVariantId, onToggle, onVariantSelect, onProfile, onFallback, onBackToStep1, notice, kidsMode = false }) {
   const isRestaurant = kind === "restaurant";
   const empty = items.length === 0;
   return (
@@ -1276,12 +1295,14 @@ function PickStep({ kind, items, selectedId, selectedVariantId, onToggle, onVari
                 selectedVariantId={selectedId === item.id ? selectedVariantId : null}
                 onToggle={() => onToggle(item.id)}
                 onVariantSelect={onVariantSelect}
-                onProfile={() => onProfile(item)} />
+                onProfile={() => onProfile(item)}
+                kidsMode={kidsMode} />
             ) : (
               <WorkshopCard key={item.id} w={item}
                 isSelected={selectedId === item.id}
                 onToggle={() => onToggle(item.id)}
-                onProfile={() => onProfile(item)} />
+                onProfile={() => onProfile(item)}
+                kidsMode={kidsMode} />
             )
           ))}
         </div>
@@ -1689,6 +1710,44 @@ export default function App() {
   const ppp        = (variant?.price ?? 0) + (workshop?.pricePerPerson ?? 0);
   const total      = ppp * groupSize;
 
+  // ── Tryb "Eventy dla dzieci" ──────────────────────────────────
+  // Zasady jak isCompatible dla dorosłych (osobna sala / faktura / godziny),
+  // plus wymóg forKids+acceptsKids+kidsVariants, plus liczebność liczona
+  // względem KONKRETNEJ wpisanej liczby dzieci/dorosłych, nie zakresu.
+  const isKidsCompatible = (w, r) => {
+    if (!w || !r) return true;
+    if (!w.forKids || !r.acceptsKids || !r.kidsVariants || r.kidsVariants.length === 0) return false;
+    if (w.requiresSeparateRoom && !r.hasSeparateRoom) return false;
+    if (r.requiresInvoice && w.canInvoice === false) return false;
+    if (selectedDate && selectedTime && r.hours && Object.keys(r.hours).length > 0) {
+      const today = r.hours[dayKeyFromDate(selectedDate)];
+      if (today === undefined || today === null) return false;
+      const start = timeToMinutes(selectedTime);
+      const end = start + parseDurationHours(w.duration) * 60;
+      if (start < timeToMinutes(today.open) || end > timeToMinutes(today.close)) return false;
+    }
+    if (kidsCount != null) {
+      if (w.minPeople != null && kidsCount < w.minPeople) return false;
+      if (w.maxPeople != null && kidsCount > w.maxPeople) return false;
+      if (r.maxPeople != null && (kidsCount + (adultsCount || 0)) > r.maxPeople) return false;
+    }
+    return true;
+  };
+  // Widokowe obiekty restauracji dla trybu dzieci: `variants` podmienione na
+  // `kidsVariants` tego samego wpisu — dzięki temu RestaurantCard/ProfileModal
+  // renderują pakiety dziecięce BEZ ŻADNYCH zmian w logice wyboru pakietu,
+  // czytają dokładnie ten sam kształt danych co dla dorosłych.
+  const toKidsRestaurantView = r => ({ ...r, variants: r.kidsVariants });
+  const compatibleRestaurantsKids = restaurants
+    .filter(r => r.comingSoon || isKidsCompatible(workshop, r))
+    .map(toKidsRestaurantView);
+  const compatibleWorkshopsKids = workshops.filter(w => w.comingSoon || isKidsCompatible(w, restaurant));
+
+  const kidsVariant = restaurant?.kidsVariants?.find(v => v.id === selectedVariant);
+  const kidsPriceKnown = kidsVariant && kidsVariant.price != null;
+  const kidsPpp   = kidsPriceKnown ? kidsVariant.price + (workshop?.pricePerPerson ?? 0) : null;
+  const kidsTotal = kidsPpp != null && kidsCount != null ? kidsPpp * kidsCount : null;
+
   // Liczba osób jest wybierana raz, na samym początku (pasek na stronie
   // głównej) — tu tylko dopilnowujemy, żeby mieściła się w zakresie
   // wspólnym dla wybranego warsztatu i restauracji, bez nadpisywania
@@ -1770,8 +1829,73 @@ export default function App() {
               />
               <Footer />
             </>
+          ) : submitted ? (
+            <>
+              <ConfirmationScreen onBackToHome={resetToHome} />
+              <Footer />
+            </>
           ) : (
-            <div style={{ padding:60, textAlign:"center", color:C.muted }}>Kreator trybu dzieci — w kolejnym zadaniu</div>
+            <>
+              <WizardProgressBar step={wizardStep} path={path} onStepClick={n => setWizardStep(n)} />
+              {wizardStep < 3 && (
+                <div className="wizard-nav-bar" style={{ marginTop:20 }}>
+                  <WizardStickyBar
+                    restaurant={restaurant} workshop={workshop}
+                    groupSize={kidsCount} ppp={kidsPpp ?? 0} total={kidsTotal ?? 0}
+                    canAdvance={wizardStep === 1 ? step1Selected : step2Selected}
+                    nextLabel="Dalej"
+                    onNext={() => {
+                      if (wizardStep === 1 && selectedW && selectedR) setWizardStep(3);
+                      else setWizardStep(s => s + 1);
+                    }}
+                    onBack={() => window.history.back()}
+                  />
+                </div>
+              )}
+              <div style={{ paddingBottom:20 }}>
+                {wizardStep === 1 && (
+                  <>
+                    <div style={{ maxWidth:900, margin:"0 auto", padding:"0 16px" }}>
+                      <PathTiles activeKey={path} onSelect={switchPath} labels={KIDS_PATH_TILE_LABELS} />
+                    </div>
+                    <PickStep
+                      kind={step1Kind}
+                      items={step1Kind === "workshop" ? compatibleWorkshopsKids : compatibleRestaurantsKids}
+                      selectedId={step1Kind === "workshop" ? selectedW : selectedR}
+                      selectedVariantId={selectedVariant}
+                      onToggle={id => step1Kind === "workshop" ? setSelectedW(selectedW === id ? null : id) : handleToggleR(id)}
+                      onVariantSelect={vid => setSelectedVariant(vid)}
+                      onProfile={item => setProfileItem({ item, type: step1Kind })}
+                      onFallback={() => setWizardStep(3)}
+                      onBackToStep1={() => { if (step1Kind === "workshop") { setSelectedR(null); setSelectedVariant(null); } else setSelectedW(null); }}
+                      kidsMode
+                    />
+                  </>
+                )}
+                {wizardStep === 2 && (
+                  <PickStep
+                    kind={step2Kind}
+                    items={step2Kind === "workshop" ? compatibleWorkshopsKids : compatibleRestaurantsKids}
+                    selectedId={step2Kind === "workshop" ? selectedW : selectedR}
+                    selectedVariantId={selectedVariant}
+                    onToggle={id => step2Kind === "workshop" ? setSelectedW(selectedW === id ? null : id) : handleToggleR(id)}
+                    onVariantSelect={vid => setSelectedVariant(vid)}
+                    onProfile={item => setProfileItem({ item, type: step2Kind })}
+                    onFallback={() => setWizardStep(3)}
+                    onBackToStep1={() => window.history.back()}
+                    notice={step2Kind === "restaurant" ? [
+                      workshop?.requiresSeparateRoom && "Pokazujemy miejsca z osobną salą — tego wymaga wybrany warsztat.",
+                      selectedTime && selectedDate && "Pokazujemy miejsca otwarte o tej porze w wybranym dniu, w których warsztat zdąży się skończyć przed zamknięciem.",
+                    ].filter(Boolean) : null}
+                    kidsMode
+                  />
+                )}
+                {wizardStep === 3 && (
+                  <div style={{ padding:60, textAlign:"center", color:C.muted }}>Podsumowanie trybu dzieci — w kolejnym zadaniu</div>
+                )}
+              </div>
+              {wizardStep < 3 && <div className="wizard-nav-spacer" />}
+            </>
           )}
         </>
       )}
@@ -1873,7 +1997,9 @@ export default function App() {
       {/* Modale */}
       {profileItem && (
         <ProfileModal
-          item={profileItem.item} type={profileItem.type}
+          item={mode === "kids" && profileItem.type === "restaurant" ? toKidsRestaurantView(profileItem.item) : profileItem.item}
+          type={profileItem.type}
+          kidsMode={mode === "kids"}
           isSelected={profileItem.type === "restaurant" ? selectedR === profileItem.item.id : selectedW === profileItem.item.id}
           onToggleSelect={() => {
             if (profileItem.type === "restaurant") handleToggleR(profileItem.item.id);
