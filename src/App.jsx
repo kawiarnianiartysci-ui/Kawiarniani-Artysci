@@ -1716,8 +1716,9 @@ export default function App() {
   // plus wymóg forKids+acceptsKids+kidsVariants, plus liczebność liczona
   // względem KONKRETNEJ wpisanej liczby dzieci/dorosłych, nie zakresu.
   const isKidsCompatible = (w, r) => {
+    if (w && !w.forKids) return false;
+    if (r && (!r.acceptsKids || !r.kidsVariants || r.kidsVariants.length === 0)) return false;
     if (!w || !r) return true;
-    if (!w.forKids || !r.acceptsKids || !r.kidsVariants || r.kidsVariants.length === 0) return false;
     if (w.requiresSeparateRoom && !r.hasSeparateRoom) return false;
     if (r.requiresInvoice && w.canInvoice === false) return false;
     if (selectedDate && selectedTime && r.hours && Object.keys(r.hours).length > 0) {
