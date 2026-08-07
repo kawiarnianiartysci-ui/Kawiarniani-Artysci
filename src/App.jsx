@@ -1130,12 +1130,32 @@ function pluralPL(n, [one, few, many]) {
   return many;
 }
 
+// Pasek zaufania — liczby + logotypy partnerów. Wspólny dla HomeScreen (widok
+// klienta) i KidsHomeScreen (analogicznie, ale przefiltrowany do partnerów
+// dostępnych w opcji dla dzieci).
+function PartnerLogosBar({ restaurants, workshops }) {
+  const partnerLogos = [...restaurants, ...workshops].filter(x => x.logo).slice(0, 6);
+  return (
+    <div style={{ maxWidth:760, margin:"0 auto", padding:"0 16px 56px", textAlign:"center" }}>
+      <div style={{ fontSize:11, color:C.muted, letterSpacing:"0.08em", marginBottom:14 }}>
+        {workshops.length} {pluralPL(workshops.length, ["warsztat","warsztaty","warsztatów"])} · {restaurants.length} {pluralPL(restaurants.length, ["miejsce","miejsca","miejsc"])} w Poznaniu
+      </div>
+      {partnerLogos.length > 0 && (
+        <div style={{ display:"flex", gap:18, justifyContent:"center", flexWrap:"wrap", alignItems:"center" }}>
+          {partnerLogos.map(p => (
+            <img key={p.id} src={p.logo} alt={p.name} loading="lazy" style={{ height:40, objectFit:"contain", opacity:0.75 }} />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 function HomeScreen({ restaurants, workshops, onStart, groupSize, setGroupSize, selectedDate, setSelectedDate, selectedTime, setSelectedTime }) {
   const videoRef = useRef(null);
   const pathTilesRef = useRef(null);
   const activeRestaurants = restaurants.filter(r => !r.comingSoon);
   const activeWorkshops = workshops.filter(w => !w.comingSoon);
-  const partnerLogos = [...activeRestaurants, ...activeWorkshops].filter(x => x.logo).slice(0, 6);
 
   const seekToStart = () => { if (videoRef.current) videoRef.current.currentTime = HERO_VIDEO_START; };
   const handleEnded = () => { seekToStart(); videoRef.current?.play(); };
@@ -1186,18 +1206,7 @@ function HomeScreen({ restaurants, workshops, onStart, groupSize, setGroupSize, 
       <HowItWorksSteps />
 
       {/* 5. Pasek zaufania */}
-      <div style={{ maxWidth:760, margin:"0 auto", padding:"0 16px 56px", textAlign:"center" }}>
-        <div style={{ fontSize:11, color:C.muted, letterSpacing:"0.08em", marginBottom:14 }}>
-          {activeWorkshops.length} {pluralPL(activeWorkshops.length, ["warsztat","warsztaty","warsztatów"])} · {activeRestaurants.length} {pluralPL(activeRestaurants.length, ["miejsce","miejsca","miejsc"])} w Poznaniu
-        </div>
-        {partnerLogos.length > 0 && (
-          <div style={{ display:"flex", gap:18, justifyContent:"center", flexWrap:"wrap", alignItems:"center" }}>
-            {partnerLogos.map(p => (
-              <img key={p.id} src={p.logo} alt={p.name} loading="lazy" style={{ height:40, objectFit:"contain", opacity:0.75 }} />
-            ))}
-          </div>
-        )}
-      </div>
+      <PartnerLogosBar restaurants={activeRestaurants} workshops={activeWorkshops} />
 
       {/* 6. Kim jesteśmy */}
       <AboutUsSection />
@@ -1205,10 +1214,13 @@ function HomeScreen({ restaurants, workshops, onStart, groupSize, setGroupSize, 
   );
 }
 
-function KidsHomeScreen({ onStart, kidsCount, setKidsCount, adultsCount, setAdultsCount, selectedDate, setSelectedDate, selectedTime, setSelectedTime }) {
+function KidsHomeScreen({ restaurants, workshops, onStart, kidsCount, setKidsCount, adultsCount, setAdultsCount, selectedDate, setSelectedDate, selectedTime, setSelectedTime }) {
+  const kidsRestaurants = restaurants.filter(r => !r.comingSoon && r.acceptsKids && r.kidsVariants && r.kidsVariants.length > 0);
+  const kidsWorkshops = workshops.filter(w => !w.comingSoon && w.forKids);
+
   return (
     <div>
-      <div style={{ maxWidth:760, margin:"0 auto", padding:"56px 16px 56px" }}>
+      <div style={{ maxWidth:760, margin:"0 auto", padding:"56px 16px 24px" }}>
         <div style={{ textAlign:"center" }}>
           <h1 style={{ fontFamily:"'Pan Pizza', cursive", fontSize:"clamp(40px,7vw,64px)", fontWeight:400, lineHeight:1.2, color:C.primary, margin:"0 0 14px" }}>
             Eventy dla dzieci
@@ -1231,6 +1243,8 @@ function KidsHomeScreen({ onStart, kidsCount, setKidsCount, adultsCount, setAdul
       </div>
 
       <HowItWorksSteps />
+
+      <PartnerLogosBar restaurants={kidsRestaurants} workshops={kidsWorkshops} />
     </div>
   );
 }
@@ -1866,6 +1880,7 @@ export default function App() {
           {path === null ? (
             <>
               <KidsHomeScreen
+                restaurants={restaurants} workshops={workshops}
                 onStart={p => { setPath(p); setWizardStep(1); }}
                 kidsCount={kidsCount} setKidsCount={setKidsCount}
                 adultsCount={adultsCount} setAdultsCount={setAdultsCount}
