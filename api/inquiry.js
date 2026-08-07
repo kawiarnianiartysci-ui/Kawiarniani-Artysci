@@ -15,7 +15,21 @@ export default async function handler(req, res) {
       artistName, workshopName, artistEmail,
       artistInvoicing, artistRequirements,
       groupSize, date, message,
+      isKidsEvent, kidsCount, adultsCount, kidsPackageName, kidsAmountLabel,
     } = req.body || {};
+
+    // Sekcja doklejana do każdego z 3 maili, tylko gdy zapytanie dotyczy
+    // eventu dla dzieci — całkowicie nieobecna (pusty string) dla zwykłych
+    // zapytań, więc istniejące szablony maili wyglądają identycznie jak dziś.
+    const kidsEventBlock = isKidsEvent ? `
+      <p><strong>🎈 To zapytanie dotyczy eventu dla dzieci (urodziny/impreza).</strong></p>
+      <ul>
+        <li>Liczba dzieci: ${kidsCount ?? "-"}</li>
+        <li>Liczba dorosłych: ${adultsCount ?? "-"}</li>
+        <li>Wybrany pakiet: ${kidsPackageName || "-"}</li>
+        <li>Kwota: ${kidsAmountLabel || "do ustalenia"}</li>
+      </ul>
+    ` : "";
 
     if (!clientName || !clientEmail) {
       res.status(400).json({ error: "Brak imienia lub adresu email klienta." });
@@ -44,6 +58,7 @@ export default async function handler(req, res) {
         html: emailHtml(`
           <p>Cześć ${artistName || ""}!</p>
           <p>Restauracja <strong>${restaurantName || ""}</strong> dostała zapytanie o Twój warsztat „${workshopName || ""}". Oto szczegóły:</p>
+          ${kidsEventBlock}
           <ul>
             <li>Termin: ${date || "do ustalenia"}</li>
             <li>Liczba osób: ${groupSize || "-"}</li>
@@ -69,6 +84,7 @@ export default async function handler(req, res) {
         html: emailHtml(`
           <p>Cześć!</p>
           <p>Macie nowe zapytanie o wspólny event:</p>
+          ${kidsEventBlock}
           <ul>
             <li>Warsztat: ${workshopName || "-"} ${artistName ? `(${artistName})` : ""}</li>
             <li>Termin: ${date || "do ustalenia"}</li>
@@ -87,6 +103,7 @@ export default async function handler(req, res) {
       subject: `Nowe zapytanie: ${restaurantName || "-"} + ${workshopName || "-"}`,
       html: emailHtml(`
         <p>Nowe zapytanie na stronie:</p>
+        ${kidsEventBlock}
         <ul>
           <li>Klient: ${clientName} (${clientEmail}${clientPhone ? ", " + clientPhone : ""})</li>
           <li>Restauracja: ${restaurantName || "-"} ${restaurantEmail ? `(${restaurantEmail})` : "(brak adresu email w arkuszu)"}</li>
