@@ -1376,7 +1376,7 @@ function PickStep({ kind, items, selectedId, selectedVariantId, onToggle, onVari
 
 // ══ Krok 3 — podsumowanie i formularz kontaktowy ═════════════
 
-function Step4ContactForm({ restaurant, variant, workshop, groupSize, selectedDate, onDateChange, selectedTime, onTimeChange, ppp, total, onEditStep, onSubmitted, kidsMode = false, kidsCount, adultsCount }) {
+function Step4ContactForm({ restaurant, variant, workshop, groupSize, selectedDate, onDateChange, selectedTime, onTimeChange, ppp, total, workshopOnlyTotal, onEditStep, onSubmitted, kidsMode = false, kidsCount, adultsCount }) {
   const [form, setForm] = useState({ name:"", email:"", phone:"", message:"" });
   const [consent, setConsent] = useState(false);
   const [showPrivacy, setShowPrivacy] = useState(false);
@@ -1419,7 +1419,11 @@ function Step4ContactForm({ restaurant, variant, workshop, groupSize, selectedDa
         kidsCount: kidsMode ? kidsCount : undefined,
         adultsCount: kidsMode ? adultsCount : undefined,
         kidsPackageName: kidsMode ? (variant?.label || "") : undefined,
-        kidsAmountLabel: kidsMode ? (total > 0 ? `${total.toLocaleString("pl-PL")} zł` : "do ustalenia") : undefined,
+        kidsAmountLabel: kidsMode ? (total > 0
+          ? `${total.toLocaleString("pl-PL")} zł`
+          : workshopOnlyTotal > 0
+            ? `${workshopOnlyTotal.toLocaleString("pl-PL")} zł za warsztat, cena restauracji do ustalenia`
+            : "do ustalenia") : undefined,
       }),
     })
       .then(r => { if (!r.ok) throw new Error(); return r.json(); })
@@ -1434,7 +1438,15 @@ function Step4ContactForm({ restaurant, variant, workshop, groupSize, selectedDa
   const summaryRowsBottom = kidsMode ? [
     { label:"Liczba dzieci", value: kidsCount != null ? `${kidsCount}` : "—" },
     { label:"Liczba dorosłych", value: adultsCount != null ? `${adultsCount}` : "—" },
-    { label:"Kwota", value: total > 0 ? `${total.toLocaleString("pl-PL")} zł` : "Cenę ustalisz bezpośrednio z restauracją" },
+    // Gdy restauracja poda swoją cenę (normalne sumowanie) — jedna łączna
+    // kwota, jak dotychczas. Dopóki jej nie znamy — cena warsztatu i
+    // restauracji pokazują się osobno, żeby nie znikała cała kwota.
+    ...(total > 0
+      ? [{ label:"Kwota", value:`${total.toLocaleString("pl-PL")} zł` }]
+      : [
+          { label:"Cena za warsztat", value: workshopOnlyTotal > 0 ? `${workshopOnlyTotal.toLocaleString("pl-PL")} zł` : "—" },
+          { label:"Cena za restaurację", value:"Zostanie ustalona indywidualnie z restauracją" },
+        ]),
   ] : [
     { label:"Liczba osób", value: `${groupSize} osób` },
     { label:"Kwota", value: total > 0 ? `${total.toLocaleString("pl-PL")} zł` : "—" },
@@ -1502,7 +1514,7 @@ function Step4ContactForm({ restaurant, variant, workshop, groupSize, selectedDa
 
         <div style={{ fontSize:11, color:C.muted, lineHeight:1.5, padding:"0 0 12px" }}>
           {kidsMode && total <= 0
-            ? "Cenę ustalisz bezpośrednio z restauracją."
+            ? "Cena warsztatu jest orientacyjna. Cenę restauracji ustalicie razem z nią przy rezerwacji."
             : "Kwota orientacyjna. Ostateczną cenę potwierdza restauracja przy ustalaniu menu."}
           {kidsMode && <><br />* Tort ustalacie indywidualnie z restauracją.</>}
         </div>
@@ -1560,7 +1572,12 @@ function ConfirmationScreen({ onBackToHome }) {
 
 // ══ Stały dolny pasek kreatora ═══════════════════════════════
 
-function WizardStickyBar({ restaurant, workshop, groupSize, ppp, total, canAdvance, nextLabel, onNext, onBack, priceUnavailableLabel }) {
+function WizardStickyBar({ restaurant, workshop, groupSize, ppp, total, canAdvance, nextLabel, onNext, onBack, priceUnavailableLabel, workshopOnlyPpp, workshopOnlyTotal }) {
+  // Gdy nie znamy jeszcze pełnej ceny (restauracja niewybrana albo jej
+  // pakiet jest "ustalany indywidualnie"), ale znamy cenę warsztatu —
+  // pokazujemy tę cząstkową cenę zamiast samej nazwy. Gdy restauracja poda
+  // swoją cenę, total > 0 i wraca normalne sumowanie obu cen.
+  const showWorkshopOnly = !(total > 0) && workshopOnlyTotal > 0;
   const summary = priceUnavailableLabel || (restaurant || workshop
     ? [restaurant?.name, workshop?.name].filter(Boolean).join(" + ")
     : "");
@@ -1571,9 +1588,10 @@ function WizardStickyBar({ restaurant, workshop, groupSize, ppp, total, canAdvan
         <button onClick={onBack} style={{ ...navBtn, background:"transparent", border:`1.5px solid ${C.primary}`, color:C.primary, cursor:"pointer" }}>Wstecz</button>
         <div style={{ textAlign:"center", minWidth:0, overflow:"hidden" }}>
           <div style={{ fontFamily:"'Montserrat', system-ui, sans-serif", fontSize:18, color:C.text, fontWeight:600, whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis" }}>
-            {total > 0 ? `${total.toLocaleString("pl-PL")} zł` : summary}
+            {total > 0 ? `${total.toLocaleString("pl-PL")} zł` : showWorkshopOnly ? `${workshopOnlyTotal.toLocaleString("pl-PL")} zł` : summary}
           </div>
           {total > 0 && <div style={{ fontSize:11, color:C.muted, whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis" }}>{groupSize} × {ppp} zł</div>}
+          {showWorkshopOnly && <div style={{ fontSize:11, color:C.muted, whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis" }}>cena za warsztat · {groupSize} × {workshopOnlyPpp} zł</div>}
         </div>
         <button onClick={onNext} disabled={!canAdvance} style={{ ...navBtn, background: canAdvance ? C.primary : "#DDD9D2", color: canAdvance ? "#FFF" : "#9A968D", cursor: canAdvance ? "pointer" : "default" }}>
           {nextLabel}
@@ -1835,6 +1853,12 @@ export default function App() {
   const kidsPriceKnown = kidsVariant && kidsVariant.price != null;
   const kidsPpp   = kidsPriceKnown ? kidsVariant.price + (workshop?.pricePerPerson ?? 0) : null;
   const kidsTotal = kidsPpp != null && kidsCount != null ? kidsPpp * kidsCount : null;
+  // Cena samego warsztatu — pokazywana osobno, dopóki nie znamy ceny
+  // restauracji (jeszcze nie wybrana, albo pakiet "ustalane indywidualnie").
+  // Gdy restauracja poda swoją cenę, kidsTotal > 0 i to przestaje być używane
+  // — wraca "normalne sumowanie".
+  const kidsWorkshopPpp   = workshop?.pricePerPerson ?? null;
+  const kidsWorkshopTotal = kidsWorkshopPpp != null && kidsCount != null ? kidsWorkshopPpp * kidsCount : null;
 
   // Liczba osób jest wybierana raz, na samym początku (pasek na stronie
   // głównej) — tu tylko dopilnowujemy, żeby mieściła się w zakresie
@@ -1946,6 +1970,7 @@ export default function App() {
                   <WizardStickyBar
                     restaurant={restaurant} workshop={workshop}
                     groupSize={kidsCount} ppp={kidsPpp ?? 0} total={kidsTotal ?? 0}
+                    workshopOnlyPpp={kidsWorkshopPpp ?? 0} workshopOnlyTotal={kidsWorkshopTotal ?? 0}
                     canAdvance={wizardStep === 1 ? step1Selected : step2Selected}
                     nextLabel="Dalej"
                     priceUnavailableLabel={restaurant?.kidsVariants?.length && !kidsPriceKnown ? "Cenę ustalisz bezpośrednio z restauracją" : undefined}
@@ -2001,7 +2026,7 @@ export default function App() {
                     groupSize={kidsCount}
                     selectedDate={selectedDate} onDateChange={setSelectedDate}
                     selectedTime={selectedTime} onTimeChange={setSelectedTime}
-                    ppp={kidsPpp ?? 0} total={kidsTotal ?? 0}
+                    ppp={kidsPpp ?? 0} total={kidsTotal ?? 0} workshopOnlyTotal={kidsWorkshopTotal ?? 0}
                     onEditStep={n => setWizardStep(n)}
                     onSubmitted={() => setSubmitted(true)}
                     kidsMode kidsCount={kidsCount} adultsCount={adultsCount}
