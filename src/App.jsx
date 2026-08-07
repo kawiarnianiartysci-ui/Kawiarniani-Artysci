@@ -267,6 +267,13 @@ const globalCSS = `
     .mode-switcher-btn { padding: 7px 10px !important; font-size: 12px !important; }
     .mode-switcher-divider { margin: 8px 1px !important; }
   }
+  .partner-logos-viewport { overflow: hidden; width: 100%; -webkit-mask-image: linear-gradient(90deg, transparent, #000 6%, #000 94%, transparent); mask-image: linear-gradient(90deg, transparent, #000 6%, #000 94%, transparent); }
+  .partner-logos-track { display: flex; align-items: center; gap: 18px; width: max-content; animation-name: partner-logos-scroll; animation-timing-function: linear; animation-iteration-count: infinite; }
+  .partner-logos-track:hover { animation-play-state: paused; }
+  @keyframes partner-logos-scroll {
+    from { transform: translateX(0); }
+    to { transform: translateX(-50%); }
+  }
 `;
 
 // ══ Profil modal ════════════════════════════════════════════
@@ -1133,19 +1140,39 @@ function pluralPL(n, [one, few, many]) {
 // Pasek zaufania — liczby + logotypy partnerów. Wspólny dla HomeScreen (widok
 // klienta) i KidsHomeScreen (analogicznie, ale przefiltrowany do partnerów
 // dostępnych w opcji dla dzieci).
+// Gdy loga mieszczą się w jednym rzędzie — statyczny, wyśrodkowany rząd.
+// Gdy jest ich więcej, niż się mieści — zamiast zawijania na drugi wiersz
+// (które zostawiało samotny "ogonek" logotypów pod spodem), rząd przewija
+// się w nieskończoność w poziomie; lista jest zduplikowana, żeby pętla była
+// płynna (translateX(-50%) trafia dokładnie w początek drugiej kopii).
+const PARTNER_LOGOS_SCROLL_THRESHOLD = 6;
+
 function PartnerLogosBar({ restaurants, workshops }) {
-  const partnerLogos = [...restaurants, ...workshops].filter(x => x.logo).slice(0, 6);
+  const partnerLogos = [...restaurants, ...workshops].filter(x => x.logo);
+  const scrolling = partnerLogos.length > PARTNER_LOGOS_SCROLL_THRESHOLD;
+  const trackLogos = scrolling ? [...partnerLogos, ...partnerLogos] : partnerLogos;
+
   return (
     <div style={{ maxWidth:760, margin:"0 auto", padding:"0 16px 56px", textAlign:"center" }}>
       <div style={{ fontSize:11, color:C.muted, letterSpacing:"0.08em", marginBottom:14 }}>
         {workshops.length} {pluralPL(workshops.length, ["warsztat","warsztaty","warsztatów"])} · {restaurants.length} {pluralPL(restaurants.length, ["miejsce","miejsca","miejsc"])} w Poznaniu
       </div>
       {partnerLogos.length > 0 && (
-        <div style={{ display:"flex", gap:18, justifyContent:"center", flexWrap:"wrap", alignItems:"center" }}>
-          {partnerLogos.map(p => (
-            <img key={p.id} src={p.logo} alt={p.name} loading="lazy" style={{ height:40, objectFit:"contain", opacity:0.75 }} />
-          ))}
-        </div>
+        scrolling ? (
+          <div className="partner-logos-viewport">
+            <div className="partner-logos-track" style={{ animationDuration:`${partnerLogos.length * 3}s` }}>
+              {trackLogos.map((p, i) => (
+                <img key={`${p.id}-${i}`} src={p.logo} alt={p.name} loading="lazy" style={{ height:40, objectFit:"contain", opacity:0.75, flexShrink:0 }} />
+              ))}
+            </div>
+          </div>
+        ) : (
+          <div style={{ display:"flex", gap:18, justifyContent:"center", flexWrap:"wrap", alignItems:"center" }}>
+            {partnerLogos.map(p => (
+              <img key={p.id} src={p.logo} alt={p.name} loading="lazy" style={{ height:40, objectFit:"contain", opacity:0.75 }} />
+            ))}
+          </div>
+        )
       )}
     </div>
   );
