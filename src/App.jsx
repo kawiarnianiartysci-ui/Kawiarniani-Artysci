@@ -405,7 +405,7 @@ function ProfileModal({ item, type, isSelected, onToggleSelect, selectedVariantI
             {isRestaurant && item.hasSeparateRoom && (
               <span style={{ display:"inline-flex", alignItems:"center", fontSize:12, padding:"5px 11px", background:"transparent", border:`1px solid ${C.primary}`, borderRadius:20, color:C.primary, marginRight:6, marginBottom:6 }}>Osobna sala</span>
             )}
-            {isRestaurant && kidsMode && (
+            {isRestaurant && kidsMode && item.acceptsKids && (
               <span style={{ display:"inline-flex", alignItems:"center", fontSize:12, padding:"5px 11px", background:"transparent", border:`1px solid ${C.primary}`, borderRadius:20, color:C.primary, marginRight:6, marginBottom:6 }}>Przyjazna dzieciom</span>
             )}
             {isRestaurant && item.maxPeople && <InfoPill text={kidsMode ? `Mieści do ${item.maxPeople} osób (dzieci + dorośli)` : `Mieści do ${item.maxPeople} osób`} />}
@@ -483,7 +483,7 @@ function ProfileModal({ item, type, isSelected, onToggleSelect, selectedVariantI
               ))}
               <div style={{ marginTop:16, display:"flex", alignItems:"baseline", gap:8 }}>
                 <span style={{ fontFamily:"'Montserrat', system-ui, sans-serif", fontSize:32, color:C.primary, fontWeight:400 }}>{item.pricePerPerson} zł</span>
-                <span style={{ fontSize:12, color:C.muted }}>/os. · {item.duration}</span>
+                <span style={{ fontSize:12, color:C.muted }}>{kidsMode ? "/dziecko" : "/os."} · {item.duration}</span>
               </div>
             </>
           )}
@@ -1641,7 +1641,7 @@ export default function App() {
           setProfileItem(null);
         }
       } else {
-        setMode("client"); setPath(null); setWizardStep(1); setSubmitted(false); setProfileItem(null);
+        setMode(m => (m === "kids" ? "kids" : "client")); setPath(null); setWizardStep(1); setSubmitted(false); setProfileItem(null);
       }
     };
     window.addEventListener("popstate", onPopState);
@@ -1687,6 +1687,17 @@ export default function App() {
     setSelectedR(null); setSelectedVariant(null); setSelectedW(null);
     setGroupSize(null); setSelectedDate(""); setSelectedTime("");
     setKidsCount(null); setAdultsCount(null);
+  };
+
+  // Przełącznik trybu kreatora (client/kids) w nagłówku — porównanie z samym
+  // `mode` przy kliknięciu myli się, gdy klient wpadł "po drodze" do widoku
+  // Współpraca (mode === "b2b"): resetujemy tylko, gdy FAKTYCZNIE zmienia się
+  // tryb kreatora, śledzony niezależnie od przejściowych wizyt w b2b.
+  const lastWizardModeRef = useRef(mode === "kids" ? "kids" : "client");
+  const goWizardMode = m => {
+    if (lastWizardModeRef.current !== m) resetToHome();
+    lastWizardModeRef.current = m;
+    setMode(m);
   };
 
   const workshop   = workshops.find(w => w.id === selectedW);
@@ -1767,12 +1778,27 @@ export default function App() {
   // wspólnym dla wybranego warsztatu i restauracji, bez nadpisywania
   // wyboru klienta, jeśli już się mieści.
   useEffect(() => {
+    if (mode === "kids") return;
     if (!workshop && !restaurant) return;
     const lo = Math.max(workshop?.minPeople ?? 1, restaurant?.minPeople ?? 1);
     const hi = Math.min(workshop?.maxPeople ?? Infinity, restaurant?.maxPeople ?? Infinity);
     setGroupSize(gs => Math.min(hi, Math.max(lo, gs)));
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [workshop?.id, restaurant?.id]);
+  }, [workshop?.id, restaurant?.id, mode]);
+
+  // Odpowiednik powyższego dla trybu "Eventy dla dzieci" — automatycznie
+  // ustawia `kidsCount` na sensowną wartość, gdy wybrano zarówno warsztat,
+  // jak i restaurację, nawet jeśli klient nie dotknął jeszcze stepper'a na
+  // ekranie głównym. Bez tego pakiet z realną ceną pokazywał "cena do
+  // ustalenia" tylko dlatego, że `kidsCount` było wciąż `null`.
+  useEffect(() => {
+    if (mode !== "kids") return;
+    if (!workshop && !restaurant) return;
+    const lo = Math.max(workshop?.minPeople ?? 1, restaurant?.minPeople ?? 1);
+    const hi = Math.min(workshop?.maxPeople ?? Infinity, restaurant?.maxPeople ?? Infinity);
+    setKidsCount(kc => Math.min(hi, Math.max(lo, kc)));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [workshop?.id, restaurant?.id, mode]);
 
   if (dataLoading) {
     return (
@@ -1812,11 +1838,11 @@ export default function App() {
 
         {/* Przełącznik trybu */}
         <div style={{ display:"flex", alignItems:"center", background:C.tagBg, borderRadius:999, padding:4, flexWrap:"wrap" }}>
-          <button onClick={() => { if (mode === "kids") resetToHome(); setMode("client"); }} style={{ padding:"9px 22px", borderRadius:999, border:"none", background: mode==="client" ? C.primary : "transparent", color: mode==="client" ? "#FFF" : C.muted, fontSize:14, fontWeight: mode==="client" ? 600 : 500, cursor:"pointer", transition:"all 0.15s", whiteSpace:"nowrap" }}>
+          <button onClick={() => goWizardMode("client")} style={{ padding:"9px 22px", borderRadius:999, border:"none", background: mode==="client" ? C.primary : "transparent", color: mode==="client" ? "#FFF" : C.muted, fontSize:14, fontWeight: mode==="client" ? 600 : 500, cursor:"pointer", transition:"all 0.15s", whiteSpace:"nowrap" }}>
             Planuję event
           </button>
           <div style={{ width:1, alignSelf:"stretch", background:C.border, margin:"10px 2px" }} />
-          <button onClick={() => { if (mode === "client") resetToHome(); setMode("kids"); }} style={{ padding:"9px 22px", borderRadius:999, border:"none", background: mode==="kids" ? C.primary : "transparent", color: mode==="kids" ? "#FFF" : C.muted, fontSize:14, fontWeight: mode==="kids" ? 600 : 500, cursor:"pointer", transition:"all 0.15s", whiteSpace:"nowrap" }}>
+          <button onClick={() => goWizardMode("kids")} style={{ padding:"9px 22px", borderRadius:999, border:"none", background: mode==="kids" ? C.primary : "transparent", color: mode==="kids" ? "#FFF" : C.muted, fontSize:14, fontWeight: mode==="kids" ? 600 : 500, cursor:"pointer", transition:"all 0.15s", whiteSpace:"nowrap" }}>
             Eventy dla dzieci
           </button>
           <div style={{ width:1, alignSelf:"stretch", background:C.border, margin:"10px 2px" }} />
