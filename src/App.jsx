@@ -1666,7 +1666,8 @@ export default function App() {
     if (selectedR === rId) { setSelectedR(null); setSelectedVariant(null); return; }
     setSelectedR(rId);
     const r = restaurants.find(r => r.id === rId);
-    setSelectedVariant(r?.variants[0]?.id ?? null);
+    const firstVariant = mode === "kids" ? r?.kidsVariants?.[0] : r?.variants?.[0];
+    setSelectedVariant(firstVariant?.id ?? null);
   };
 
   const resetToHome = () => {
