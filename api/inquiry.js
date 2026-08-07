@@ -42,6 +42,11 @@ export default async function handler(req, res) {
       artistName: artistName || "", workshopName: workshopName || "", artistEmail: artistEmail || "",
       artistInvoicing: artistInvoicing || "", artistRequirements: artistRequirements || "",
       groupSize: groupSize || "", date: date || "", message: message || "",
+      isKidsEvent: isKidsEvent || undefined,
+      kidsCount: isKidsEvent ? kidsCount : undefined,
+      adultsCount: isKidsEvent ? adultsCount : undefined,
+      kidsPackageName: isKidsEvent ? kidsPackageName : undefined,
+      kidsAmountLabel: isKidsEvent ? kidsAmountLabel : undefined,
       ts: Date.now(),
     };
     const { data, sig } = signPayload(payload);
