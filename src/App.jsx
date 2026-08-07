@@ -1053,12 +1053,12 @@ function PathTiles({ activeKey, onSelect, labels = DEFAULT_PATH_TILE_LABELS }) {
     return (
       <button key={key} onClick={() => onSelect(key)} style={{
         flex:1, textAlign:"center",
-        background: active ? C.primary : C.card,
-        border: `1px solid ${C.primary}`,
+        background: active ? C.selectedBg : C.card,
+        border: `1.5px solid ${active ? C.primary : C.border}`,
         borderRadius:999, padding:"14px 20px", cursor:"pointer",
       }}>
-        <div style={{ fontFamily:"'Montserrat', system-ui, sans-serif", fontSize:16, fontWeight:500, marginBottom:3, color: active ? "#FFF" : C.primary }}>{label}</div>
-        <div style={{ fontSize:12, color: active ? "rgba(255,255,255,0.85)" : C.muted }}>{sub}</div>
+        <div style={{ fontFamily:"'Montserrat', system-ui, sans-serif", fontSize:16, fontWeight:500, marginBottom:3, color:C.primary }}>{label}</div>
+        <div style={{ fontSize:12, color:C.muted }}>{sub}</div>
       </button>
     );
   };
@@ -1099,15 +1099,24 @@ function AboutUsSection() {
   );
 }
 
+// Domyślne kroki (widok klienta — "Wam"/"osób"). Wersja dla zakładki
+// "Eventy dla dzieci" (KIDS_HOW_IT_WORKS_STEPS) mówi o dziecku wprost.
+const HOW_IT_WORKS_STEPS = [
+  { n:"1", t:"Wybieracie warsztat i miejsce", d:"Malowanie, rękodzieło albo inna aktywność — w kawiarni lub restauracji, która Wam pasuje." },
+  { n:"2", t:"Wysyłacie krótkie zapytanie", d:"Termin, liczba osób, kilka słów od Was." },
+  { n:"3", t:"Dogrywamy szczegóły i potwierdzamy", d:"Kontaktujemy się z restauracją i artystą, ustalamy menu i finalną cenę, a potem potwierdzamy termin." },
+];
+const KIDS_HOW_IT_WORKS_STEPS = [
+  { n:"1", t:"Wybieracie warsztat i miejsce", d:"Malowanie, rękodzieło albo inna kreatywna zabawa — w kawiarni, która lubi młodych gości." },
+  { n:"2", t:"Wysyłacie krótkie zapytanie", d:"Termin, liczba dzieci, wiek, kilka słów od Was." },
+  { n:"3", t:"Dogrywamy szczegóły i potwierdzamy", d:"Kontaktujemy się z miejscem i artystą, ustalamy menu i finalną cenę, potem potwierdzamy termin." },
+];
+
 // Krótki, NIEklikalny opis 3-krokowego procesu — wizualnie inny niż
 // kafelki akcji (bez ramki-pigułki, bez cienia), żeby nie sugerować
-// interakcji. Używany tylko na HomeScreen (widok klienta).
-function HowItWorksSteps() {
-  const steps = [
-    { n:"1", t:"Wybieracie warsztat i miejsce", d:"Malowanie, rękodzieło albo inna aktywność — w kawiarni lub restauracji, która Wam pasuje." },
-    { n:"2", t:"Wysyłacie krótkie zapytanie", d:"Termin, liczba osób, kilka słów od Was." },
-    { n:"3", t:"Dogrywamy szczegóły i potwierdzamy", d:"Kontaktujemy się z restauracją i artystą, ustalamy menu i finalną cenę, a potem potwierdzamy termin." },
-  ];
+// interakcji. Używany na HomeScreen (klient) i analogicznie na
+// KidsHomeScreen (z tekstami dostosowanymi do kontekstu dziecięcego).
+function HowItWorksSteps({ steps = HOW_IT_WORKS_STEPS }) {
   return (
     <div style={{ maxWidth:640, margin:"0 auto", padding:"8px 16px 48px" }}>
       <h2 style={{ fontFamily:"'Montserrat', system-ui, sans-serif", fontSize:"clamp(24px,3vw,30px)", fontWeight:300, textAlign:"center", margin:"0 0 28px", color:C.text }}>
@@ -1247,13 +1256,21 @@ function KidsHomeScreen({ restaurants, workshops, onStart, kidsCount, setKidsCou
 
   return (
     <div>
-      <div style={{ maxWidth:760, margin:"0 auto", padding:"56px 16px 24px" }}>
+      {/* Baner nad tytułem — na głównej to wideo z dorosłymi, tu celowo NIE.
+          Na razie samo tło w kolorze marki; gdy pojawią się realne zdjęcia
+          z warsztatów dziecięcych, podmienić na <img>/<video> w tym miejscu,
+          analogicznie do HERO_PHOTO/hero.mov w HomeScreen. */}
+      <div style={{ position:"relative", width:"100%", height:"clamp(160px, 22vw, 220px)", overflow:"hidden", background:C.selectedBg }}>
+        <div style={{ position:"absolute", inset:0, background:`linear-gradient(180deg, rgba(247,238,221,0) 0%, rgba(247,238,221,0.05) 50%, rgba(247,238,221,0.35) 70%, rgba(247,238,221,0.75) 85%, ${C.bg} 97%)` }} />
+      </div>
+
+      <div style={{ maxWidth:760, margin:"0 auto", padding:"32px 16px 24px" }}>
         <div style={{ textAlign:"center" }}>
           <h1 style={{ fontFamily:"'Pan Pizza', cursive", fontSize:"clamp(40px,7vw,64px)", fontWeight:400, lineHeight:1.2, color:C.primary, margin:"0 0 14px" }}>
-            Eventy dla dzieci
+            Mali Kawiarniani Artyści
           </h1>
           <p style={{ color:C.text, fontWeight:500, maxWidth:480, margin:"0 auto 28px", fontSize:15, lineHeight:1.6 }}>
-            Gotowe pakiety urodzinowe — warsztat i miejsce w jednym, wyceniane od dziecka.
+            Gotowe pakiety urodzinowe — warsztat i miejsce w jednym, cena liczona za dziecko.
           </p>
         </div>
 
@@ -1269,7 +1286,7 @@ function KidsHomeScreen({ restaurants, workshops, onStart, kidsCount, setKidsCou
         </div>
       </div>
 
-      <HowItWorksSteps />
+      <HowItWorksSteps steps={KIDS_HOW_IT_WORKS_STEPS} />
 
       <PartnerLogosBar restaurants={kidsRestaurants} workshops={kidsWorkshops} />
     </div>
