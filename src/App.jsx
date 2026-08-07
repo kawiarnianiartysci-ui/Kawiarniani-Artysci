@@ -1313,7 +1313,7 @@ function PickStep({ kind, items, selectedId, selectedVariantId, onToggle, onVari
 
 // ══ Krok 3 — podsumowanie i formularz kontaktowy ═════════════
 
-function Step4ContactForm({ restaurant, variant, workshop, groupSize, selectedDate, onDateChange, selectedTime, onTimeChange, ppp, total, onEditStep, onSubmitted }) {
+function Step4ContactForm({ restaurant, variant, workshop, groupSize, selectedDate, onDateChange, selectedTime, onTimeChange, ppp, total, onEditStep, onSubmitted, kidsMode = false, kidsCount, adultsCount }) {
   const [form, setForm] = useState({ name:"", email:"", phone:"", message:"" });
   const [consent, setConsent] = useState(false);
   const [showPrivacy, setShowPrivacy] = useState(false);
@@ -1349,9 +1349,14 @@ function Step4ContactForm({ restaurant, variant, workshop, groupSize, selectedDa
         artistEmail: workshop?.email || "",
         artistInvoicing: workshop?.invoicing || "",
         artistRequirements: workshop?.requirements || "",
-        groupSize,
+        groupSize: kidsMode ? kidsCount : groupSize,
         date: selectedTime ? `${selectedDate}, ${selectedTime}` : selectedDate,
         message: form.message,
+        isKidsEvent: kidsMode || undefined,
+        kidsCount: kidsMode ? kidsCount : undefined,
+        adultsCount: kidsMode ? adultsCount : undefined,
+        kidsPackageName: kidsMode ? (variant?.label || "") : undefined,
+        kidsAmountLabel: kidsMode ? (total > 0 ? `${total.toLocaleString("pl-PL")} zł` : "do ustalenia") : undefined,
       }),
     })
       .then(r => { if (!r.ok) throw new Error(); return r.json(); })
@@ -1363,7 +1368,11 @@ function Step4ContactForm({ restaurant, variant, workshop, groupSize, selectedDa
     { label:"Warsztat", value: workshop ? `${workshop.name} (${workshop.artist})` : "—", step:1 },
     { label:"Miejsce", value: restaurant ? `${restaurant.name}${variant ? " · " + variant.label : ""}` : "—", step:2 },
   ];
-  const summaryRowsBottom = [
+  const summaryRowsBottom = kidsMode ? [
+    { label:"Liczba dzieci", value: kidsCount != null ? `${kidsCount}` : "—" },
+    { label:"Liczba dorosłych", value: adultsCount != null ? `${adultsCount}` : "—" },
+    { label:"Kwota", value: total > 0 ? `${total.toLocaleString("pl-PL")} zł` : "Cenę ustalisz bezpośrednio z restauracją" },
+  ] : [
     { label:"Liczba osób", value: `${groupSize} osób` },
     { label:"Kwota", value: total > 0 ? `${total.toLocaleString("pl-PL")} zł` : "—" },
   ];
@@ -1429,7 +1438,10 @@ function Step4ContactForm({ restaurant, variant, workshop, groupSize, selectedDa
         ))}
 
         <div style={{ fontSize:11, color:C.muted, lineHeight:1.5, padding:"0 0 12px" }}>
-          Kwota orientacyjna. Ostateczną cenę potwierdza restauracja przy ustalaniu menu.
+          {kidsMode && total <= 0
+            ? "Cenę ustalisz bezpośrednio z restauracją."
+            : "Kwota orientacyjna. Ostateczną cenę potwierdza restauracja przy ustalaniu menu."}
+          {kidsMode && <><br />* Tort ustalacie indywidualnie z restauracją.</>}
         </div>
       </div>
 
@@ -1485,10 +1497,10 @@ function ConfirmationScreen({ onBackToHome }) {
 
 // ══ Stały dolny pasek kreatora ═══════════════════════════════
 
-function WizardStickyBar({ restaurant, workshop, groupSize, ppp, total, canAdvance, nextLabel, onNext, onBack }) {
-  const summary = restaurant || workshop
+function WizardStickyBar({ restaurant, workshop, groupSize, ppp, total, canAdvance, nextLabel, onNext, onBack, priceUnavailableLabel }) {
+  const summary = priceUnavailableLabel || (restaurant || workshop
     ? [restaurant?.name, workshop?.name].filter(Boolean).join(" + ")
-    : "";
+    : "");
   const navBtn = { WebkitAppearance:"none", appearance:"none", border:"none", borderRadius:999, fontWeight:600, minHeight:44, width:104, padding:"8px 10px", fontSize:13, lineHeight:1.25, textAlign:"center" };
   return (
     <div style={{ maxWidth:900, margin:"0 auto 20px", padding:"0 16px" }}>
@@ -1846,6 +1858,7 @@ export default function App() {
                     groupSize={kidsCount} ppp={kidsPpp ?? 0} total={kidsTotal ?? 0}
                     canAdvance={wizardStep === 1 ? step1Selected : step2Selected}
                     nextLabel="Dalej"
+                    priceUnavailableLabel={restaurant?.kidsVariants?.length && !kidsPriceKnown ? "Cenę ustalisz bezpośrednio z restauracją" : undefined}
                     onNext={() => {
                       if (wizardStep === 1 && selectedW && selectedR) setWizardStep(3);
                       else setWizardStep(s => s + 1);
@@ -1893,7 +1906,16 @@ export default function App() {
                   />
                 )}
                 {wizardStep === 3 && (
-                  <div style={{ padding:60, textAlign:"center", color:C.muted }}>Podsumowanie trybu dzieci — w kolejnym zadaniu</div>
+                  <Step4ContactForm
+                    restaurant={restaurant} variant={kidsVariant} workshop={workshop}
+                    groupSize={kidsCount}
+                    selectedDate={selectedDate} onDateChange={setSelectedDate}
+                    selectedTime={selectedTime} onTimeChange={setSelectedTime}
+                    ppp={kidsPpp ?? 0} total={kidsTotal ?? 0}
+                    onEditStep={n => setWizardStep(n)}
+                    onSubmitted={() => setSubmitted(true)}
+                    kidsMode kidsCount={kidsCount} adultsCount={adultsCount}
+                  />
                 )}
               </div>
               {wizardStep < 3 && <div className="wizard-nav-spacer" />}
