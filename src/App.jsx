@@ -105,7 +105,7 @@ const imgListPath = list => !list ? [] : list.split(",").map(s => s.trim()).filt
 const splitList = text => (text ? text.split(";").filter(Boolean) : []);
 const parseVariants = text => splitList(text).map(part => {
   const [id, label, detail, price, priceMax] = part.split("|");
-  const v = { id, label, detail, price: Number(price) };
+  const v = { id, label, detail, price: price ? Number(price) : null };
   if (priceMax) v.priceMax = Number(priceMax);
   return v;
 });
@@ -162,6 +162,8 @@ function restaurantFromRow(row) {
     email: row.email || undefined,
     requiresInvoice: toBool(row.requiresInvoice) || undefined,
     hours: parseHours(row.hours),
+    acceptsKids: toBool(row.acceptsKids) || undefined,
+    kidsVariants: parseVariants(row.kidsVariants),
   };
 }
 
@@ -178,6 +180,8 @@ function workshopFromRow(row) {
     requiresSeparateRoom: toBool(row.requiresSeparateRoom) || undefined,
     invoicing: row.invoicing || undefined, requirements: row.requirements || undefined,
     canInvoice: toTriBool(row.canInvoice),
+    forKids: toBool(row.forKids) || undefined,
+    kidsMinAge: toNum(row.kidsMinAge) ?? undefined,
   };
 }
 
