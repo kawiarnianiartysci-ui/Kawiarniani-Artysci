@@ -279,7 +279,7 @@ function PhotoGallery({ photos }) {
         <div style={{ display:"grid", gridTemplateColumns:"repeat(2, 1fr)", gap:8 }}>
           {photos.map((p, i) => (
             <div key={i} onClick={() => setExpandedIdx(i)} className="gallery-thumb" style={{ borderRadius:10, overflow:"hidden", cursor:"pointer", aspectRatio:"4 / 3", background:C.tagBg }}>
-              <img src={getSrc(p)} alt={`Zdjęcie ${i + 1}`} style={{ width:"100%", height:"100%", objectFit:getFit(p), objectPosition:getPosition(p), display:"block" }} />
+              <img src={getSrc(p)} alt={`Zdjęcie ${i + 1}`} loading="lazy" style={{ width:"100%", height:"100%", objectFit:getFit(p), objectPosition:getPosition(p), display:"block" }} />
             </div>
           ))}
         </div>
@@ -290,11 +290,11 @@ function PhotoGallery({ photos }) {
   return (
     <div style={{ marginBottom:22 }}>
       <div onClick={() => setExpandedIdx(null)} style={{ borderRadius:12, overflow:"hidden", cursor:"zoom-out", marginBottom:8, background:"#111", display:"flex", justifyContent:"center", alignItems:"center" }}>
-        <img src={getSrc(photos[expandedIdx])} alt={`Zdjęcie ${expandedIdx + 1}`} style={{ width:"100%", maxHeight:280, objectFit:"contain", display:"block" }} />
+        <img src={getSrc(photos[expandedIdx])} alt={`Zdjęcie ${expandedIdx + 1}`} loading="lazy" style={{ width:"100%", maxHeight:280, objectFit:"contain", display:"block" }} />
       </div>
       <div style={{ display:"flex", gap:8, overflowX:"auto", paddingBottom:4 }}>
         {photos.map((p, i) => (
-          <img key={i} src={getSrc(p)} onClick={() => setExpandedIdx(i)} alt={`Miniatura ${i + 1}`}
+          <img key={i} src={getSrc(p)} onClick={() => setExpandedIdx(i)} alt={`Miniatura ${i + 1}`} loading="lazy"
             style={{ width:64, height:48, objectFit:getFit(p), objectPosition:getPosition(p), borderRadius:6, cursor:"pointer", flexShrink:0, border: i === expandedIdx ? `2px solid ${C.primary}` : "2px solid transparent", opacity: i === expandedIdx ? 1 : 0.7 }} />
         ))}
       </div>
@@ -351,11 +351,11 @@ function ProfileModal({ item, type, isSelected, onToggleSelect, selectedVariantI
 
           {item.logo ? (
             <div style={{ width:72, height:72, margin:"0 auto 14px" }}>
-              <img src={item.logo} alt={item.name} style={{ width:"100%", height:"100%", objectFit:"contain" }} />
+              <img src={item.logo} alt={item.name} loading="lazy" style={{ width:"100%", height:"100%", objectFit:"contain" }} />
             </div>
           ) : item.photo ? (
             <div style={{ width:72, height:72, margin:"0 auto 14px", borderRadius:14, overflow:"hidden" }}>
-              <img src={item.photo} alt={item.name} style={{ width:"100%", height:"100%", objectFit:"cover" }} />
+              <img src={item.photo} alt={item.name} loading="lazy" style={{ width:"100%", height:"100%", objectFit:"cover" }} />
             </div>
           ) : null}
           <div style={{ fontFamily:"'Montserrat', system-ui, sans-serif", fontSize:28, fontWeight:400, color:C.text, marginBottom:4 }}>{item.name}</div>
@@ -375,7 +375,7 @@ function ProfileModal({ item, type, isSelected, onToggleSelect, selectedVariantI
             <PhotoGallery photos={item.photos} />
           ) : item.photo ? (
             <div style={{ borderRadius:10, overflow:"hidden", marginBottom:20 }}>
-              <img src={item.photo} alt={item.name} style={{ width:"100%", height:180, objectFit:"cover", objectPosition: item.photo.includes("workshop-painting-photo") ? "center 25%" : "center", display:"block" }} />
+              <img src={item.photo} alt={item.name} loading="lazy" style={{ width:"100%", height:180, objectFit:"cover", objectPosition: item.photo.includes("workshop-painting-photo") ? "center 25%" : "center", display:"block" }} />
             </div>
           ) : (
             <div style={{ marginBottom:20 }}>
@@ -506,11 +506,11 @@ function RestaurantCard({ r, isSelected, selectedVariantId, onToggle, onVariantS
 
       {r.photo ? (
         <div style={{ height:140, overflow:"hidden", position:"relative" }}>
-          <img src={r.photo} alt={r.name} style={{ width:"100%", height:"100%", objectFit:"cover", objectPosition: r.photo.includes("magazyn-gallery-1") ? "center 12%" : r.photo.includes("zuk-gallery-0") ? "center 85%" : "center", display:"block" }} />
+          <img src={r.photo} alt={r.name} loading="lazy" style={{ width:"100%", height:"100%", objectFit:"cover", objectPosition: r.photo.includes("magazyn-gallery-1") ? "center 12%" : r.photo.includes("zuk-gallery-0") ? "center 85%" : "center", display:"block" }} />
         </div>
       ) : r.logo ? (
         <div style={{ height:140, overflow:"hidden", position:"relative", background:"#FFFFFF", display:"flex", alignItems:"center", justifyContent:"center" }}>
-          <img src={r.logo} alt={r.name} style={{ width:110, height:110, objectFit:"contain", display:"block" }} />
+          <img src={r.logo} alt={r.name} loading="lazy" style={{ width:110, height:110, objectFit:"contain", display:"block" }} />
         </div>
       ) : null}
 
@@ -581,11 +581,11 @@ function WorkshopCard({ w, isSelected, onToggle, onProfile }) {
     <div className={soon ? "" : "card-h"} style={{ background: isSelected ? C.selectedBg : soon ? "#F5F4F1" : C.card, border:`2px solid ${isSelected ? C.primary : "transparent"}`, borderRadius:14, overflow:"hidden", boxShadow: isSelected ? "0 4px 16px rgba(67,42,22,0.14)" : soon ? "none" : "0 1px 5px rgba(0,0,0,0.07)", position:"relative", opacity: soon ? 0.78 : 1, display:"flex", flexDirection:"column", width:"100%" }}>
       {w.photo ? (
         <div style={{ height:140, overflow:"hidden", position:"relative" }}>
-          <img src={w.photo} alt={w.name} style={{ width:"100%", height:"100%", objectFit:"cover", objectPosition: w.photo.includes("workshop-painting-photo") ? "center 25%" : "center", display:"block" }} />
+          <img src={w.photo} alt={w.name} loading="lazy" style={{ width:"100%", height:"100%", objectFit:"cover", objectPosition: w.photo.includes("workshop-painting-photo") ? "center 25%" : "center", display:"block" }} />
         </div>
       ) : w.logo ? (
         <div style={{ height:140, overflow:"hidden", position:"relative", background:"#ECE4D7", display:"flex", alignItems:"center", justifyContent:"center" }}>
-          <img src={w.logo} alt={w.name} style={{ width:110, height:110, objectFit:"contain", display:"block" }} />
+          <img src={w.logo} alt={w.name} loading="lazy" style={{ width:110, height:110, objectFit:"contain", display:"block" }} />
         </div>
       ) : null}
 
@@ -980,7 +980,7 @@ function AboutUsSection() {
         <div>Instagram: <a href="https://www.instagram.com/kawiarniani_artysci/" target="_blank" rel="noreferrer" style={{ color:C.primary }}>@kawiarniani_artysci</a></div>
       </div>
 
-      <img src={LOGO_IMG} alt={COPY.siteName} style={{ width:75, height:75, objectFit:"contain", display:"block", margin:"28px auto 0" }} />
+      <img src={LOGO_IMG} alt={COPY.siteName} loading="lazy" style={{ width:75, height:75, objectFit:"contain", display:"block", margin:"28px auto 0" }} />
     </div>
   );
 }
@@ -1086,7 +1086,7 @@ function HomeScreen({ restaurants, workshops, onStart, groupSize, setGroupSize, 
         {partnerLogos.length > 0 && (
           <div style={{ display:"flex", gap:18, justifyContent:"center", flexWrap:"wrap", alignItems:"center" }}>
             {partnerLogos.map(p => (
-              <img key={p.id} src={p.logo} alt={p.name} style={{ height:40, objectFit:"contain", opacity:0.75 }} />
+              <img key={p.id} src={p.logo} alt={p.name} loading="lazy" style={{ height:40, objectFit:"contain", opacity:0.75 }} />
             ))}
           </div>
         )}
