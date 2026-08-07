@@ -1630,11 +1630,11 @@ export default function App() {
 
         {/* Przełącznik trybu */}
         <div style={{ display:"flex", alignItems:"center", background:C.tagBg, borderRadius:999, padding:4, flexWrap:"wrap" }}>
-          <button onClick={() => { if (mode !== "client") resetToHome(); setMode("client"); }} style={{ padding:"9px 22px", borderRadius:999, border:"none", background: mode==="client" ? C.primary : "transparent", color: mode==="client" ? "#FFF" : C.muted, fontSize:14, fontWeight: mode==="client" ? 600 : 500, cursor:"pointer", transition:"all 0.15s", whiteSpace:"nowrap" }}>
+          <button onClick={() => { if (mode === "kids") resetToHome(); setMode("client"); }} style={{ padding:"9px 22px", borderRadius:999, border:"none", background: mode==="client" ? C.primary : "transparent", color: mode==="client" ? "#FFF" : C.muted, fontSize:14, fontWeight: mode==="client" ? 600 : 500, cursor:"pointer", transition:"all 0.15s", whiteSpace:"nowrap" }}>
             Planuję event
           </button>
           <div style={{ width:1, alignSelf:"stretch", background:C.border, margin:"10px 2px" }} />
-          <button onClick={() => { if (mode !== "kids") resetToHome(); setMode("kids"); }} style={{ padding:"9px 22px", borderRadius:999, border:"none", background: mode==="kids" ? C.primary : "transparent", color: mode==="kids" ? "#FFF" : C.muted, fontSize:14, fontWeight: mode==="kids" ? 600 : 500, cursor:"pointer", transition:"all 0.15s", whiteSpace:"nowrap" }}>
+          <button onClick={() => { if (mode === "client") resetToHome(); setMode("kids"); }} style={{ padding:"9px 22px", borderRadius:999, border:"none", background: mode==="kids" ? C.primary : "transparent", color: mode==="kids" ? "#FFF" : C.muted, fontSize:14, fontWeight: mode==="kids" ? 600 : 500, cursor:"pointer", transition:"all 0.15s", whiteSpace:"nowrap" }}>
             Eventy dla dzieci
           </button>
           <div style={{ width:1, alignSelf:"stretch", background:C.border, margin:"10px 2px" }} />
