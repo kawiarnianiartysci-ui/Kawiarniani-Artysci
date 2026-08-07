@@ -262,6 +262,11 @@ const globalCSS = `
   @media (min-width: 641px) {
     .hero-video { transform: scale(1.15); transform-origin: 70% 68%; }
   }
+  @media (max-width: 640px) {
+    .mode-switcher { flex-wrap: nowrap !important; padding: 3px !important; }
+    .mode-switcher-btn { padding: 7px 10px !important; font-size: 12px !important; }
+    .mode-switcher-divider { margin: 8px 1px !important; }
+  }
 `;
 
 // ══ Profil modal ════════════════════════════════════════════
@@ -1837,16 +1842,16 @@ export default function App() {
         </div>
 
         {/* Przełącznik trybu */}
-        <div style={{ display:"flex", alignItems:"center", background:C.tagBg, borderRadius:999, padding:4, flexWrap:"wrap" }}>
-          <button onClick={() => goWizardMode("client")} style={{ padding:"9px 22px", borderRadius:999, border:"none", background: mode==="client" ? C.primary : "transparent", color: mode==="client" ? "#FFF" : C.muted, fontSize:14, fontWeight: mode==="client" ? 600 : 500, cursor:"pointer", transition:"all 0.15s", whiteSpace:"nowrap" }}>
+        <div className="mode-switcher" style={{ display:"flex", alignItems:"center", background:C.tagBg, borderRadius:999, padding:4, flexWrap:"wrap" }}>
+          <button className="mode-switcher-btn" onClick={() => goWizardMode("client")} style={{ padding:"9px 22px", borderRadius:999, border:"none", background: mode==="client" ? C.primary : "transparent", color: mode==="client" ? "#FFF" : C.muted, fontSize:14, fontWeight: mode==="client" ? 600 : 500, cursor:"pointer", transition:"all 0.15s", whiteSpace:"nowrap" }}>
             Planuję event
           </button>
-          <div style={{ width:1, alignSelf:"stretch", background:C.border, margin:"10px 2px" }} />
-          <button onClick={() => goWizardMode("kids")} style={{ padding:"9px 22px", borderRadius:999, border:"none", background: mode==="kids" ? C.primary : "transparent", color: mode==="kids" ? "#FFF" : C.muted, fontSize:14, fontWeight: mode==="kids" ? 600 : 500, cursor:"pointer", transition:"all 0.15s", whiteSpace:"nowrap" }}>
+          <div className="mode-switcher-divider" style={{ width:1, alignSelf:"stretch", background:C.border, margin:"10px 2px" }} />
+          <button className="mode-switcher-btn" onClick={() => goWizardMode("kids")} style={{ padding:"9px 22px", borderRadius:999, border:"none", background: mode==="kids" ? C.primary : "transparent", color: mode==="kids" ? "#FFF" : C.muted, fontSize:14, fontWeight: mode==="kids" ? 600 : 500, cursor:"pointer", transition:"all 0.15s", whiteSpace:"nowrap" }}>
             Eventy dla dzieci
           </button>
-          <div style={{ width:1, alignSelf:"stretch", background:C.border, margin:"10px 2px" }} />
-          <button onClick={() => setMode("b2b")} style={{ padding:"9px 22px", borderRadius:999, border:"none", background: mode==="b2b" ? C.primary : "transparent", color: mode==="b2b" ? "#FFF" : C.muted, fontSize:14, fontWeight: mode==="b2b" ? 600 : 500, cursor:"pointer", transition:"all 0.15s", whiteSpace:"nowrap" }}>
+          <div className="mode-switcher-divider" style={{ width:1, alignSelf:"stretch", background:C.border, margin:"10px 2px" }} />
+          <button className="mode-switcher-btn" onClick={() => setMode("b2b")} style={{ padding:"9px 22px", borderRadius:999, border:"none", background: mode==="b2b" ? C.primary : "transparent", color: mode==="b2b" ? "#FFF" : C.muted, fontSize:14, fontWeight: mode==="b2b" ? 600 : 500, cursor:"pointer", transition:"all 0.15s", whiteSpace:"nowrap" }}>
             Współpraca
           </button>
         </div>
