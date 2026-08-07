@@ -938,13 +938,87 @@ function HomeFilterBar({ groupSize, setGroupSize, selectedDate, setSelectedDate,
   );
 }
 
+// Panel filtrów ekranu startowego trybu "Eventy dla dzieci" — wizualnie
+// identyczny wzorzec co HomeFilterBar, ale 4 pola: Liczba dzieci (liczy
+// się do ceny), Liczba dorosłych (czysto informacyjne — dla ilu przygotować
+// miejsca), Data, Godzina (godzina jest tu konieczna, bo bez niej filtr
+// godzin otwarcia restauracji nigdy by się nie aktywował — patrz isKidsCompatible).
+function KidsFilterBar({ kidsCount, setKidsCount, adultsCount, setAdultsCount, selectedDate, setSelectedDate, selectedTime, setSelectedTime }) {
+  const [openField, setOpenField] = useState(null);
+  const barRef = useRef(null);
+  const toggle = f => setOpenField(openField === f ? null : f);
+
+  useEffect(() => {
+    if (!openField) return;
+    const onOutside = e => { if (barRef.current && !barRef.current.contains(e.target)) setOpenField(null); };
+    document.addEventListener("mousedown", onOutside);
+    return () => document.removeEventListener("mousedown", onOutside);
+  }, [openField]);
+
+  const openKids = () => { if (kidsCount == null) setKidsCount(8); toggle("kids"); };
+  const openAdults = () => { if (adultsCount == null) setAdultsCount(0); toggle("adults"); };
+
+  const segStyle = active => ({ flex:1, minWidth:0, padding:"10px 16px", cursor:"pointer", position:"relative", borderRadius:999, border:`1px solid ${active ? C.primary : "transparent"}` });
+  const segLabel = active => ({ fontSize:9, fontWeight:700, color: active ? C.primary : C.muted, letterSpacing:"0.06em", whiteSpace:"nowrap" });
+  const segValue = active => ({ fontSize:13, color: active ? C.primary : C.text, fontWeight: active ? 600 : 400, whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis", minHeight:16 });
+
+  const stepper = (value, setValue, min, max) => (
+    <div className="modal-fade" onClick={e => e.stopPropagation()} style={{ position:"absolute", top:"calc(100% + 8px)", left:0, background:"#FFF", border:`1px solid ${C.border}`, borderRadius:14, boxShadow:"0 10px 32px rgba(0,0,0,0.14)", padding:20, minWidth:200, zIndex:50, cursor:"default" }}>
+      <div style={{ display:"flex", alignItems:"center", gap:16, justifyContent:"center" }}>
+        <button onClick={() => setValue(Math.max(min, value - 1))} style={{ width:36, height:36, borderRadius:"50%", border:`1px solid ${C.border}`, background:"transparent", cursor:"pointer", fontSize:18, color:C.primary }}>−</button>
+        <span style={{ fontSize:22, fontWeight:600, color:C.primary, minWidth:30, textAlign:"center" }}>{value}</span>
+        <button onClick={() => setValue(Math.min(max, value + 1))} style={{ width:36, height:36, borderRadius:"50%", border:`1px solid ${C.border}`, background:"transparent", cursor:"pointer", fontSize:18, color:C.primary }}>+</button>
+      </div>
+    </div>
+  );
+
+  return (
+    <div ref={barRef} style={{ maxWidth:640, margin:"0 auto 28px", position:"relative" }}>
+      <div className="search-bar" style={{ display:"flex", alignItems:"stretch", background:"#FFF", border:`1px solid ${C.border}`, borderRadius:999, boxShadow:"0 4px 18px rgba(0,0,0,0.07)", padding:5 }}>
+        <div onClick={openKids} style={segStyle(!!kidsCount)}>
+          <div style={segLabel(!!kidsCount)}>LICZBA DZIECI</div>
+          <div style={segValue(!!kidsCount)}>{kidsCount ? `${kidsCount}` : ""}</div>
+          {openField === "kids" && stepper(kidsCount ?? 8, setKidsCount, 1, 30)}
+        </div>
+        <div className="search-divider" style={{ background:C.border }} />
+        <div onClick={openAdults} style={segStyle(adultsCount != null)}>
+          <div style={segLabel(adultsCount != null)}>LICZBA DOROSŁYCH</div>
+          <div style={segValue(adultsCount != null)}>{adultsCount != null ? `${adultsCount}` : ""}</div>
+          {openField === "adults" && stepper(adultsCount ?? 0, setAdultsCount, 0, 30)}
+        </div>
+        <div className="search-divider" style={{ background:C.border }} />
+        <div onClick={() => setOpenField(null)} style={segStyle(!!selectedDate)}>
+          <div style={segLabel(!!selectedDate)}>DATA</div>
+          <input type="date" value={selectedDate} min={MIN_BOOKING_DATE} onChange={e => setSelectedDate(e.target.value)} onFocus={() => setOpenField(null)}
+            style={{ ...segValue(!!selectedDate), border:"none", background:"transparent", padding:0, width:"100%", cursor:"pointer", fontFamily:"'Montserrat', system-ui, sans-serif" }} />
+        </div>
+        <div className="search-divider" style={{ background:C.border }} />
+        <div onClick={() => setOpenField(null)} style={segStyle(!!selectedTime)}>
+          <div style={segLabel(!!selectedTime)}>GODZINA</div>
+          <select value={selectedTime} onChange={e => setSelectedTime(e.target.value)} onFocus={() => setOpenField(null)}
+            style={{ ...segValue(!!selectedTime), border:"none", background:"transparent", padding:0, width:"100%", cursor:"pointer", fontFamily:"'Montserrat', system-ui, sans-serif", appearance:"none", WebkitAppearance:"none" }}>
+            <option value=""></option>
+            {TIME_OPTIONS.map(t => <option key={t} value={t}>{t}</option>)}
+          </select>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // Para kafelków wyboru ścieżki — używana na ekranie powitalnym (gdzie
 // "warsztat" jest domyślnie wizualnie wyróżniony) i na górze kroku 1
 // kreatora (gdzie brązowy = faktycznie wybrana w tej chwili ścieżka,
 // co pozwala przełączyć się na drugą bez powrotu na stronę główną).
-function PathTiles({ activeKey, onSelect }) {
-  const tile = (key, label, sub) => {
+const DEFAULT_PATH_TILE_LABELS = {
+  workshop:   { label:"Wybierz warsztat", sub:"Wiem, co chcemy robić" },
+  restaurant: { label:"Wybierz restaurację/kawiarnię", sub:"Wiem, gdzie chcemy być" },
+};
+
+function PathTiles({ activeKey, onSelect, labels = DEFAULT_PATH_TILE_LABELS }) {
+  const tile = key => {
     const active = activeKey === key;
+    const { label, sub } = labels[key];
     return (
       <button key={key} onClick={() => onSelect(key)} style={{
         flex:1, textAlign:"center",
@@ -959,11 +1033,16 @@ function PathTiles({ activeKey, onSelect }) {
   };
   return (
     <div className="home-cta-grid">
-      {tile("workshop", "Wybierz warsztat", "Wiem, co chcemy robić")}
-      {tile("restaurant", "Wybierz restaurację/kawiarnię", "Wiem, gdzie chcemy być")}
+      {tile("workshop")}
+      {tile("restaurant")}
     </div>
   );
 }
+
+const KIDS_PATH_TILE_LABELS = {
+  workshop:   { label:"Wybierz warsztat", sub:"Wiem, co chcemy robić" },
+  restaurant: { label:"Wybierz miejsce", sub:"Wiem, gdzie chcemy być" },
+};
 
 // Sekcja "Kim jesteśmy" — wspólna dla ekranu klienta i widoku Współpraca.
 function AboutUsSection() {
@@ -1098,6 +1177,36 @@ function HomeScreen({ restaurants, workshops, onStart, groupSize, setGroupSize, 
 
       {/* 6. Kim jesteśmy */}
       <AboutUsSection />
+    </div>
+  );
+}
+
+function KidsHomeScreen({ onStart, kidsCount, setKidsCount, adultsCount, setAdultsCount, selectedDate, setSelectedDate, selectedTime, setSelectedTime }) {
+  return (
+    <div>
+      <div style={{ maxWidth:760, margin:"0 auto", padding:"56px 16px 56px" }}>
+        <div style={{ textAlign:"center" }}>
+          <h1 style={{ fontFamily:"'Pan Pizza', cursive", fontSize:"clamp(40px,7vw,64px)", fontWeight:400, lineHeight:1.2, color:C.primary, margin:"0 0 14px" }}>
+            Eventy dla dzieci
+          </h1>
+          <p style={{ color:C.text, fontWeight:500, maxWidth:480, margin:"0 auto 28px", fontSize:15, lineHeight:1.6 }}>
+            Gotowe pakiety urodzinowe — warsztat i miejsce w jednym, wyceniane od dziecka.
+          </p>
+        </div>
+
+        <KidsFilterBar
+          kidsCount={kidsCount} setKidsCount={setKidsCount}
+          adultsCount={adultsCount} setAdultsCount={setAdultsCount}
+          selectedDate={selectedDate} setSelectedDate={setSelectedDate}
+          selectedTime={selectedTime} setSelectedTime={setSelectedTime}
+        />
+
+        <div style={{ marginBottom:16 }}>
+          <PathTiles activeKey="workshop" onSelect={onStart} labels={KIDS_PATH_TILE_LABELS} />
+        </div>
+      </div>
+
+      <HowItWorksSteps />
     </div>
   );
 }
@@ -1647,8 +1756,25 @@ export default function App() {
       {/* Widok Współpraca */}
       {mode === "b2b" && <PartnersView openTermsOnMount={openPartnerTermsOnLoad} />}
 
-      {/* Widok Eventy dla dzieci — placeholder, pełny ekran w kolejnym zadaniu */}
-      {mode === "kids" && <div style={{ padding:60, textAlign:"center", color:C.muted }}>Eventy dla dzieci — wkrótce</div>}
+      {/* Widok Eventy dla dzieci */}
+      {mode === "kids" && (
+        <>
+          {path === null ? (
+            <>
+              <KidsHomeScreen
+                onStart={p => { setPath(p); setWizardStep(1); }}
+                kidsCount={kidsCount} setKidsCount={setKidsCount}
+                adultsCount={adultsCount} setAdultsCount={setAdultsCount}
+                selectedDate={selectedDate} setSelectedDate={setSelectedDate}
+                selectedTime={selectedTime} setSelectedTime={setSelectedTime}
+              />
+              <Footer />
+            </>
+          ) : (
+            <div style={{ padding:60, textAlign:"center", color:C.muted }}>Kreator trybu dzieci — w kolejnym zadaniu</div>
+          )}
+        </>
+      )}
 
       {/* Widok klienta */}
       {mode === "client" && (
