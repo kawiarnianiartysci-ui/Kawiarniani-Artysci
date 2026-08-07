@@ -16,14 +16,27 @@ export default async function handler(req, res) {
   }
 
   const accepted = action === "accept";
-  const { clientName, restaurantName, workshopName, date, groupSize } = payload;
+  const { clientName, restaurantName, workshopName, date, groupSize, isKidsEvent, kidsCount, adultsCount, kidsPackageName, kidsAmountLabel } = payload;
+
+  // Sekcja doklejana do maili, tylko gdy zapytanie dotyczy eventu dla dzieci —
+  // całkowicie nieobecna (pusty string) dla zwykłych zapytań, więc istniejące
+  // szablony maili wyglądają identycznie jak dziś.
+  const kidsEventBlock = isKidsEvent ? `
+      <p><strong>🎈 To zapytanie dotyczy eventu dla dzieci (urodziny/impreza).</strong></p>
+      <ul>
+        <li>Liczba dzieci: ${kidsCount ?? "-"}</li>
+        <li>Liczba dorosłych: ${adultsCount ?? "-"}</li>
+        <li>Wybrany pakiet: ${kidsPackageName || "-"}</li>
+        <li>Kwota: ${kidsAmountLabel || "do ustalenia"}</li>
+      </ul>
+    ` : "";
 
   // Krok pośredni — chroni przed przypadkowym "kliknięciem" linku przez skanery
   // bezpieczeństwa w skrzynkach mailowych, które same otwierają linki z maila.
   if (confirm !== "1") {
     const confirmUrl = `/api/respond?action=${action}&data=${encodeURIComponent(data)}&sig=${encodeURIComponent(sig)}&confirm=1`;
     const title = accepted ? "Potwierdź akceptację terminu" : "Potwierdź, że nie możesz";
-    const details = `<strong>${workshopName || ""}</strong> — ${restaurantName || ""}<br>Termin: ${date || "do ustalenia"} · ${groupSize || "-"} os. · Klient: ${clientName || ""}`;
+    const details = `<strong>${workshopName || ""}</strong> — ${restaurantName || ""}<br>Termin: ${date || "do ustalenia"} · ${isKidsEvent ? `${kidsCount ?? "-"} dzieci + ${adultsCount ?? "-"} dorosłych` : `${groupSize || "-"} os.`} · Klient: ${clientName || ""}`;
     res.status(200).send(`<!doctype html><html lang="pl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>${title}</title>
 <style>
   body{font-family:system-ui,-apple-system,sans-serif;background:#EDEBE6;display:flex;align-items:center;justify-content:center;min-height:100vh;margin:0;padding:16px;}
@@ -58,6 +71,11 @@ export default async function handler(req, res) {
           restaurantName, restaurantEmail,
           artistName: artistName || "", workshopName: workshopName || "", artistEmail: artistEmail || "",
           date: date || "", groupSize: groupSize || "",
+          isKidsEvent: isKidsEvent || undefined,
+          kidsCount: isKidsEvent ? kidsCount : undefined,
+          adultsCount: isKidsEvent ? adultsCount : undefined,
+          kidsPackageName: isKidsEvent ? kidsPackageName : undefined,
+          kidsAmountLabel: isKidsEvent ? kidsAmountLabel : undefined,
           ts: Date.now(),
         };
         const { data: cData, sig: cSig } = signPayload(confirmPayload);
@@ -78,8 +96,8 @@ export default async function handler(req, res) {
           ? `Potwierdzone! ${workshopName || ""} — ${date || ""}`
           : `Artysta nie może w tym terminie — ${workshopName || ""}`,
         html: emailHtml(accepted
-          ? `<p>Dobra wiadomość! <strong>${artistName || workshopName || ""}</strong> potwierdził termin <strong>${date || ""}</strong> dla ${groupSize || "-"} osób — event jest ustalony z obu stron.</p>${detailsList}${clientContact}${finalizeButtons}<p>Pozdrawiamy,<br>Kawiarniani Artyści</p>`
-          : `<p>Niestety <strong>${artistName || workshopName || ""}</strong> nie może w zaproponowanym terminie. Skontaktujemy się z klientem w sprawie innego terminu i damy Wam znać.</p><p>Pozdrawiamy,<br>Kawiarniani Artyści</p>`),
+          ? `<p>Dobra wiadomość! <strong>${artistName || workshopName || ""}</strong> potwierdził termin <strong>${date || ""}</strong> dla ${groupSize || "-"} osób — event jest ustalony z obu stron.</p>${kidsEventBlock}${detailsList}${clientContact}${finalizeButtons}<p>Pozdrawiamy,<br>Kawiarniani Artyści</p>`
+          : `<p>Niestety <strong>${artistName || workshopName || ""}</strong> nie może w zaproponowanym terminie. Skontaktujemy się z klientem w sprawie innego terminu i damy Wam znać.</p>${kidsEventBlock}<p>Pozdrawiamy,<br>Kawiarniani Artyści</p>`),
       }));
     }
 
@@ -89,8 +107,8 @@ export default async function handler(req, res) {
         to: clientEmail,
         subject: accepted ? "Twój termin został potwierdzony!" : "Aktualizacja Twojego zapytania",
         html: emailHtml(accepted
-          ? `<p>Cześć ${clientName || ""}!</p><p>Świetna wiadomość — artysta potwierdził Wasz termin (${date || ""}) w ${restaurantName || ""}. Do zobaczenia na evencie!</p><p>Pozdrawiamy,<br>Kawiarniani Artyści</p>`
-          : `<p>Cześć ${clientName || ""},</p><p>Niestety artysta nie może w zaproponowanym terminie. Odezwiemy się wkrótce z propozycją innego terminu.</p><p>Pozdrawiamy,<br>Kawiarniani Artyści</p>`),
+          ? `<p>Cześć ${clientName || ""}!</p>${kidsEventBlock}<p>Świetna wiadomość — artysta potwierdził Wasz termin (${date || ""}) w ${restaurantName || ""}. Do zobaczenia na evencie!</p><p>Pozdrawiamy,<br>Kawiarniani Artyści</p>`
+          : `<p>Cześć ${clientName || ""},</p>${kidsEventBlock}<p>Niestety artysta nie może w zaproponowanym terminie. Odezwiemy się wkrótce z propozycją innego terminu.</p><p>Pozdrawiamy,<br>Kawiarniani Artyści</p>`),
       }));
     }
 
@@ -98,7 +116,7 @@ export default async function handler(req, res) {
       from: FROM_EMAIL,
       to: OWNER_EMAIL,
       subject: `${accepted ? "Zaakceptowano" : "Odrzucono"}: ${restaurantName || ""} + ${workshopName || ""}`,
-      html: emailHtml(`<p>Artysta ${accepted ? "zaakceptował" : "odrzucił"} zapytanie od ${clientName || ""} (${restaurantName || ""}, ${date || ""}).</p>`),
+      html: emailHtml(`<p>Artysta ${accepted ? "zaakceptował" : "odrzucił"} zapytanie od ${clientName || ""} (${restaurantName || ""}, ${date || ""}).</p>${kidsEventBlock}`),
     }));
 
     await Promise.all(sends);

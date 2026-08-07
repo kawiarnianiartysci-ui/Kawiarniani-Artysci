@@ -21,14 +21,27 @@ export default async function handler(req, res) {
   }
 
   const confirmed = action === "confirm";
-  const { clientName, restaurantName, workshopName, date, groupSize } = payload;
+  const { clientName, restaurantName, workshopName, date, groupSize, isKidsEvent, kidsCount, adultsCount, kidsPackageName, kidsAmountLabel } = payload;
+
+  // Sekcja doklejana do maili, tylko gdy zapytanie dotyczy eventu dla dzieci —
+  // całkowicie nieobecna (pusty string) dla zwykłych zapytań, więc istniejące
+  // szablony maili wyglądają identycznie jak dziś.
+  const kidsEventBlock = isKidsEvent ? `
+      <p><strong>🎈 To zapytanie dotyczy eventu dla dzieci (urodziny/impreza).</strong></p>
+      <ul>
+        <li>Liczba dzieci: ${kidsCount ?? "-"}</li>
+        <li>Liczba dorosłych: ${adultsCount ?? "-"}</li>
+        <li>Wybrany pakiet: ${kidsPackageName || "-"}</li>
+        <li>Kwota: ${kidsAmountLabel || "do ustalenia"}</li>
+      </ul>
+    ` : "";
 
   // Krok pośredni — jak w /api/respond, chroni przed przypadkowym "kliknięciem"
   // linku przez skanery bezpieczeństwa w skrzynkach mailowych.
   if (confirm !== "1") {
     const confirmUrl = `/api/confirm?action=${action}&data=${encodeURIComponent(data)}&sig=${encodeURIComponent(sig)}&confirm=1`;
     const title = confirmed ? "Potwierdź, że wszystko ustalone" : "Potwierdź, że zapytanie nie doszło do skutku";
-    const details = `<strong>${workshopName || ""}</strong> — ${restaurantName || ""}<br>Termin: ${date || "do ustalenia"} · ${groupSize || "-"} os. · Klient: ${clientName || ""}`;
+    const details = `<strong>${workshopName || ""}</strong> — ${restaurantName || ""}<br>Termin: ${date || "do ustalenia"} · ${isKidsEvent ? `${kidsCount ?? "-"} dzieci + ${adultsCount ?? "-"} dorosłych` : `${groupSize || "-"} os.`} · Klient: ${clientName || ""}`;
     res.status(200).send(`<!doctype html><html lang="pl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>${title}</title>
 <style>
   body{font-family:system-ui,-apple-system,sans-serif;background:#EDEBE6;display:flex;align-items:center;justify-content:center;min-height:100vh;margin:0;padding:16px;}
@@ -55,6 +68,7 @@ export default async function handler(req, res) {
           subject: `Termin ostatecznie potwierdzony — ${workshopName || ""}`,
           html: emailHtml(`
             <p>Cześć ${artistName || ""}!</p>
+            ${kidsEventBlock}
             <p>Restauracja <strong>${restaurantName || ""}</strong> potwierdziła, że wszystko jest ustalone z klientem. Termin <strong>${date || ""}</strong> jest już ostateczny — możesz go śmiało zablokować w kalendarzu, bez ryzyka odwołania.</p>
             <p>Pozdrawiamy,<br>Kawiarniani Artyści</p>
           `),
@@ -68,6 +82,7 @@ export default async function handler(req, res) {
           subject: "Twoja rezerwacja jest potwierdzona!",
           html: emailHtml(`
             <p>Cześć ${clientName || ""}!</p>
+            ${kidsEventBlock}
             <p>Wszystko ustalone — Wasza rezerwacja jest potwierdzona:</p>
             <ul>
               <li>Warsztat: ${workshopName || "-"}</li>
@@ -85,7 +100,7 @@ export default async function handler(req, res) {
         from: FROM_EMAIL,
         to: OWNER_EMAIL,
         subject: `Potwierdzone ostatecznie: ${restaurantName || ""} + ${workshopName || ""}`,
-        html: emailHtml(`<p>Restauracja potwierdziła, że wszystko ustalone z klientem ${clientName || ""} (${restaurantName || ""}, ${date || ""}, ${groupSize || "-"} os.).</p>`),
+        html: emailHtml(`<p>Restauracja potwierdziła, że wszystko ustalone z klientem ${clientName || ""} (${restaurantName || ""}, ${date || ""}, ${groupSize || "-"} os.).</p>${kidsEventBlock}`),
       }));
     } else {
       // Artysta — najważniejsza wiadomość w tym kroku: bez niej zostaje
@@ -97,6 +112,7 @@ export default async function handler(req, res) {
           subject: `To zapytanie jednak nie doszło do skutku — ${workshopName || ""}`,
           html: emailHtml(`
             <p>Cześć ${artistName || ""}!</p>
+            ${kidsEventBlock}
             <p>Restauracja <strong>${restaurantName || ""}</strong> nie dogadała się z klientem co do szczegółów i to zapytanie (termin: ${date || "-"}) jednak nie dojdzie do skutku. Możesz spokojnie zwolnić ten termin w swoim kalendarzu.</p>
             <p>Pozdrawiamy,<br>Kawiarniani Artyści</p>
           `),
@@ -107,7 +123,7 @@ export default async function handler(req, res) {
         from: FROM_EMAIL,
         to: OWNER_EMAIL,
         subject: `Nie doszło do skutku: ${restaurantName || ""} + ${workshopName || ""}`,
-        html: emailHtml(`<p>Restauracja <strong>${restaurantName || ""}</strong> zgłosiła, że nie udało się dogadać szczegółów z klientem ${clientName || ""}${clientEmail ? ` (${clientEmail}${clientPhone ? ", " + clientPhone : ""})` : ""} — warsztat ${workshopName || "-"}, termin ${date || "-"}. Warto ręcznie zareagować, np. zaproponować klientowi alternatywny termin.</p>`),
+        html: emailHtml(`<p>Restauracja <strong>${restaurantName || ""}</strong> zgłosiła, że nie udało się dogadać szczegółów z klientem ${clientName || ""}${clientEmail ? ` (${clientEmail}${clientPhone ? ", " + clientPhone : ""})` : ""} — warsztat ${workshopName || "-"}, termin ${date || "-"}. Warto ręcznie zareagować, np. zaproponować klientowi alternatywny termin.</p>${kidsEventBlock}`),
       }));
     }
 
