@@ -1101,9 +1101,9 @@ function PathTiles({ activeKey, onSelect, labels = DEFAULT_PATH_TILE_LABELS }) {
         flex:1, textAlign:"center",
         background: active ? C.selectedBg : C.card,
         border: `1.5px solid ${active ? C.primary : C.border}`,
-        borderRadius:999, padding:"14px 20px", cursor:"pointer",
+        borderRadius:28, padding:"34px 22px", cursor:"pointer",
       }}>
-        <div style={{ fontFamily:"'Montserrat', system-ui, sans-serif", fontSize:16, fontWeight:500, marginBottom:3, color:C.primary }}>{label}</div>
+        <div style={{ fontFamily:"'Montserrat', system-ui, sans-serif", fontSize:17, fontWeight:500, marginBottom:5, color:C.primary }}>{label}</div>
         <div style={{ fontSize:12, color:C.muted }}>{sub}</div>
       </button>
     );
