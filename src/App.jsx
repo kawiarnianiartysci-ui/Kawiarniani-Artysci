@@ -1098,13 +1098,13 @@ function PathTiles({ activeKey, onSelect, labels = DEFAULT_PATH_TILE_LABELS }) {
     const { label, sub } = labels[key];
     return (
       <button key={key} onClick={() => onSelect(key)} style={{
-        flex:1, textAlign:"center",
+        flex:1, textAlign:"center", display:"flex", flexDirection:"column", justifyContent:"center", minHeight:64,
         background: active ? C.selectedBg : C.card,
         border: `1.5px solid ${active ? C.primary : C.border}`,
-        borderRadius:28, padding:"34px 22px", cursor:"pointer",
+        borderRadius:999, padding:"10px 26px", cursor:"pointer",
       }}>
-        <div style={{ fontFamily:"'Montserrat', system-ui, sans-serif", fontSize:17, fontWeight:500, marginBottom:5, color:C.primary }}>{label}</div>
-        <div style={{ fontSize:12, color:C.muted }}>{sub}</div>
+        <div style={{ fontFamily:"'Montserrat', system-ui, sans-serif", fontSize:15, fontWeight:500, lineHeight:1.25, marginBottom:3, color:C.primary }}>{label}</div>
+        <div style={{ fontSize:11, color:C.muted }}>{sub}</div>
       </button>
     );
   };
