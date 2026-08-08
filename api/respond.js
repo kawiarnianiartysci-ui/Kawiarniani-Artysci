@@ -225,13 +225,25 @@ export default async function handler(req, res) {
       }));
     }
 
+    // Ścieżka "Mam miejsce" (bez restauracji) — po akceptacji nie ma
+    // trzeciej strony, która musi jeszcze dogadać szczegóły (confirm.js),
+    // więc klient dostaje inny komunikat: artysta przyjął i sam się odezwie,
+    // zamiast twardego "termin potwierdzony, do zobaczenia w {restauracji}".
+    // Celowo restaurantName, nie restaurantEmail — restauracja mogła zostać
+    // wybrana, ale nie mieć maila w arkuszu; to i tak ścieżka klasyczna,
+    // klient ma wiedzieć, gdzie się wydarzy event (mail do restauracji i tak
+    // zostanie pominięty niżej, niezależnie od tego wyboru tekstu).
+    const isClassic = !!restaurantName;
+
     if (clientEmail) {
       sends.push(resend.emails.send({
         from: FROM_EMAIL,
         to: clientEmail,
         subject: accepted ? "Twój termin został potwierdzony!" : "Aktualizacja Twojego zapytania",
         html: emailHtml(accepted
-          ? `<p>Cześć ${clientName || ""}!</p>${kidsEventBlock}<p>Świetna wiadomość — artysta potwierdził Wasz termin (${date || ""}) w ${restaurantName || ""}. Do zobaczenia na evencie!</p><p>Pozdrawiamy,<br>Kawiarniani Artyści</p>`
+          ? (isClassic
+              ? `<p>Cześć ${clientName || ""}!</p>${kidsEventBlock}<p>Świetna wiadomość — artysta potwierdził Wasz termin (${date || ""}) w ${restaurantName || ""}. Do zobaczenia na evencie!</p><p>Pozdrawiamy,<br>Kawiarniani Artyści</p>`
+              : `<p>Cześć ${clientName || ""}!</p>${kidsEventBlock}<p>Świetna wiadomość — artysta <strong>${artistName || workshopName || ""}</strong> przyjął Twoje zapytanie na termin ${date || "do ustalenia"} i skontaktuje się z Tobą wkrótce, żeby ustalić ostatnie szczegóły (np. dojazd).</p><p>Kontakt do artysty: ${artistName || ""}${artistEmail ? ` · ${artistEmail}` : ""}</p><p>Pozdrawiamy,<br>Kawiarniani Artyści</p>`)
           : `<p>Cześć ${clientName || ""},</p>${kidsEventBlock}<p>Niestety artysta nie może w zaproponowanym terminie. Odezwiemy się wkrótce z propozycją innego terminu.</p><p>Pozdrawiamy,<br>Kawiarniani Artyści</p>`),
       }));
     }
@@ -239,16 +251,16 @@ export default async function handler(req, res) {
     sends.push(resend.emails.send({
       from: FROM_EMAIL,
       to: OWNER_EMAIL,
-      subject: `${accepted ? "Zaakceptowano" : "Odrzucono"}: ${restaurantName || ""} + ${workshopName || ""}`,
-      html: emailHtml(`<p>Artysta ${accepted ? "zaakceptował" : "odrzucił"} zapytanie od ${clientName || ""} (${restaurantName || ""}, ${date || ""}).</p>${kidsEventBlock}`),
+      subject: `${accepted ? "Zaakceptowano" : "Odrzucono"}: ${restaurantName || (isClassic ? "" : "bez restauracji (mam miejsce)")} + ${workshopName || ""}`,
+      html: emailHtml(`<p>Artysta ${accepted ? "zaakceptował" : "odrzucił"} zapytanie od ${clientName || ""} (${isClassic ? restaurantName || "" : "bez restauracji — mam miejsce"}, ${date || ""}).</p>${kidsEventBlock}`),
     }));
 
     await Promise.all(sends);
 
     res.status(200).send(
       accepted
-        ? htmlPage("Dziękujemy!", "Potwierdziłeś/aś termin. Restauracja i klient zostali poinformowani mailowo.")
-        : htmlPage("Zapisano", "Poinformowaliśmy restaurację i klienta, że nie możesz w tym terminie.")
+        ? htmlPage("Dziękujemy!", isClassic ? "Potwierdziłeś/aś termin. Restauracja i klient zostali poinformowani mailowo." : "Potwierdziłeś/aś termin. Klient został poinformowany mailowo i dostał Twój kontakt.")
+        : htmlPage("Zapisano", isClassic ? "Poinformowaliśmy restaurację i klienta, że nie możesz w tym terminie." : "Poinformowaliśmy klienta, że nie możesz w tym terminie.")
     );
   } catch (err) {
     console.error(err);

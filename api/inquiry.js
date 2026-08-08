@@ -16,6 +16,7 @@ export default async function handler(req, res) {
       artistInvoicing, artistRequirements,
       groupSize, date, message,
       isKidsEvent, kidsCount, adultsCount, kidsPackageName, kidsAmountLabel,
+      isOwnPlace, placeAddress, placeType, placeHasSeparateRoom, placeArea, placeHasTables, placeHasWater, placeNotes,
     } = req.body || {};
 
     // Sekcja doklejana do każdego z 3 maili, tylko gdy zapytanie dotyczy
@@ -28,6 +29,23 @@ export default async function handler(req, res) {
         <li>Liczba dorosłych: ${adultsCount ?? "-"}</li>
         <li>Wybrany pakiet: ${kidsPackageName || "-"}</li>
         <li>Kwota: ${kidsAmountLabel || "do ustalenia"}</li>
+      </ul>
+    ` : "";
+
+    // Ścieżka "Mam miejsce" (artysta dojeżdża do klienta, bez restauracji) —
+    // sekcja doklejana tylko wtedy, całkowicie nieobecna dla zwykłych zapytań.
+    const PLACE_TYPE_LABELS = { dom:"Dom", mieszkanie:"Mieszkanie w bloku", ogrod:"Ogród", sala:"Sala", inne:"Inne" };
+    const yn = v => (v === "tak" ? "Tak" : v === "nie" ? "Nie" : "-");
+    const placeInfoBlock = isOwnPlace ? `
+      <p><strong>📍 Klient ma własne miejsce — warsztat odbędzie się bez restauracji.</strong></p>
+      <ul>
+        <li>Adres / lokalizacja: ${placeAddress || "-"}</li>
+        <li>Typ miejsca: ${PLACE_TYPE_LABELS[placeType] || placeType || "-"}</li>
+        <li>Osobna sala / wydzielona przestrzeń: ${yn(placeHasSeparateRoom)}</li>
+        <li>Metraż: ${placeArea || "-"}</li>
+        <li>Dostępne stoły i krzesła: ${yn(placeHasTables)}</li>
+        <li>Dostęp do wody: ${yn(placeHasWater)}</li>
+        ${placeNotes ? `<li>Uwagi dodatkowe: ${placeNotes}</li>` : ""}
       </ul>
     ` : "";
 
@@ -60,11 +78,16 @@ export default async function handler(req, res) {
       sends.push(resend.emails.send({
         from: FROM_EMAIL,
         to: artistEmail,
-        subject: `Nowe zapytanie: ${restaurantName || "restauracja"} — ${workshopName || "warsztat"}`,
+        subject: isOwnPlace
+          ? `Nowe zapytanie: dojazd do klienta — ${workshopName || "warsztat"}`
+          : `Nowe zapytanie: ${restaurantName || "restauracja"} — ${workshopName || "warsztat"}`,
         html: emailHtml(`
           <p>Cześć ${artistName || ""}!</p>
-          <p>Restauracja <strong>${restaurantName || ""}</strong> dostała zapytanie o Twój warsztat „${workshopName || ""}". Oto szczegóły:</p>
+          <p>${isOwnPlace
+            ? `Klient chce zaprosić Cię do siebie na warsztat „${workshopName || ""}" — bez restauracji, na własnym miejscu. Oto szczegóły:`
+            : `Restauracja <strong>${restaurantName || ""}</strong> dostała zapytanie o Twój warsztat „${workshopName || ""}". Oto szczegóły:`}</p>
           ${kidsEventBlock}
+          ${placeInfoBlock}
           <ul>
             <li>Termin: ${date || "do ustalenia"}</li>
             <li>Liczba osób: ${groupSize || "-"}</li>
@@ -106,13 +129,14 @@ export default async function handler(req, res) {
     sends.push(resend.emails.send({
       from: FROM_EMAIL,
       to: OWNER_EMAIL,
-      subject: `Nowe zapytanie: ${restaurantName || "-"} + ${workshopName || "-"}`,
+      subject: `Nowe zapytanie: ${restaurantName || (isOwnPlace ? "bez restauracji (mam miejsce)" : "-")} + ${workshopName || "-"}`,
       html: emailHtml(`
         <p>Nowe zapytanie na stronie:</p>
         ${kidsEventBlock}
+        ${placeInfoBlock}
         <ul>
           <li>Klient: ${clientName} (${clientEmail}${clientPhone ? ", " + clientPhone : ""})</li>
-          <li>Restauracja: ${restaurantName || "-"} ${restaurantEmail ? `(${restaurantEmail})` : "(brak adresu email w arkuszu)"}</li>
+          <li>Restauracja: ${isOwnPlace ? "brak — klient ma własne miejsce" : `${restaurantName || "-"} ${restaurantEmail ? `(${restaurantEmail})` : "(brak adresu email w arkuszu)"}`}</li>
           <li>Warsztat: ${workshopName || "-"} ${artistName ? `(${artistName})` : ""} ${artistEmail ? `(${artistEmail})` : "(brak adresu email w arkuszu)"}</li>
           <li>Termin: ${date || "do ustalenia"}</li>
           <li>Liczba osób: ${groupSize || "-"}</li>
@@ -120,6 +144,23 @@ export default async function handler(req, res) {
         </ul>
       `),
     }));
+
+    // RODO: klient w ścieżce "Mam miejsce" podał swój adres domowy, który
+    // trafia bezpośrednio do artysty — mail od razu informuje go o tym
+    // wprost, zamiast żeby dowiedział się dopiero z odpowiedzi artysty.
+    if (isOwnPlace && clientEmail) {
+      sends.push(resend.emails.send({
+        from: FROM_EMAIL,
+        to: clientEmail,
+        subject: "Zapytanie wysłane — Twój adres trafił do artysty",
+        html: emailHtml(`
+          <p>Cześć ${clientName || ""}!</p>
+          <p>Zapytanie o warsztat „${workshopName || ""}" trafiło do artysty <strong>${artistName || ""}</strong>. Ponieważ wybraliście opcję „Mam miejsce", Twoje dane kontaktowe i adres eventu zostały przekazane bezpośrednio wybranemu artyście, żeby mógł ocenić dojazd i przygotować się do warsztatu.</p>
+          <p>Damy Ci znać mailowo, jak tylko artysta odpowie.</p>
+          <p>Pozdrawiamy,<br>Kawiarniani Artyści</p>
+        `),
+      }));
+    }
 
     await Promise.all(sends);
     res.status(200).json({ ok: true });
