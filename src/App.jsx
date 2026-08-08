@@ -183,7 +183,7 @@ function workshopFromRow(row) {
     forKids: toBool(row.forKids) || undefined,
     kidsMinAge: toNum(row.kidsMinAge) ?? undefined,
     // Wyłącznik ścieżki "Mam miejsce" (artysta dojeżdża do klienta) — tylko
-    // artyści z travelsToClient=tak są tam wybieralni, patrz ownPlaceEligible w App().
+    // artyści z travelsToClient=tak są tam wybieralni, patrz withOwnPlaceTile w App().
     travelsToClient: toTriBool(row.travelsToClient),
     travelArea: row.travelArea || undefined,
   };
@@ -665,7 +665,7 @@ function WorkshopCard({ w, isSelected, onToggle, onProfile, kidsMode = false }) 
 
         {w.travelsToClient && !soon && (
           <div style={{ fontSize:11, color:C.muted, lineHeight:1.5, marginBottom:8 }}>
-            🚗 Ten artysta może też dojechać do Was{w.travelArea ? ` (${w.travelArea})` : ""} — bez restauracji, opcja „Mam miejsce" pojawi się przy wyborze miejsca.
+            🚗 Ten artysta może też dojechać do Was{w.travelArea ? ` (${w.travelArea})` : ""} — bez restauracji, przez kafelek „Mam miejsce" na stronie głównej.
           </div>
         )}
 
@@ -1076,9 +1076,9 @@ function PathTiles({ activeKey, onSelect, labels = DEFAULT_PATH_TILE_LABELS }) {
     );
   };
   // Object.keys() zamiast dwóch zaszytych na sztywno kafelków — dzięki temu
-  // ten sam komponent obsługuje też 2-elementowy przełącznik "Wybierz miejsce
-  // / Mam miejsce" w kroku 2 (patrz PLACE_STEP_TOGGLE_LABELS), bez zmiany
-  // wyglądu ani zachowania dla dotychczasowych dwóch użyć (workshop/restaurant).
+  // ten sam komponent obsługuje też opcjonalny trzeci kafelek "Mam miejsce"
+  // (patrz withOwnPlaceTile), bez zmiany wyglądu ani zachowania dla
+  // dotychczasowych dwóch użyć (workshop/restaurant).
   return (
     <div className="home-cta-grid">
       {Object.keys(labels).map(tile)}
@@ -1091,13 +1091,17 @@ const KIDS_PATH_TILE_LABELS = {
   restaurant: { label:"Wybierz miejsce", sub:"Wiem, gdzie chcemy być" },
 };
 
-// Przełącznik w kroku 2 (tam, gdzie normalnie wybiera się restaurację) —
-// widoczny tylko, gdy wybrany artysta dojeżdża do klienta (travelsToClient).
-// Pozwala zamienić listę restauracji na formularz "wywiad o miejscu".
-const PLACE_STEP_TOGGLE_LABELS = {
-  restaurant: { label:"Wybierz miejsce", sub:"Restauracja albo kawiarnia" },
-  ownplace:   { label:"Mam miejsce / zaproś artystę do mnie", sub:"Dom, ogród, sala — dojedziemy do Was" },
-};
+// Trzeci, opcjonalny kafelek startowy — "Mam miejsce" (artysta dojeżdża do
+// klienta, bez restauracji). Doklejany do PathTiles obok "workshop"/"restaurant"
+// wszędzie tam, gdzie się one pojawiają (ekran główny, przełącznik w kroku 1),
+// ale TYLKO gdy w arkuszu jest choć jeden artysta z travelsToClient=tak
+// (wywołujący sam sprawdza to na przekazanej liście `workshops`). Osobny,
+// widoczny od razu kafelek (a nie coś ukrytego w środku kreatora) — łatwiej
+// go znaleźć niż poprzednią wersję zagnieżdżoną w kroku 2.
+const OWN_PLACE_TILE = { label:"Mam miejsce / zaproś artystę do mnie", sub:"Dom, ogród, sala — dojedziemy do Was" };
+function withOwnPlaceTile(labels, workshops) {
+  return workshops.some(w => w.travelsToClient === true) ? { ...labels, ownplace: OWN_PLACE_TILE } : labels;
+}
 
 // Sekcja "Kim jesteśmy" — wspólna dla ekranu klienta i widoku Współpraca.
 function AboutUsSection() {
@@ -1258,7 +1262,7 @@ function HomeScreen({ restaurants, workshops, onStart, groupSize, setGroupSize, 
 
         {/* 3. Dwa kafelki startowe */}
         <div ref={pathTilesRef} style={{ marginBottom:16, scrollMarginTop:20 }}>
-          <PathTiles activeKey="workshop" onSelect={onStart} />
+          <PathTiles activeKey="workshop" onSelect={onStart} labels={withOwnPlaceTile(DEFAULT_PATH_TILE_LABELS, workshops)} />
         </div>
       </div>
 
@@ -1306,7 +1310,7 @@ function KidsHomeScreen({ restaurants, workshops, onStart, kidsCount, setKidsCou
         />
 
         <div style={{ marginBottom:16 }}>
-          <PathTiles activeKey="workshop" onSelect={onStart} labels={KIDS_PATH_TILE_LABELS} />
+          <PathTiles activeKey="workshop" onSelect={onStart} labels={withOwnPlaceTile(KIDS_PATH_TILE_LABELS, workshops.filter(w => w.forKids))} />
         </div>
       </div>
 
@@ -1320,9 +1324,11 @@ function KidsHomeScreen({ restaurants, workshops, onStart, kidsCount, setKidsCou
 // ══ Pasek postępu kreatora ═══════════════════════════════════
 
 function WizardProgressBar({ step, path, onStepClick }) {
-  const labels = path === "workshop"
-    ? ["Warsztat", "Miejsce", "Podsumowanie"]
-    : ["Miejsce", "Warsztat", "Podsumowanie"];
+  const labels = path === "restaurant"
+    ? ["Miejsce", "Warsztat", "Podsumowanie"]
+    : path === "ownplace"
+      ? ["Warsztat", "Twoje miejsce", "Podsumowanie"]
+      : ["Warsztat", "Miejsce", "Podsumowanie"];
   return (
     <div style={{ display:"flex", alignItems:"flex-start", maxWidth:640, margin:"0 auto", padding:"18px 16px 0" }}>
       {labels.map((l, i) => {
@@ -1801,7 +1807,7 @@ export default function App() {
   // — otwiera od razu widok Współpraca z rozwiniętym regulaminem.
   const openPartnerTermsOnLoad = new URLSearchParams(window.location.search).get("regulamin") === "partnerzy";
   const [mode,            setMode]            = useState(openPartnerTermsOnLoad ? "b2b" : "client"); // "client" | "b2b" | "kids"
-  const [path,            setPath]            = useState(null);     // null | "workshop" | "restaurant" — null = ekran powitalny
+  const [path,            setPath]            = useState(null);     // null | "workshop" | "restaurant" | "ownplace" — null = ekran powitalny
   const [wizardStep,      setWizardStep]      = useState(1);         // 1..3
   const [submitted,       setSubmitted]       = useState(false);
   const [selectedR,       setSelectedR]       = useState(null);
@@ -1810,7 +1816,8 @@ export default function App() {
   const [groupSize,       setGroupSize]       = useState(null);
   const [kidsCount,       setKidsCount]       = useState(null);      // tryb "kids" — liczba dzieci, liczy się do ceny
   const [adultsCount,     setAdultsCount]     = useState(null);      // tryb "kids" — wyłącznie informacyjne
-  const [ownPlace,        setOwnPlace]        = useState(false);     // krok 2: "Mam miejsce" zamiast wyboru restauracji
+  // "Mam miejsce" to trzeci top-level path (obok "workshop"/"restaurant"),
+  // nie osobny toggle — patrz const path poniżej ("workshop"|"restaurant"|"ownplace").
   const [placeInfo,       setPlaceInfo]       = useState({ address:"", placeType:"", hasSeparateRoom:"", area:"", hasTables:"", hasWater:"", notes:"" });
   const [profileItem,     setProfileItem]     = useState(null);
   const [selectedDate,    setSelectedDate]    = useState("");
@@ -1890,7 +1897,7 @@ export default function App() {
     setSelectedR(null); setSelectedVariant(null); setSelectedW(null);
     setGroupSize(null); setSelectedDate(""); setSelectedTime("");
     setKidsCount(null); setAdultsCount(null);
-    setOwnPlace(false); setPlaceInfo({ address:"", placeType:"", hasSeparateRoom:"", area:"", hasTables:"", hasWater:"", notes:"" });
+    setPlaceInfo({ address:"", placeType:"", hasSeparateRoom:"", area:"", hasTables:"", hasWater:"", notes:"" });
   };
 
   // Przełącznik trybu kreatora (client/kids) w nagłówku — porównanie z samym
@@ -1934,6 +1941,10 @@ export default function App() {
   const compatibleRestaurants = restaurants.filter(r => r.comingSoon || isCompatible(workshop, r));
   const compatibleWorkshops   = workshops.filter(w => w.comingSoon || isCompatible(w, restaurant));
 
+  // Krok 1 ścieżki "Mam miejsce" — tylko artyści z travelsToClient=tak
+  // (żadnego dopasowania do restauracji, bo jej tu w ogóle nie ma).
+  const ownPlaceWorkshops = workshops.filter(w => w.comingSoon || w.travelsToClient === true);
+
   const variant    = restaurant?.variants.find(v => v.id === selectedVariant);
   const ppp        = (variant?.price ?? 0) + (workshop?.pricePerPerson ?? 0);
   const total      = ppp * groupSize;
@@ -1971,6 +1982,7 @@ export default function App() {
     .filter(r => r.comingSoon || isKidsCompatible(workshop, r))
     .map(toKidsRestaurantView);
   const compatibleWorkshopsKids = workshops.filter(w => w.comingSoon || isKidsCompatible(w, restaurant));
+  const ownPlaceWorkshopsKids = workshops.filter(w => w.comingSoon || (w.travelsToClient === true && w.forKids));
 
   const kidsVariant = restaurant?.kidsVariants?.find(v => v.id === selectedVariant);
   const kidsPriceKnown = kidsVariant && kidsVariant.price != null;
@@ -2026,20 +2038,23 @@ export default function App() {
     );
   }
 
-  const step1Kind = path === "workshop" ? "workshop" : "restaurant";
-  const step2Kind = path === "workshop" ? "restaurant" : "workshop";
-  const step1Selected = path === "workshop" ? !!selectedW : !!selectedR;
+  // "restaurant" jest tu jedyną "specjalną" gałęzią — "workshop" i "ownplace"
+  // zachowują się tak samo w krokach 1/1-wybór (artysta najpierw), różnią się
+  // dopiero w kroku 2 (patrz ownPlace/step2Selected niżej).
+  const step1Kind = path === "restaurant" ? "restaurant" : "workshop";
+  const step2Kind = path === "restaurant" ? "workshop" : "restaurant";
+  const step1Selected = path === "restaurant" ? !!selectedR : !!selectedW;
 
-  // Ścieżka "Mam miejsce" — tylko gdy wybrany artysta dojeżdża do klienta
-  // (travelsToClient=tak w arkuszu). `ownPlaceActive` dodatkowo chroni przed
-  // "uwięzieniem" w formularzu wywiadu, gdyby klient zmienił artystę na
-  // takiego, który nie dojeżdża, mając wcześniej włączony przełącznik.
-  const ownPlaceEligible = step2Kind === "restaurant" && workshop?.travelsToClient === true;
-  const ownPlaceActive = ownPlaceEligible && ownPlace;
+  // Ścieżka "Mam miejsce" — osobny top-level path, wybierany od razu kafelkiem
+  // na starcie (obok "Wybierz warsztat"/"Wybierz restaurację" — patrz
+  // withOwnPlaceTile). Krok 1 pokazuje tylko artystów z travelsToClient=tak
+  // (filtrowanie w items poniżej), krok 2 to zawsze formularz wywiadu o
+  // miejscu — bez listy restauracji i bez dodatkowego przełącznika.
+  const ownPlace = path === "ownplace";
 
-  const step2Selected = ownPlaceActive
+  const step2Selected = ownPlace
     ? placeInfo.address.trim() !== ""
-    : (path === "workshop" ? !!selectedR : !!selectedW);
+    : (path === "restaurant" ? !!selectedW : !!selectedR);
 
   return (
     <div style={{ fontFamily:"'Montserrat', system-ui, sans-serif", background:C.bg, minHeight:"100vh", color:C.text }}>
@@ -2103,12 +2118,12 @@ export default function App() {
                   <WizardStickyBar
                     restaurant={restaurant} workshop={workshop}
                     groupSize={kidsCount}
-                    ppp={ownPlaceActive ? (kidsWorkshopPpp ?? 0) : (kidsPpp ?? 0)}
-                    total={ownPlaceActive ? (kidsWorkshopTotal ?? 0) : (kidsTotal ?? 0)}
+                    ppp={ownPlace ? (kidsWorkshopPpp ?? 0) : (kidsPpp ?? 0)}
+                    total={ownPlace ? (kidsWorkshopTotal ?? 0) : (kidsTotal ?? 0)}
                     workshopOnlyPpp={kidsWorkshopPpp ?? 0} workshopOnlyTotal={kidsWorkshopTotal ?? 0}
                     canAdvance={wizardStep === 1 ? step1Selected : step2Selected}
                     nextLabel="Dalej"
-                    priceUnavailableLabel={!ownPlaceActive && restaurant?.kidsVariants?.length && !kidsPriceKnown ? "Cenę ustalisz bezpośrednio z restauracją" : undefined}
+                    priceUnavailableLabel={!ownPlace && restaurant?.kidsVariants?.length && !kidsPriceKnown ? "Cenę ustalisz bezpośrednio z restauracją" : undefined}
                     onNext={() => {
                       if (wizardStep === 1 && selectedW && selectedR) setWizardStep(3);
                       else setWizardStep(s => s + 1);
@@ -2121,11 +2136,11 @@ export default function App() {
                 {wizardStep === 1 && (
                   <>
                     <div style={{ maxWidth:900, margin:"0 auto", padding:"0 16px" }}>
-                      <PathTiles activeKey={path} onSelect={switchPath} labels={KIDS_PATH_TILE_LABELS} />
+                      <PathTiles activeKey={path} onSelect={switchPath} labels={withOwnPlaceTile(KIDS_PATH_TILE_LABELS, workshops.filter(w => w.forKids))} />
                     </div>
                     <PickStep
                       kind={step1Kind}
-                      items={step1Kind === "workshop" ? compatibleWorkshopsKids : compatibleRestaurantsKids}
+                      items={ownPlace ? ownPlaceWorkshopsKids : (step1Kind === "workshop" ? compatibleWorkshopsKids : compatibleRestaurantsKids)}
                       selectedId={step1Kind === "workshop" ? selectedW : selectedR}
                       selectedVariantId={selectedVariant}
                       onToggle={id => step1Kind === "workshop" ? setSelectedW(selectedW === id ? null : id) : handleToggleR(id)}
@@ -2138,47 +2153,40 @@ export default function App() {
                   </>
                 )}
                 {wizardStep === 2 && (
-                  <>
-                    {ownPlaceEligible && (
-                      <div style={{ maxWidth:900, margin:"0 auto", padding:"0 16px" }}>
-                        <PathTiles activeKey={ownPlaceActive ? "ownplace" : "restaurant"} onSelect={key => setOwnPlace(key === "ownplace")} labels={PLACE_STEP_TOGGLE_LABELS} />
-                      </div>
-                    )}
-                    {ownPlaceActive ? (
-                      <PlaceInterviewForm value={placeInfo} onChange={setPlaceInfo} travelArea={workshop?.travelArea} kidsMode />
-                    ) : (
-                      <PickStep
-                        kind={step2Kind}
-                        items={step2Kind === "workshop" ? compatibleWorkshopsKids : compatibleRestaurantsKids}
-                        selectedId={step2Kind === "workshop" ? selectedW : selectedR}
-                        selectedVariantId={selectedVariant}
-                        onToggle={id => step2Kind === "workshop" ? setSelectedW(selectedW === id ? null : id) : handleToggleR(id)}
-                        onVariantSelect={vid => setSelectedVariant(vid)}
-                        onProfile={item => setProfileItem({ item, type: step2Kind })}
-                        onFallback={() => setWizardStep(3)}
-                        onBackToStep1={() => window.history.back()}
-                        notice={step2Kind === "restaurant" ? [
-                          workshop?.requiresSeparateRoom && "Pokazujemy miejsca z osobną salą — tego wymaga wybrany warsztat.",
-                          selectedTime && selectedDate && "Pokazujemy miejsca otwarte o tej porze w wybranym dniu, w których warsztat zdąży się skończyć przed zamknięciem.",
-                        ].filter(Boolean) : null}
-                        kidsMode
-                      />
-                    )}
-                  </>
+                  ownPlace ? (
+                    <PlaceInterviewForm value={placeInfo} onChange={setPlaceInfo} travelArea={workshop?.travelArea} kidsMode />
+                  ) : (
+                    <PickStep
+                      kind={step2Kind}
+                      items={step2Kind === "workshop" ? compatibleWorkshopsKids : compatibleRestaurantsKids}
+                      selectedId={step2Kind === "workshop" ? selectedW : selectedR}
+                      selectedVariantId={selectedVariant}
+                      onToggle={id => step2Kind === "workshop" ? setSelectedW(selectedW === id ? null : id) : handleToggleR(id)}
+                      onVariantSelect={vid => setSelectedVariant(vid)}
+                      onProfile={item => setProfileItem({ item, type: step2Kind })}
+                      onFallback={() => setWizardStep(3)}
+                      onBackToStep1={() => window.history.back()}
+                      notice={step2Kind === "restaurant" ? [
+                        workshop?.requiresSeparateRoom && "Pokazujemy miejsca z osobną salą — tego wymaga wybrany warsztat.",
+                        selectedTime && selectedDate && "Pokazujemy miejsca otwarte o tej porze w wybranym dniu, w których warsztat zdąży się skończyć przed zamknięciem.",
+                      ].filter(Boolean) : null}
+                      kidsMode
+                    />
+                  )
                 )}
                 {wizardStep === 3 && (
                   <Step4ContactForm
-                    restaurant={ownPlaceActive ? undefined : restaurant} variant={kidsVariant} workshop={workshop}
+                    restaurant={ownPlace ? undefined : restaurant} variant={kidsVariant} workshop={workshop}
                     groupSize={kidsCount}
                     selectedDate={selectedDate} onDateChange={setSelectedDate}
                     selectedTime={selectedTime} onTimeChange={setSelectedTime}
-                    ppp={ownPlaceActive ? (kidsWorkshopPpp ?? 0) : (kidsPpp ?? 0)}
-                    total={ownPlaceActive ? (kidsWorkshopTotal ?? 0) : (kidsTotal ?? 0)}
+                    ppp={ownPlace ? (kidsWorkshopPpp ?? 0) : (kidsPpp ?? 0)}
+                    total={ownPlace ? (kidsWorkshopTotal ?? 0) : (kidsTotal ?? 0)}
                     workshopOnlyTotal={kidsWorkshopTotal ?? 0}
                     onEditStep={n => setWizardStep(n)}
                     onSubmitted={() => setSubmitted(true)}
                     kidsMode kidsCount={kidsCount} adultsCount={adultsCount}
-                    ownPlace={ownPlaceActive} placeInfo={placeInfo}
+                    ownPlace={ownPlace} placeInfo={placeInfo}
                   />
                 )}
               </div>
@@ -2232,11 +2240,11 @@ export default function App() {
                 {wizardStep === 1 && (
                   <>
                     <div style={{ maxWidth:900, margin:"0 auto", padding:"0 16px" }}>
-                      <PathTiles activeKey={path} onSelect={switchPath} />
+                      <PathTiles activeKey={path} onSelect={switchPath} labels={withOwnPlaceTile(DEFAULT_PATH_TILE_LABELS, workshops)} />
                     </div>
                     <PickStep
                     kind={step1Kind}
-                    items={step1Kind === "workshop" ? compatibleWorkshops : compatibleRestaurants}
+                    items={ownPlace ? ownPlaceWorkshops : (step1Kind === "workshop" ? compatibleWorkshops : compatibleRestaurants)}
                     selectedId={step1Kind === "workshop" ? selectedW : selectedR}
                     selectedVariantId={selectedVariant}
                     onToggle={id => step1Kind === "workshop" ? setSelectedW(selectedW === id ? null : id) : handleToggleR(id)}
@@ -2248,43 +2256,36 @@ export default function App() {
                   </>
                 )}
                 {wizardStep === 2 && (
-                  <>
-                    {ownPlaceEligible && (
-                      <div style={{ maxWidth:900, margin:"0 auto", padding:"0 16px" }}>
-                        <PathTiles activeKey={ownPlaceActive ? "ownplace" : "restaurant"} onSelect={key => setOwnPlace(key === "ownplace")} labels={PLACE_STEP_TOGGLE_LABELS} />
-                      </div>
-                    )}
-                    {ownPlaceActive ? (
-                      <PlaceInterviewForm value={placeInfo} onChange={setPlaceInfo} travelArea={workshop?.travelArea} />
-                    ) : (
-                      <PickStep
-                        kind={step2Kind}
-                        items={step2Kind === "workshop" ? compatibleWorkshops : compatibleRestaurants}
-                        selectedId={step2Kind === "workshop" ? selectedW : selectedR}
-                        selectedVariantId={selectedVariant}
-                        onToggle={id => step2Kind === "workshop" ? setSelectedW(selectedW === id ? null : id) : handleToggleR(id)}
-                        onVariantSelect={vid => setSelectedVariant(vid)}
-                        onProfile={item => setProfileItem({ item, type: step2Kind })}
-                        onFallback={() => setWizardStep(3)}
-                        onBackToStep1={() => window.history.back()}
-                        notice={step2Kind === "restaurant" ? [
-                          workshop?.requiresSeparateRoom && "Pokazujemy miejsca z osobną salą — tego wymaga wybrany warsztat.",
-                          selectedTime && selectedDate && "Pokazujemy miejsca otwarte o tej porze w wybranym dniu, w których warsztat zdąży się skończyć przed zamknięciem.",
-                        ].filter(Boolean) : null}
-                      />
-                    )}
-                  </>
+                  ownPlace ? (
+                    <PlaceInterviewForm value={placeInfo} onChange={setPlaceInfo} travelArea={workshop?.travelArea} />
+                  ) : (
+                    <PickStep
+                      kind={step2Kind}
+                      items={step2Kind === "workshop" ? compatibleWorkshops : compatibleRestaurants}
+                      selectedId={step2Kind === "workshop" ? selectedW : selectedR}
+                      selectedVariantId={selectedVariant}
+                      onToggle={id => step2Kind === "workshop" ? setSelectedW(selectedW === id ? null : id) : handleToggleR(id)}
+                      onVariantSelect={vid => setSelectedVariant(vid)}
+                      onProfile={item => setProfileItem({ item, type: step2Kind })}
+                      onFallback={() => setWizardStep(3)}
+                      onBackToStep1={() => window.history.back()}
+                      notice={step2Kind === "restaurant" ? [
+                        workshop?.requiresSeparateRoom && "Pokazujemy miejsca z osobną salą — tego wymaga wybrany warsztat.",
+                        selectedTime && selectedDate && "Pokazujemy miejsca otwarte o tej porze w wybranym dniu, w których warsztat zdąży się skończyć przed zamknięciem.",
+                      ].filter(Boolean) : null}
+                    />
+                  )
                 )}
                 {wizardStep === 3 && (
                   <Step4ContactForm
-                    restaurant={ownPlaceActive ? undefined : restaurant} variant={variant} workshop={workshop}
+                    restaurant={ownPlace ? undefined : restaurant} variant={variant} workshop={workshop}
                     groupSize={groupSize}
                     selectedDate={selectedDate} onDateChange={setSelectedDate}
                     selectedTime={selectedTime} onTimeChange={setSelectedTime}
                     ppp={ppp} total={total}
                     onEditStep={n => setWizardStep(n)}
                     onSubmitted={() => setSubmitted(true)}
-                    ownPlace={ownPlaceActive} placeInfo={placeInfo}
+                    ownPlace={ownPlace} placeInfo={placeInfo}
                   />
                 )}
               </div>
