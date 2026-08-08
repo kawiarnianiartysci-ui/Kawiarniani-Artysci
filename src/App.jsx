@@ -278,6 +278,22 @@ const globalCSS = `
     from { transform: translateX(0); }
     to { transform: translateX(-50%); }
   }
+  /* Pola Data w panelach filtrów: kolor natywnego tekstu jest sterowany
+     inline (przezroczysty gdy puste, brązowy po wyborze — patrz filter-date
+     w JSX), tu tylko podmieniamy natywną ikonę kalendarza na spójną z
+     projektem (jedna szara-brązowa kreska zamiast systemowej) i wymuszamy
+     jasny motyw popupu kalendarza niezależnie od trybu systemu. */
+  .filter-date { color-scheme: light; }
+  .filter-date::-webkit-calendar-picker-indicator {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%236B6862' stroke-width='1.7' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='3' y='5' width='18' height='16' rx='3'/%3E%3Cpath d='M8 3v4M16 3v4M3 10h18'/%3E%3C/svg%3E");
+    background-size: 15px 15px;
+    background-repeat: no-repeat;
+    background-position: center;
+    width: 17px;
+    height: 17px;
+    opacity: 0.85;
+    cursor: pointer;
+  }
 `;
 
 // ══ Profil modal ════════════════════════════════════════════
@@ -912,6 +928,21 @@ for (let h = 10; h <= 18; h++) {
 // początek klipu, żeby szybciej było widać ludzi przy malowaniu.
 const HERO_VIDEO_START = 5;
 
+// Dekoracyjna ikonka zegara przy polu Godzina — to zwykły <select> (nie
+// input[type=time]), więc nie ma natywnej ikony do przestylowania jak przy
+// Data (patrz .filter-date w globalCSS); rysujemy więc własną, spójną z nią
+// stylistycznie. `pointerEvents:"none"`, żeby klik nadal trafiał w <select>
+// pod spodem i otwierał natywną listę.
+function ClockIcon({ color }) {
+  return (
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"
+      style={{ position:"absolute", right:0, top:"50%", transform:"translateY(-50%)", pointerEvents:"none", opacity:0.85 }}>
+      <circle cx="12" cy="12" r="9" />
+      <path d="M12 7v5l3 2" />
+    </svg>
+  );
+}
+
 // Panel filtrów na stronie głównej — jeden wspólny zaokrąglony pasek
 // podzielony cienką linią. Pole z wybraną wartością dostaje tylko
 // delikatne brązowe obramowanie (bez wypełnienia); puste pola są całkiem
@@ -963,8 +994,8 @@ function HomeFilterBar({ groupSize, setGroupSize, selectedDate, setSelectedDate,
 
         <div onClick={() => setOpenField(null)} style={segStyle(!!selectedDate)}>
           <div style={segLabel(!!selectedDate)}>DATA</div>
-          <input type="date" value={selectedDate} min={MIN_BOOKING_DATE} onChange={e => setSelectedDate(e.target.value)} onFocus={() => setOpenField(null)}
-            style={{ ...segValue(!!selectedDate), border:"none", background:"transparent", padding:0, width:"100%", cursor:"pointer", fontFamily:"'Montserrat', system-ui, sans-serif" }} />
+          <input type="date" className="filter-date" value={selectedDate} min={MIN_BOOKING_DATE} onChange={e => setSelectedDate(e.target.value)} onFocus={() => setOpenField(null)}
+            style={{ ...segValue(!!selectedDate), color: selectedDate ? C.primary : "transparent", border:"none", background:"transparent", padding:"0 20px 0 0", width:"100%", cursor:"pointer", fontFamily:"'Montserrat', system-ui, sans-serif" }} />
         </div>
 
         <div className="search-divider" style={{ background:C.border }} />
@@ -972,10 +1003,11 @@ function HomeFilterBar({ groupSize, setGroupSize, selectedDate, setSelectedDate,
         <div onClick={() => setOpenField(null)} style={segStyle(!!selectedTime)}>
           <div style={segLabel(!!selectedTime)}>GODZINA</div>
           <select value={selectedTime} onChange={e => setSelectedTime(e.target.value)} onFocus={() => setOpenField(null)}
-            style={{ ...segValue(!!selectedTime), border:"none", background:"transparent", padding:0, width:"100%", cursor:"pointer", fontFamily:"'Montserrat', system-ui, sans-serif", appearance:"none", WebkitAppearance:"none" }}>
+            style={{ ...segValue(!!selectedTime), border:"none", background:"transparent", padding:"0 20px 0 0", width:"100%", cursor:"pointer", fontFamily:"'Montserrat', system-ui, sans-serif", appearance:"none", WebkitAppearance:"none" }}>
             <option value=""></option>
             {TIME_OPTIONS.map(t => <option key={t} value={t}>{t}</option>)}
           </select>
+          <ClockIcon color={selectedTime ? C.primary : C.muted} />
         </div>
       </div>
     </div>
@@ -1033,17 +1065,18 @@ function KidsFilterBar({ kidsCount, setKidsCount, adultsCount, setAdultsCount, s
         <div className="search-divider" style={{ background:C.border }} />
         <div onClick={() => setOpenField(null)} style={segStyle(!!selectedDate)}>
           <div style={segLabel(!!selectedDate)}>DATA</div>
-          <input type="date" value={selectedDate} min={MIN_BOOKING_DATE} onChange={e => setSelectedDate(e.target.value)} onFocus={() => setOpenField(null)}
-            style={{ ...segValue(!!selectedDate), border:"none", background:"transparent", padding:0, width:"100%", cursor:"pointer", fontFamily:"'Montserrat', system-ui, sans-serif" }} />
+          <input type="date" className="filter-date" value={selectedDate} min={MIN_BOOKING_DATE} onChange={e => setSelectedDate(e.target.value)} onFocus={() => setOpenField(null)}
+            style={{ ...segValue(!!selectedDate), color: selectedDate ? C.primary : "transparent", border:"none", background:"transparent", padding:"0 20px 0 0", width:"100%", cursor:"pointer", fontFamily:"'Montserrat', system-ui, sans-serif" }} />
         </div>
         <div className="search-divider" style={{ background:C.border }} />
         <div onClick={() => setOpenField(null)} style={segStyle(!!selectedTime)}>
           <div style={segLabel(!!selectedTime)}>GODZINA</div>
           <select value={selectedTime} onChange={e => setSelectedTime(e.target.value)} onFocus={() => setOpenField(null)}
-            style={{ ...segValue(!!selectedTime), border:"none", background:"transparent", padding:0, width:"100%", cursor:"pointer", fontFamily:"'Montserrat', system-ui, sans-serif", appearance:"none", WebkitAppearance:"none" }}>
+            style={{ ...segValue(!!selectedTime), border:"none", background:"transparent", padding:"0 20px 0 0", width:"100%", cursor:"pointer", fontFamily:"'Montserrat', system-ui, sans-serif", appearance:"none", WebkitAppearance:"none" }}>
             <option value=""></option>
             {TIME_OPTIONS.map(t => <option key={t} value={t}>{t}</option>)}
           </select>
+          <ClockIcon color={selectedTime ? C.primary : C.muted} />
         </div>
       </div>
     </div>
@@ -1098,7 +1131,7 @@ const KIDS_PATH_TILE_LABELS = {
 // (wywołujący sam sprawdza to na przekazanej liście `workshops`). Osobny,
 // widoczny od razu kafelek (a nie coś ukrytego w środku kreatora) — łatwiej
 // go znaleźć niż poprzednią wersję zagnieżdżoną w kroku 2.
-const OWN_PLACE_TILE = { label:"Mam miejsce / zaproś artystę do mnie", sub:"Dom, ogród, sala — dojedziemy do Was" };
+const OWN_PLACE_TILE = { label:"Mam miejsce, zaproście artystę", sub:"Przyjedziemy do Was" };
 function withOwnPlaceTile(labels, workshops) {
   return workshops.some(w => w.travelsToClient === true) ? { ...labels, ownplace: OWN_PLACE_TILE } : labels;
 }
