@@ -1,10 +1,10 @@
 import { Resend } from "resend";
-import { FROM_EMAIL, OWNER_EMAIL, SITE_URL, htmlPage, verifyAndDecode, signPayload, emailHtml } from "./_shared.js";
+import { FROM_EMAIL, OWNER_EMAIL, SITE_URL, htmlPage, verifyAndDecode, signPayload, emailHtml, nl2br } from "./_shared.js";
 
 export default async function handler(req, res) {
-  const { action, data, sig, confirm } = req.query;
+  const { action, data, sig, confirm, dates } = req.query;
 
-  if (action !== "accept" && action !== "decline") {
+  if (action !== "accept" && action !== "decline" && action !== "propose") {
     res.status(400).send(htmlPage("Nieprawidłowy link", "Ten link jest nieprawidłowy."));
     return;
   }
@@ -15,7 +15,6 @@ export default async function handler(req, res) {
     return;
   }
 
-  const accepted = action === "accept";
   const { clientName, restaurantName, workshopName, date, groupSize, isKidsEvent, kidsCount, adultsCount, kidsPackageName, kidsAmountLabel } = payload;
 
   // Sekcja doklejana do maili, tylko gdy zapytanie dotyczy eventu dla dzieci —
@@ -30,6 +29,131 @@ export default async function handler(req, res) {
         <li>Kwota: ${kidsAmountLabel || "do ustalenia"}</li>
       </ul>
     ` : "";
+
+  // === Trzecia ścieżka: artysta proponuje inne terminy zamiast akceptować/odrzucać ===
+  // Osobna gałąź, bo (w odróżnieniu od accept/decline) potrzebuje dodatkowego
+  // wejścia od artysty (tekst z datami) zanim cokolwiek wyśle — ta strona
+  // formularza pełni tu tę samą rolę co krok "potwierdź" dla accept/decline.
+  if (action === "propose") {
+    const { clientEmail, clientPhone, restaurantEmail, artistEmail, artistName } = payload;
+    const proposedDates = (dates || "").trim();
+    const isClassic = !!restaurantEmail;
+
+    if (!proposedDates) {
+      const details = `<strong>${workshopName || ""}</strong> — ${restaurantName || ""}<br>Pierwotny termin: ${date || "do ustalenia"} · ${isKidsEvent ? `${kidsCount ?? "-"} dzieci + ${adultsCount ?? "-"} dorosłych` : `${groupSize || "-"} os.`} · Klient: ${clientName || ""}`;
+      res.status(200).send(`<!doctype html><html lang="pl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Zaproponuj inne terminy</title>
+<style>
+  body{font-family:system-ui,-apple-system,sans-serif;background:#EDEBE6;display:flex;align-items:center;justify-content:center;min-height:100vh;margin:0;padding:16px;}
+  .box{background:#fff;padding:40px 32px;border-radius:16px;max-width:440px;width:100%;text-align:center;}
+  h1{font-size:22px;font-weight:600;color:#1A1A1A;margin:0 0 14px;}
+  p{color:#6B6862;font-size:15px;line-height:1.6;margin:0 0 20px;}
+  textarea{width:100%;box-sizing:border-box;min-height:110px;border-radius:9px;border:1px solid #ccc;padding:12px;font-size:15px;font-family:inherit;margin:0 0 16px;resize:vertical;}
+  button{width:100%;padding:13px 24px;border:none;border-radius:9px;text-decoration:none;font-weight:600;font-size:15px;background:#432A16;color:#fff;cursor:pointer;}
+</style>
+</head><body><div class="box"><h1>Zaproponuj inne terminy</h1><p>${details}</p>
+<form method="GET" action="/api/respond">
+  <input type="hidden" name="action" value="propose">
+  <input type="hidden" name="data" value="${data}">
+  <input type="hidden" name="sig" value="${sig}">
+  <textarea name="dates" required placeholder="np. 12.09 po 16:00, 14.09 cały dzień"></textarea>
+  <button type="submit">Wyślij propozycję</button>
+</form>
+</div></body></html>`);
+      return;
+    }
+
+    try {
+      const resend = new Resend(process.env.RESEND_API_KEY);
+      const sends = [];
+      const datesHtml = nl2br(proposedDates);
+
+      const artistContact = `${artistName || "Artysta"}${artistEmail ? ` · ${artistEmail}` : ""}`;
+      const clientContact = `${clientName || "Klient"}${clientEmail ? ` · ${clientEmail}` : ""}${clientPhone ? ` · ${clientPhone}` : ""}`;
+      const restaurantContact = `${restaurantName || "Restauracja"}${restaurantEmail ? ` · ${restaurantEmail}` : ""}`;
+
+      // Klient: zawsze, jeśli mamy jego adres.
+      if (clientEmail) {
+        sends.push(resend.emails.send({
+          from: FROM_EMAIL,
+          to: clientEmail,
+          subject: `Nowa propozycja terminu — ${workshopName || ""}`,
+          html: emailHtml(`
+            <p>Cześć ${clientName || ""},</p>
+            ${kidsEventBlock}
+            <p>Niestety pierwotny termin (${date || "do ustalenia"}) nie pasuje artyście. Proponuje inne terminy:</p>
+            <p><strong>${datesHtml}</strong></p>
+            <p>Prosimy ustalić szczegóły bezpośrednio z artystą${isClassic ? " i restauracją" : ""}:</p>
+            <ul>
+              <li>Artysta: ${artistContact}</li>
+              ${isClassic ? `<li>Restauracja: ${restaurantContact}</li>` : ""}
+            </ul>
+            <p>Pozdrawiamy,<br>Kawiarniani Artyści</p>
+          `),
+        }));
+      }
+
+      // Restauracja: tylko w ścieżce klasycznej — ten sam mail pełni też rolę
+      // informacji "pierwotny termin odpada, nie trzymajcie stolika w zawieszeniu".
+      if (isClassic) {
+        sends.push(resend.emails.send({
+          from: FROM_EMAIL,
+          to: restaurantEmail,
+          subject: `Artysta proponuje inny termin — ${workshopName || ""}`,
+          html: emailHtml(`
+            <p>Cześć!</p>
+            ${kidsEventBlock}
+            <p>Pierwotny termin (${date || "do ustalenia"}) nie pasuje artyście <strong>${artistName || workshopName || ""}</strong>. Proponuje inne terminy:</p>
+            <p><strong>${datesHtml}</strong></p>
+            <p>Prosimy ustalić szczegóły bezpośrednio z klientem i artystą — dalsze ustalenia są teraz po Waszej stronie:</p>
+            <ul>
+              <li>Klient: ${clientContact}</li>
+              <li>Artysta: ${artistContact}</li>
+            </ul>
+            <p>Pozdrawiamy,<br>Kawiarniani Artyści</p>
+          `),
+        }));
+      }
+
+      // Artysta: osobne potwierdzenie — on zna już swoje daty, potrzebuje
+      // informacji, że sprawa poszła dalej i jest teraz po jego stronie.
+      if (artistEmail) {
+        sends.push(resend.emails.send({
+          from: FROM_EMAIL,
+          to: artistEmail,
+          subject: `Propozycja terminów przekazana — ${workshopName || ""}`,
+          html: emailHtml(`
+            <p>Cześć ${artistName || ""}!</p>
+            ${kidsEventBlock}
+            <p>Przekazaliśmy Twoją propozycję terminów klientowi${isClassic ? " i restauracji" : ""}:</p>
+            <p><strong>${datesHtml}</strong></p>
+            <p>Sprawa jest teraz po Waszej stronie — ustalcie szczegóły bezpośrednio:</p>
+            <ul>
+              <li>Klient: ${clientContact}</li>
+              ${isClassic ? `<li>Restauracja: ${restaurantContact}</li>` : ""}
+            </ul>
+            <p>Pozdrawiamy,<br>Kawiarniani Artyści</p>
+          `),
+        }));
+      }
+
+      sends.push(resend.emails.send({
+        from: FROM_EMAIL,
+        to: OWNER_EMAIL,
+        subject: `Artysta proponuje inny termin: ${restaurantName || ""} + ${workshopName || ""}`,
+        html: emailHtml(`<p>Artysta ${artistName || workshopName || ""} zaproponował inne terminy dla zapytania od ${clientName || ""} (${restaurantName || "bez restauracji"}, pierwotny termin: ${date || "-"}).</p><p>Zaproponowane terminy:<br>${datesHtml}</p>${kidsEventBlock}`),
+      }));
+
+      await Promise.all(sends);
+
+      res.status(200).send(htmlPage("Wysłano!", "Przekazaliśmy Twoją propozycję terminów. Dalsze ustalenia są teraz bezpośrednio między Wami."));
+    } catch (err) {
+      console.error(err);
+      res.status(500).send(htmlPage("Błąd", "Coś poszło nie tak przy wysyłce propozycji. Spróbuj ponownie za chwilę lub napisz do Joanny."));
+    }
+    return;
+  }
+
+  const accepted = action === "accept";
 
   // Krok pośredni — chroni przed przypadkowym "kliknięciem" linku przez skanery
   // bezpieczeństwa w skrzynkach mailowych, które same otwierają linki z maila.

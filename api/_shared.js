@@ -29,6 +29,20 @@ export function verifyAndDecode(data, sig) {
   }
 }
 
+// Ucieka znaki specjalne HTML — używane dla wolnego tekstu wpisanego przez
+// artystę (propozycja terminów), żeby nie dało się wstrzyknąć znaczników do maila.
+export function escapeHtml(str) {
+  return String(str || "").replace(/[&<>"']/g, (ch) => ({
+    "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;",
+  }[ch]));
+}
+
+// Jak escapeHtml, ale dodatkowo zamienia nowe linie na <br> — do wielolinijkowego
+// pola z propozycją terminów.
+export function nl2br(str) {
+  return escapeHtml(str).replace(/\r\n|\r|\n/g, "<br>");
+}
+
 // Owija treść maila w pełny dokument z deklaracją UTF-8 — bez tego
 // niektóre skrzynki źle zgadują kodowanie i polskie znaki zamieniają
 // się w "�".
