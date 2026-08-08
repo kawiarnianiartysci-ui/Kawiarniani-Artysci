@@ -182,6 +182,10 @@ function workshopFromRow(row) {
     canInvoice: toTriBool(row.canInvoice),
     forKids: toBool(row.forKids) || undefined,
     kidsMinAge: toNum(row.kidsMinAge) ?? undefined,
+    // Na razie tylko wczytujemy i pokazujemy w profilu — wyłącznik ograniczający
+    // artystę do ścieżki "mam miejsce" (gdy travelsToClient=nie) jeszcze nie jest wpięty.
+    travelsToClient: toTriBool(row.travelsToClient),
+    travelArea: row.travelArea || undefined,
   };
 }
 
