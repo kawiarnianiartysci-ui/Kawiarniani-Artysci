@@ -1367,7 +1367,7 @@ function WizardProgressBar({ step, path, onStepClick }) {
       ? ["Warsztat", "Twoje miejsce", "Podsumowanie"]
       : ["Warsztat", "Miejsce", "Podsumowanie"];
   return (
-    <div style={{ display:"flex", alignItems:"flex-start", maxWidth:640, margin:"0 auto", padding:"18px 16px 0" }}>
+    <div style={{ display:"flex", alignItems:"flex-start", maxWidth:1160, margin:"0 auto", padding:"18px 16px 0" }}>
       {labels.map((l, i) => {
         const n = i + 1;
         const active = n === step;
@@ -1398,7 +1398,7 @@ function PickStep({ kind, items, selectedId, selectedVariantId, onToggle, onVari
   const isRestaurant = kind === "restaurant";
   const empty = items.length === 0;
   return (
-    <div style={{ maxWidth:900, margin:"0 auto", padding:"20px 16px 20px" }}>
+    <div style={{ maxWidth:1160, margin:"0 auto", padding:"20px 16px 20px" }}>
       {!empty && notice && (Array.isArray(notice) ? notice.length > 0 : true) && (
         <div style={{ fontSize:12, color:C.muted, marginBottom:14, lineHeight:1.6 }}>
           {Array.isArray(notice) ? notice.map((n, i) => <div key={i}>{n}</div>) : notice}
@@ -1746,7 +1746,7 @@ function WizardStickyBar({ restaurant, workshop, groupSize, ppp, total, canAdvan
     : "");
   const navBtn = { WebkitAppearance:"none", appearance:"none", border:"none", borderRadius:999, fontWeight:600, minHeight:44, width:104, padding:"8px 10px", fontSize:13, lineHeight:1.25, textAlign:"center" };
   return (
-    <div style={{ maxWidth:900, margin:"0 auto 20px", padding:"0 16px" }}>
+    <div style={{ maxWidth:1160, margin:"0 auto 20px", padding:"0 16px" }}>
       <div style={{ display:"grid", gridTemplateColumns:"auto 1fr auto", alignItems:"center", gap:10, background:C.tagBg, borderRadius:999, padding:6 }}>
         <button onClick={onBack} style={{ ...navBtn, background:"transparent", border:`1.5px solid ${C.primary}`, color:C.primary, cursor:"pointer" }}>Wstecz</button>
         <div style={{ textAlign:"center", minWidth:0, overflow:"hidden" }}>
@@ -2172,7 +2172,7 @@ export default function App() {
               <div style={{ paddingBottom:20 }}>
                 {wizardStep === 1 && (
                   <>
-                    <div style={{ maxWidth:900, margin:"0 auto", padding:"0 16px" }}>
+                    <div style={{ maxWidth:1160, margin:"0 auto", padding:"0 16px" }}>
                       <PathTiles activeKey={path} onSelect={switchPath} labels={withOwnPlaceTile(KIDS_PATH_TILE_LABELS, workshops.filter(w => w.forKids))} />
                     </div>
                     <PickStep
@@ -2276,7 +2276,7 @@ export default function App() {
               <div style={{ paddingBottom:20 }}>
                 {wizardStep === 1 && (
                   <>
-                    <div style={{ maxWidth:900, margin:"0 auto", padding:"0 16px" }}>
+                    <div style={{ maxWidth:1160, margin:"0 auto", padding:"0 16px" }}>
                       <PathTiles activeKey={path} onSelect={switchPath} labels={withOwnPlaceTile(DEFAULT_PATH_TILE_LABELS, workshops)} />
                     </div>
                     <PickStep
