@@ -450,9 +450,6 @@ function ProfileModal({ item, type, isSelected, onToggleSelect, selectedVariantI
             {!isRestaurant && item.requiresSeparateRoom && (
               <span style={{ fontSize:11, color:C.muted }}>* potrzebna osobna sala</span>
             )}
-            {!isRestaurant && item.travelsToClient && (
-              <InfoPill text={`🚗 Dojeżdża do klienta${item.travelArea ? " · " + item.travelArea : ""}`} />
-            )}
           </div>
 
           {/* Description */}
@@ -680,12 +677,6 @@ function WorkshopCard({ w, isSelected, onToggle, onProfile, kidsMode = false }) 
         {w.requiresSeparateRoom && !soon && (
           <div style={{ fontSize:11, color:C.muted, lineHeight:1.5, marginBottom:8 }}>
             Ten warsztat wymaga osobnej sali — na kolejnym kroku pokażemy miejsca, które ją mają.
-          </div>
-        )}
-
-        {w.travelsToClient && !soon && (
-          <div style={{ fontSize:11, color:C.muted, lineHeight:1.5, marginBottom:8 }}>
-            🚗 Ten artysta może też dojechać do Was{w.travelArea ? ` (${w.travelArea})` : ""} — bez restauracji, przez kafelek „Mam miejsce" na stronie głównej.
           </div>
         )}
 
