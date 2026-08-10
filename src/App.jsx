@@ -977,7 +977,7 @@ function HomeFilterBar({ groupSize, setGroupSize, selectedDate, setSelectedDate,
   const segValue = active => ({ fontSize:13, color: active ? C.primary : C.text, fontWeight: active ? 600 : 400, whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis", minHeight:16 });
 
   return (
-    <div ref={barRef} style={{ maxWidth:560, margin:"0 auto 28px", position:"relative" }}>
+    <div ref={barRef} style={{ maxWidth:1160, margin:"0 auto 28px", position:"relative" }}>
       <div className="search-bar" style={{ display:"flex", alignItems:"stretch", background:"#FFF", border:`1px solid ${C.border}`, borderRadius:999, boxShadow:"0 4px 18px rgba(0,0,0,0.07)", padding:5 }}>
 
         <div onClick={openPeople} style={segStyle(!!groupSize)}>
@@ -1053,7 +1053,7 @@ function KidsFilterBar({ kidsCount, setKidsCount, adultsCount, setAdultsCount, s
   );
 
   return (
-    <div ref={barRef} style={{ maxWidth:640, margin:"0 auto 28px", position:"relative" }}>
+    <div ref={barRef} style={{ maxWidth:1160, margin:"0 auto 28px", position:"relative" }}>
       <div className="search-bar" style={{ display:"flex", alignItems:"stretch", background:"#FFF", border:`1px solid ${C.border}`, borderRadius:999, boxShadow:"0 4px 18px rgba(0,0,0,0.07)", padding:5 }}>
         <div onClick={openKids} style={segStyle(!!kidsCount)}>
           <div style={segLabel(!!kidsCount)}>LICZBA DZIECI</div>
@@ -1277,8 +1277,8 @@ function HomeScreen({ restaurants, workshops, onStart, groupSize, setGroupSize, 
         <div style={{ position:"absolute", inset:0, background:`linear-gradient(180deg, rgba(237,235,230,0) 0%, rgba(237,235,230,0.05) 50%, rgba(237,235,230,0.35) 70%, rgba(237,235,230,0.75) 85%, ${C.bg} 97%)` }} />
       </div>
 
-      <div style={{ maxWidth:760, margin:"0 auto", padding:"0 16px 56px" }}>
-        <div className="hero-copy-wrap" style={{ textAlign:"center" }}>
+      <div style={{ maxWidth:1160, margin:"0 auto", padding:"0 16px 56px" }}>
+        <div className="hero-copy-wrap" style={{ textAlign:"center", maxWidth:760, marginLeft:"auto", marginRight:"auto" }}>
           <h1 className="hero-title" style={{ fontFamily:"'Pan Pizza', cursive", fontSize:"clamp(48px,8.5vw,76px)", fontWeight:400, lineHeight:1.2, color:C.primary }}>
             {COPY.siteName}
           </h1>
@@ -1329,7 +1329,7 @@ function KidsHomeScreen({ restaurants, workshops, onStart, kidsCount, setKidsCou
         <div style={{ position:"absolute", inset:0, background:`linear-gradient(180deg, rgba(247,238,221,0) 0%, rgba(247,238,221,0.05) 50%, rgba(247,238,221,0.35) 70%, rgba(247,238,221,0.75) 85%, ${C.bg} 97%)` }} />
       </div>
 
-      <div style={{ maxWidth:760, margin:"0 auto", padding:"32px 16px 24px" }}>
+      <div style={{ maxWidth:1160, margin:"0 auto", padding:"32px 16px 24px" }}>
         <div style={{ textAlign:"center" }}>
           <h1 style={{ fontFamily:"'Pan Pizza', cursive", fontSize:"clamp(40px,7vw,64px)", fontWeight:400, lineHeight:1.2, color:C.primary, margin:"0 0 14px" }}>
             Mali Kawiarniani Artyści
