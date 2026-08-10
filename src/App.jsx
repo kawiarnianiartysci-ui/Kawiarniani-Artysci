@@ -237,6 +237,10 @@ const globalCSS = `
   @media (min-width: 640px) {
     .wizard-list { display:grid; grid-template-columns: repeat(2, 1fr); gap:16px; align-items:stretch; }
   }
+  @media (min-width: 1024px) {
+    .wizard-list { grid-template-columns: repeat(3, 1fr); }
+  }
+  .card-title-clamp { display:-webkit-box; -webkit-box-orient:vertical; -webkit-line-clamp:2; overflow:hidden; text-overflow:ellipsis; }
   .home-cta-grid { display:flex; flex-direction:column; gap:16px; }
   @media (min-width: 640px) {
     .home-cta-grid { flex-direction:row; }
@@ -573,7 +577,7 @@ function RestaurantCard({ r, isSelected, selectedVariantId, onToggle, onVariantS
         {isSelected && !soon && (
           <div style={{ position:"absolute", top:16, right:14, background:C.primary, borderRadius:"50%", width:22, height:22, display:"flex", alignItems:"center", justifyContent:"center", fontSize:11, fontWeight:700, color:"#FFF" }}>✓</div>
         )}
-        <div style={{ fontFamily:"'Montserrat', system-ui, sans-serif", fontSize:21, fontWeight:400, color: soon ? "#999" : C.text, marginBottom:2 }}>{r.name}</div>
+        <div className="card-title-clamp" style={{ fontFamily:"'Montserrat', system-ui, sans-serif", fontSize:21, fontWeight:400, lineHeight:1.25, color: soon ? "#999" : C.text, marginBottom:2 }}>{r.name}</div>
         <div style={{ fontSize:10, letterSpacing:"0.1em", color:C.muted, marginBottom:8 }}>{r.vibe} · {r.location}</div>
         <p style={{ fontSize:13, color:C.muted, margin:"0 0 12px", lineHeight:1.55, fontWeight:300 }}>{r.description}</p>
 
@@ -656,7 +660,7 @@ function WorkshopCard({ w, isSelected, onToggle, onProfile, kidsMode = false }) 
         {isSelected && !soon && (
           <div style={{ position:"absolute", top:16, right:14, background:C.primary, borderRadius:"50%", width:22, height:22, display:"flex", alignItems:"center", justifyContent:"center", fontSize:11, fontWeight:700, color:"#FFF" }}>✓</div>
         )}
-        <div style={{ fontFamily:"'Montserrat', system-ui, sans-serif", fontSize:20, fontWeight:400, color: soon ? "#999" : C.text, marginBottom:2 }}>{w.name}</div>
+        <div className="card-title-clamp" style={{ fontFamily:"'Montserrat', system-ui, sans-serif", fontSize:20, fontWeight:400, lineHeight:1.25, color: soon ? "#999" : C.text, marginBottom:2 }}>{w.name}</div>
         <div style={{ fontSize:10, letterSpacing:"0.1em", color:C.muted, marginBottom:8 }}>{w.artist}</div>
         <p style={{ fontSize:13, color:C.muted, margin:"0 0 12px", lineHeight:1.55, fontWeight:300 }}>{w.description}</p>
 
