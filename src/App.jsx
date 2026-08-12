@@ -41,9 +41,9 @@ const C = {
 // ══════════════════════════════════════════════════════════════
 const COPY = {
   siteName:    "Kawiarniani Artyści",
-  tagline:     "Warsztaty artystyczne w poznańskich kawiarniach — na panieński, baby shower, urodziny i integracje",
-  heroTitle:   "Zaplanuj niezapomniane spotkanie.",
-  heroSubtitle:"Łączymy restauracje i kawiarnie z artystycznymi działaniami podczas spotkań rodzinnych, wieczorów panieńskich, baby shower, urodzin lub integracji firmowych.",
+  tagline:     "Platforma łącząca artystów, restauracje i klientów — warsztaty na urodziny, wieczory panieńskie, integracje firmowe",
+  heroTitle:   "Platforma łącząca artystów, restauracje i klientów.",
+  heroSubtitle:"Zarezerwuj warsztat kreatywny (malowanie, ebru, improwizacja) + restaurację w 3 krokach. Idealne na urodziny, wieczory panieńskie, integracje firmowe, baby shower i inne okazje.",
   contactEmail:"kawiarnianiartysci@gmail.com",
 };
 
@@ -1850,6 +1850,21 @@ export default function App() {
   const [profileItem,     setProfileItem]     = useState(null);
   const [selectedDate,    setSelectedDate]    = useState("");
   const [selectedTime,    setSelectedTime]    = useState("");
+
+  // ══ Google Analytics 4 ══════════════════════════════════════
+  useEffect(() => {
+    const measurementId = "G-KCXWSP03Y1";
+    const script = document.createElement("script");
+    script.src = `https://www.googletagmanager.com/gtag/js?id=${measurementId}`;
+    script.async = true;
+    document.head.appendChild(script);
+
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){window.dataLayer.push(arguments);}
+    window.gtag = gtag;
+    gtag("js", new Date());
+    gtag("config", measurementId);
+  }, []);
 
   useEffect(() => {
     const link = document.createElement("link");
