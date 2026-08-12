@@ -1966,7 +1966,12 @@ export default function App() {
   };
   // Krok 1 (nic jeszcze nie wybrane po drugiej stronie) pokazuje wszystko;
   // krok 2 zawęża do pozycji zgodnych z tym, co wybrano w kroku 1.
-  const compatibleRestaurants = restaurants.filter(r => r.comingSoon || isCompatible(workshop, r));
+  // Restauracja bez wypełnionych `variants` (pakietów "dla dorosłych") nie ma
+  // z czego policzyć ceny w zwykłej ścieżce — traktujemy to jako świadomy
+  // sygnał "tylko tryb dla dzieci" (np. Latająca Filiżanka ma tylko
+  // kidsVariants) i nie pokazujemy jej tutaj. "Wkrótce" nadal pokazujemy
+  // zawsze, tak jak dotychczas.
+  const compatibleRestaurants = restaurants.filter(r => r.comingSoon || (r.variants.length > 0 && isCompatible(workshop, r)));
   const compatibleWorkshops   = workshops.filter(w => w.comingSoon || isCompatible(w, restaurant));
 
   // Krok 1 ścieżki "Mam miejsce" — tylko artyści z travelsToClient=tak
