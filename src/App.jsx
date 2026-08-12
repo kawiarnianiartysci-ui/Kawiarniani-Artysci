@@ -41,9 +41,9 @@ const C = {
 // ══════════════════════════════════════════════════════════════
 const COPY = {
   siteName:    "Kawiarniani Artyści",
-  tagline:     "Platforma łącząca artystów, restauracje i klientów — warsztaty na urodziny, wieczory panieńskie, integracje firmowe",
-  heroTitle:   "Platforma łącząca artystów, restauracje i klientów.",
-  heroSubtitle:"Zarezerwuj warsztat kreatywny (malowanie, ebru, improwizacja) + restaurację w 3 krokach. Idealne na urodziny, wieczory panieńskie, integracje firmowe, baby shower i inne okazje.",
+  tagline:     "Warsztaty artystyczne w poznańskich kawiarniach — na panieński, baby shower, urodziny i integracje",
+  heroTitle:   "Zaplanuj niezapomniane spotkanie.",
+  heroSubtitle:"Łączymy restauracje i kawiarnie z artystycznymi działaniami podczas spotkań rodzinnych, wieczorów panieńskich, baby shower, urodzin lub integracji firmowych.",
   contactEmail:"kawiarnianiartysci@gmail.com",
 };
 
