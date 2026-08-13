@@ -1462,12 +1462,15 @@ function PlaceInterviewForm({ value, onChange, travelArea, kidsMode = false }) {
   const inp = { width:"100%", padding:"11px 13px", border:`1px solid ${C.border}`, borderRadius:8, fontSize:14, color:C.text, background:"#FAFAF8", minHeight:44, fontFamily:"'Montserrat', system-ui, sans-serif" };
   const lbl = { display:"block", fontSize:11, fontWeight:600, color:C.muted, marginBottom:5, letterSpacing:"0.08em" };
   const set = k => v => onChange({ ...value, [k]: v });
+  // Wpisywane w arkuszu jako sama liczba (np. "50", czasem zakres "100-120") —
+  // dopisujemy skrót "km", chyba że ktoś już go wpisał ręcznie.
+  const travelAreaDisplay = travelArea && !/km/i.test(travelArea) ? `${travelArea} km` : travelArea;
 
   return (
     <div style={{ maxWidth:480, margin:"0 auto", padding:"20px 16px 20px" }}>
       {travelArea && (
-        <div style={{ fontSize:12, color:C.muted, marginBottom:16, lineHeight:1.6 }}>
-          Ten artysta dojeżdża w promieniu: <strong style={{ color:C.text }}>{travelArea}</strong>.
+        <div style={{ fontSize:15, fontWeight:600, color:C.text, marginBottom:18, lineHeight:1.5, background:C.selectedBg, border:`1px solid ${C.primary}`, borderRadius:10, padding:"12px 16px" }}>
+          🚗 Artysta dojeżdża w promieniu do {travelAreaDisplay}.
         </div>
       )}
 
@@ -1502,6 +1505,11 @@ function PlaceInterviewForm({ value, onChange, travelArea, kidsMode = false }) {
       <div style={{ marginBottom:14 }}>
         <label style={lbl}>Dostęp do wody?</label>
         <YesNoToggle value={value.hasWater} onChange={set("hasWater")} />
+      </div>
+
+      <div style={{ marginBottom:14 }}>
+        <label style={lbl}>Dostęp do prądu?</label>
+        <YesNoToggle value={value.hasPower} onChange={set("hasPower")} />
       </div>
 
       <div style={{ marginBottom:4 }}>
@@ -1571,6 +1579,7 @@ function Step4ContactForm({ restaurant, variant, workshop, groupSize, selectedDa
         placeArea: ownPlace ? (placeInfo?.area || "") : undefined,
         placeHasTables: ownPlace ? (placeInfo?.hasTables || "") : undefined,
         placeHasWater: ownPlace ? (placeInfo?.hasWater || "") : undefined,
+        placeHasPower: ownPlace ? (placeInfo?.hasPower || "") : undefined,
         placeNotes: ownPlace ? (placeInfo?.notes || "") : undefined,
       }),
     })
@@ -1846,7 +1855,7 @@ export default function App() {
   const [adultsCount,     setAdultsCount]     = useState(null);      // tryb "kids" — wyłącznie informacyjne
   // "Mam miejsce" to trzeci top-level path (obok "workshop"/"restaurant"),
   // nie osobny toggle — patrz const path poniżej ("workshop"|"restaurant"|"ownplace").
-  const [placeInfo,       setPlaceInfo]       = useState({ address:"", placeType:"", hasSeparateRoom:"", area:"", hasTables:"", hasWater:"", notes:"" });
+  const [placeInfo,       setPlaceInfo]       = useState({ address:"", placeType:"", hasSeparateRoom:"", area:"", hasTables:"", hasWater:"", hasPower:"", notes:"" });
   const [profileItem,     setProfileItem]     = useState(null);
   const [selectedDate,    setSelectedDate]    = useState("");
   const [selectedTime,    setSelectedTime]    = useState("");
@@ -1940,7 +1949,7 @@ export default function App() {
     setSelectedR(null); setSelectedVariant(null); setSelectedW(null);
     setGroupSize(null); setSelectedDate(""); setSelectedTime("");
     setKidsCount(null); setAdultsCount(null);
-    setPlaceInfo({ address:"", placeType:"", hasSeparateRoom:"", area:"", hasTables:"", hasWater:"", notes:"" });
+    setPlaceInfo({ address:"", placeType:"", hasSeparateRoom:"", area:"", hasTables:"", hasWater:"", hasPower:"", notes:"" });
   };
 
   // Przełącznik trybu kreatora (client/kids) w nagłówku — porównanie z samym

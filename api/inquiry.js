@@ -16,7 +16,7 @@ export default async function handler(req, res) {
       artistInvoicing, artistRequirements,
       groupSize, date, message,
       isKidsEvent, kidsCount, adultsCount, kidsPackageName, kidsAmountLabel,
-      isOwnPlace, placeAddress, placeType, placeHasSeparateRoom, placeArea, placeHasTables, placeHasWater, placeNotes,
+      isOwnPlace, placeAddress, placeType, placeHasSeparateRoom, placeArea, placeHasTables, placeHasWater, placeHasPower, placeNotes,
     } = req.body || {};
 
     // Sekcja doklejana do każdego z 3 maili, tylko gdy zapytanie dotyczy
@@ -45,6 +45,7 @@ export default async function handler(req, res) {
         <li>Metraż: ${placeArea || "-"}</li>
         <li>Dostępne stoły i krzesła: ${yn(placeHasTables)}</li>
         <li>Dostęp do wody: ${yn(placeHasWater)}</li>
+        <li>Dostęp do prądu: ${yn(placeHasPower)}</li>
         ${placeNotes ? `<li>Uwagi dodatkowe: ${placeNotes}</li>` : ""}
       </ul>
     ` : "";
