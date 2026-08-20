@@ -1315,8 +1315,8 @@ function KidsHomeScreen({ restaurants, workshops, onStart, kidsCount, setKidsCou
     <div>
       {/* Baner nad tytułem — analogicznie do HERO_PHOTO/hero.mov w HomeScreen,
           tylko że tu zdjęcie zamiast wideo (na razie brak nagrania z warsztatów dziecięcych). */}
-      <div style={{ position:"relative", width:"100%", height:"clamp(160px, 22vw, 220px)", overflow:"hidden", background:C.selectedBg }}>
-        <img src={HERO_PHOTO_DZIECI} alt="Warsztat malarski dla dzieci" style={{ position:"absolute", inset:0, width:"100%", height:"100%", objectFit:"cover", objectPosition:"center 35%", display:"block" }} />
+      <div style={{ position:"relative", width:"100%", height:"clamp(220px, 34vw, 340px)", overflow:"hidden", background:C.selectedBg }}>
+        <img src={HERO_PHOTO_DZIECI} alt="Warsztat malarski dla dzieci" style={{ position:"absolute", inset:0, width:"100%", height:"100%", objectFit:"cover", objectPosition:"center 45%", display:"block" }} />
         <div style={{ position:"absolute", inset:0, background:`linear-gradient(180deg, rgba(247,238,221,0) 0%, rgba(247,238,221,0.05) 50%, rgba(247,238,221,0.35) 70%, rgba(247,238,221,0.75) 85%, ${C.bg} 97%)` }} />
       </div>
 
