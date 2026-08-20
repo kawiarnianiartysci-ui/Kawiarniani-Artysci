@@ -25,6 +25,7 @@ const EBRU_GALLERY_4 = "/images/ebru-gallery-4.jpg";
 const EBRU_COVER = "/images/ebru-cover.jpg";
 const WORKSHOP_PAINTING_PHOTO = "/images/workshop-painting-photo.jpg";
 const HERO_PHOTO = "/images/hero-photo.jpg";
+const HERO_PHOTO_DZIECI = "/images/hero-photo-dzieci.jpg";
 
 
 // ══════════════════════════════════════════════════════════════
@@ -1312,11 +1313,10 @@ function KidsHomeScreen({ restaurants, workshops, onStart, kidsCount, setKidsCou
 
   return (
     <div>
-      {/* Baner nad tytułem — na głównej to wideo z dorosłymi, tu celowo NIE.
-          Na razie samo tło w kolorze marki; gdy pojawią się realne zdjęcia
-          z warsztatów dziecięcych, podmienić na <img>/<video> w tym miejscu,
-          analogicznie do HERO_PHOTO/hero.mov w HomeScreen. */}
+      {/* Baner nad tytułem — analogicznie do HERO_PHOTO/hero.mov w HomeScreen,
+          tylko że tu zdjęcie zamiast wideo (na razie brak nagrania z warsztatów dziecięcych). */}
       <div style={{ position:"relative", width:"100%", height:"clamp(160px, 22vw, 220px)", overflow:"hidden", background:C.selectedBg }}>
+        <img src={HERO_PHOTO_DZIECI} alt="Warsztat malarski dla dzieci" style={{ position:"absolute", inset:0, width:"100%", height:"100%", objectFit:"cover", objectPosition:"center 35%", display:"block" }} />
         <div style={{ position:"absolute", inset:0, background:`linear-gradient(180deg, rgba(247,238,221,0) 0%, rgba(247,238,221,0.05) 50%, rgba(247,238,221,0.35) 70%, rgba(247,238,221,0.75) 85%, ${C.bg} 97%)` }} />
       </div>
 
