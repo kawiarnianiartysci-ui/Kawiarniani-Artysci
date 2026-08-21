@@ -283,22 +283,6 @@ const globalCSS = `
     from { transform: translateX(0); }
     to { transform: translateX(-50%); }
   }
-  /* Pola Data w panelach filtrów: kolor natywnego tekstu jest sterowany
-     inline (przezroczysty gdy puste, brązowy po wyborze — patrz filter-date
-     w JSX), tu tylko podmieniamy natywną ikonę kalendarza na spójną z
-     projektem (jedna szara-brązowa kreska zamiast systemowej) i wymuszamy
-     jasny motyw popupu kalendarza niezależnie od trybu systemu. */
-  .filter-date { color-scheme: light; }
-  .filter-date::-webkit-calendar-picker-indicator {
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%236B6862' stroke-width='1.7' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='3' y='5' width='18' height='16' rx='3'/%3E%3Cpath d='M8 3v4M16 3v4M3 10h18'/%3E%3C/svg%3E");
-    background-size: 15px 15px;
-    background-repeat: no-repeat;
-    background-position: center;
-    width: 17px;
-    height: 17px;
-    opacity: 0.85;
-    cursor: pointer;
-  }
 `;
 
 // ══ Profil modal ════════════════════════════════════════════
@@ -924,11 +908,8 @@ for (let h = 10; h <= 18; h++) {
 // początek klipu, żeby szybciej było widać ludzi przy malowaniu.
 const HERO_VIDEO_START = 5;
 
-// Dekoracyjna ikonka zegara przy polu Godzina — to zwykły <select> (nie
-// input[type=time]), więc nie ma natywnej ikony do przestylowania jak przy
-// Data (patrz .filter-date w globalCSS); rysujemy więc własną, spójną z nią
-// stylistycznie. `pointerEvents:"none"`, żeby klik nadal trafiał w <select>
-// pod spodem i otwierał natywną listę.
+// Dekoracyjna ikonka zegara przy polu Godzina — czysto ozdobna,
+// `pointerEvents:"none"` żeby nie blokować kliknięcia w pole pod spodem.
 function ClockIcon({ color }) {
   return (
     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"
@@ -936,6 +917,91 @@ function ClockIcon({ color }) {
       <circle cx="12" cy="12" r="9" />
       <path d="M12 7v5l3 2" />
     </svg>
+  );
+}
+
+// ══ Własny kalendarz i lista godzin (zamiast natywnych <input type="date">
+// / <select>) ═══════════════════════════════════════════════════
+// Na Androidzie systemowy date-picker i lista <select> renderują się jako
+// natywne okno telefonu — kolor i rozmiar sterowane są motywem systemu
+// (ciemny/jasny), nie CSS-em strony; `color-scheme` tylko częściowo to
+// naprawia. Żeby mieć pełną kontrolę (jasny motyw, mały rozmiar, spójny
+// wszędzie), rysujemy własny miesięczny kalendarz i własną listę godzin.
+const PL_MONTHS = ["styczeń","luty","marzec","kwiecień","maj","czerwiec","lipiec","sierpień","wrzesień","październik","listopad","grudzień"];
+const PL_MONTHS_SHORT = ["sty","lut","mar","kwi","maj","cze","lip","sie","wrz","paź","lis","gru"];
+const PL_WEEKDAYS = ["pon","wt","śr","czw","pt","sob","nd"];
+
+function dateToStr(d) {
+  const y = d.getFullYear(), m = String(d.getMonth() + 1).padStart(2, "0"), day = String(d.getDate()).padStart(2, "0");
+  return `${y}-${m}-${day}`;
+}
+function formatDateShort(dateStr) {
+  const d = new Date(dateStr + "T00:00:00");
+  return `${d.getDate()} ${PL_MONTHS_SHORT[d.getMonth()]}`;
+}
+
+// Wspólny wygląd rozwijanego panelu (kalendarz/lista godzin) — ten sam,
+// co istniejące popovery "Liczba osób"/"Liczba dzieci" w paskach filtrów.
+const dropdownPopoverStyle = { position:"absolute", top:"calc(100% + 8px)", left:0, background:"#FFF", border:`1px solid ${C.border}`, borderRadius:14, boxShadow:"0 10px 32px rgba(0,0,0,0.14)", padding:16, zIndex:50, cursor:"default" };
+
+const calendarNavBtnStyle = { width:26, height:26, borderRadius:"50%", border:`1px solid ${C.border}`, background:"transparent", color:C.primary, cursor:"pointer", fontSize:14, lineHeight:1, flexShrink:0 };
+
+function MiniCalendar({ value, onChange, min }) {
+  const seed = value ? new Date(value + "T00:00:00") : (min ? new Date(min + "T00:00:00") : new Date());
+  const [viewMonth, setViewMonth] = useState(new Date(seed.getFullYear(), seed.getMonth(), 1));
+  const minDate = min ? new Date(min + "T00:00:00") : null;
+
+  const year = viewMonth.getFullYear(), month = viewMonth.getMonth();
+  const startOffset = (new Date(year, month, 1).getDay() + 6) % 7; // pon = 0, zamiast domyślnej niedzieli w JS
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+  const cells = [...Array(startOffset).fill(null), ...Array.from({ length: daysInMonth }, (_, i) => i + 1)];
+
+  return (
+    <div style={{ width:236 }}>
+      <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:10 }}>
+        <button onClick={() => setViewMonth(new Date(year, month - 1, 1))} style={calendarNavBtnStyle}>‹</button>
+        <div style={{ fontSize:13, fontWeight:600, color:C.primary, textTransform:"capitalize" }}>{PL_MONTHS[month]} {year}</div>
+        <button onClick={() => setViewMonth(new Date(year, month + 1, 1))} style={calendarNavBtnStyle}>›</button>
+      </div>
+      <div style={{ display:"grid", gridTemplateColumns:"repeat(7, 1fr)", gap:2, marginBottom:2 }}>
+        {PL_WEEKDAYS.map(w => <div key={w} style={{ fontSize:10, color:C.muted, textAlign:"center" }}>{w}</div>)}
+      </div>
+      <div style={{ display:"grid", gridTemplateColumns:"repeat(7, 1fr)", gap:2 }}>
+        {cells.map((d, i) => {
+          if (d === null) return <div key={i} />;
+          const cellDate = new Date(year, month, d);
+          const cellStr = dateToStr(cellDate);
+          const disabled = minDate && cellDate < minDate;
+          const selected = value === cellStr;
+          return (
+            <button key={i} disabled={disabled} onClick={() => onChange(cellStr)} style={{
+              width:"100%", aspectRatio:"1", border:"none", borderRadius:8, fontSize:12,
+              cursor: disabled ? "default" : "pointer",
+              background: selected ? C.primary : "transparent",
+              color: disabled ? "#CCC" : selected ? "#FFF" : C.text,
+              fontWeight: selected ? 600 : 400,
+            }}>{d}</button>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+function TimeOptionsList({ value, onChange }) {
+  return (
+    <div style={{ maxHeight:216, overflowY:"auto", width:120 }}>
+      {TIME_OPTIONS.map(t => {
+        const selected = value === t;
+        return (
+          <div key={t} onClick={() => onChange(t)} style={{
+            padding:"9px 12px", fontSize:13, cursor:"pointer", borderRadius:8,
+            color: selected ? C.primary : C.text, fontWeight: selected ? 600 : 400,
+            background: selected ? C.selectedBg : "transparent",
+          }}>{t}</div>
+        );
+      })}
+    </div>
   );
 }
 
@@ -988,22 +1054,27 @@ function HomeFilterBar({ groupSize, setGroupSize, selectedDate, setSelectedDate,
 
         <div className="search-divider" style={{ background:C.border }} />
 
-        <div onClick={() => setOpenField(null)} style={segStyle(!!selectedDate)}>
+        <div onClick={() => toggle("date")} style={segStyle(!!selectedDate)}>
           <div style={segLabel(!!selectedDate)}>DATA</div>
-          <input type="date" className="filter-date" value={selectedDate} min={MIN_BOOKING_DATE} onChange={e => setSelectedDate(e.target.value)} onFocus={() => setOpenField(null)}
-            style={{ ...segValue(!!selectedDate), color: selectedDate ? C.primary : "transparent", border:"none", background:"transparent", padding:"0 20px 0 0", width:"100%", cursor:"pointer", fontFamily:"'Montserrat', system-ui, sans-serif" }} />
+          <div style={segValue(!!selectedDate)}>{selectedDate ? formatDateShort(selectedDate) : ""}</div>
+          {openField === "date" && (
+            <div className="modal-fade" onClick={e => e.stopPropagation()} style={dropdownPopoverStyle}>
+              <MiniCalendar value={selectedDate} min={MIN_BOOKING_DATE} onChange={d => { setSelectedDate(d); setOpenField(null); }} />
+            </div>
+          )}
         </div>
 
         <div className="search-divider" style={{ background:C.border }} />
 
-        <div onClick={() => setOpenField(null)} style={segStyle(!!selectedTime)}>
+        <div onClick={() => toggle("time")} style={segStyle(!!selectedTime)}>
           <div style={segLabel(!!selectedTime)}>GODZINA</div>
-          <select value={selectedTime} onChange={e => setSelectedTime(e.target.value)} onFocus={() => setOpenField(null)}
-            style={{ ...segValue(!!selectedTime), border:"none", background:"transparent", padding:"0 20px 0 0", width:"100%", cursor:"pointer", fontFamily:"'Montserrat', system-ui, sans-serif", appearance:"none", WebkitAppearance:"none" }}>
-            <option value=""></option>
-            {TIME_OPTIONS.map(t => <option key={t} value={t}>{t}</option>)}
-          </select>
+          <div style={segValue(!!selectedTime)}>{selectedTime || ""}</div>
           <ClockIcon color={selectedTime ? C.primary : C.muted} />
+          {openField === "time" && (
+            <div className="modal-fade" onClick={e => e.stopPropagation()} style={dropdownPopoverStyle}>
+              <TimeOptionsList value={selectedTime} onChange={t => { setSelectedTime(t); setOpenField(null); }} />
+            </div>
+          )}
         </div>
       </div>
     </div>
@@ -1059,20 +1130,25 @@ function KidsFilterBar({ kidsCount, setKidsCount, adultsCount, setAdultsCount, s
           {openField === "adults" && stepper(adultsCount ?? 0, setAdultsCount, 0, 30)}
         </div>
         <div className="search-divider" style={{ background:C.border }} />
-        <div onClick={() => setOpenField(null)} style={segStyle(!!selectedDate)}>
+        <div onClick={() => toggle("date")} style={segStyle(!!selectedDate)}>
           <div style={segLabel(!!selectedDate)}>DATA</div>
-          <input type="date" className="filter-date" value={selectedDate} min={MIN_BOOKING_DATE} onChange={e => setSelectedDate(e.target.value)} onFocus={() => setOpenField(null)}
-            style={{ ...segValue(!!selectedDate), color: selectedDate ? C.primary : "transparent", border:"none", background:"transparent", padding:"0 20px 0 0", width:"100%", cursor:"pointer", fontFamily:"'Montserrat', system-ui, sans-serif" }} />
+          <div style={segValue(!!selectedDate)}>{selectedDate ? formatDateShort(selectedDate) : ""}</div>
+          {openField === "date" && (
+            <div className="modal-fade" onClick={e => e.stopPropagation()} style={dropdownPopoverStyle}>
+              <MiniCalendar value={selectedDate} min={MIN_BOOKING_DATE} onChange={d => { setSelectedDate(d); setOpenField(null); }} />
+            </div>
+          )}
         </div>
         <div className="search-divider" style={{ background:C.border }} />
-        <div onClick={() => setOpenField(null)} style={segStyle(!!selectedTime)}>
+        <div onClick={() => toggle("time")} style={segStyle(!!selectedTime)}>
           <div style={segLabel(!!selectedTime)}>GODZINA</div>
-          <select value={selectedTime} onChange={e => setSelectedTime(e.target.value)} onFocus={() => setOpenField(null)}
-            style={{ ...segValue(!!selectedTime), border:"none", background:"transparent", padding:"0 20px 0 0", width:"100%", cursor:"pointer", fontFamily:"'Montserrat', system-ui, sans-serif", appearance:"none", WebkitAppearance:"none" }}>
-            <option value=""></option>
-            {TIME_OPTIONS.map(t => <option key={t} value={t}>{t}</option>)}
-          </select>
+          <div style={segValue(!!selectedTime)}>{selectedTime || ""}</div>
           <ClockIcon color={selectedTime ? C.primary : C.muted} />
+          {openField === "time" && (
+            <div className="modal-fade" onClick={e => e.stopPropagation()} style={dropdownPopoverStyle}>
+              <TimeOptionsList value={selectedTime} onChange={t => { setSelectedTime(t); setOpenField(null); }} />
+            </div>
+          )}
         </div>
       </div>
     </div>
@@ -1530,6 +1606,7 @@ function Step4ContactForm({ restaurant, variant, workshop, groupSize, selectedDa
   const [errors, setErrors] = useState({});
   const [error, setError] = useState("");
   const [editingTermin, setEditingTermin] = useState(false);
+  const [terminOpenField, setTerminOpenField] = useState(null); // "date" | "time" | null — który z własnych popoverów jest otwarty
   const set = k => e => setForm({ ...form, [k]: e.target.value });
   const inp = { width:"100%", padding:"11px 13px", border:`1px solid ${C.border}`, borderRadius:8, fontSize:14, color:C.text, background:"#FAFAF8", minHeight:44 };
   const lbl = { display:"block", fontSize:11, fontWeight:600, color:C.muted, marginBottom:5, letterSpacing:"0.08em" };
@@ -1640,18 +1717,33 @@ function Step4ContactForm({ restaurant, variant, workshop, groupSize, selectedDa
             <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center" }}>
               <div style={{ fontSize:10, color:C.muted, letterSpacing:"0.08em" }}>TERMIN</div>
               {editingTermin && (
-                <button onClick={() => setEditingTermin(false)} style={zmienBtnStyle}>gotowe</button>
+                <button onClick={() => { setEditingTermin(false); setTerminOpenField(null); }} style={zmienBtnStyle}>gotowe</button>
               )}
             </div>
             {editingTermin ? (
               <div style={{ display:"flex", gap:8, marginTop:6, flexWrap:"wrap" }}>
-                <input type="date" value={selectedDate} min={MIN_BOOKING_DATE} onChange={e => onDateChange(e.target.value)}
-                  style={{ border:`1px solid ${C.border}`, borderRadius:8, background:"#FAFAF8", fontSize:13, color:C.text, fontFamily:"'Montserrat', system-ui, sans-serif", padding:"7px 9px", minHeight:38, flex:"1 1 130px", minWidth:0 }} />
-                <select value={selectedTime} onChange={e => onTimeChange(e.target.value)}
-                  style={{ border:`1px solid ${C.border}`, borderRadius:8, background:"#FAFAF8", fontSize:13, color:C.text, fontFamily:"'Montserrat', system-ui, sans-serif", padding:"7px 9px", minHeight:38, flex:"1 1 100px", minWidth:0 }}>
-                  <option value="">Godzina</option>
-                  {TIME_OPTIONS.map(t => <option key={t} value={t}>{t}</option>)}
-                </select>
+                <div style={{ position:"relative" }}>
+                  <button onClick={() => setTerminOpenField(f => f === "date" ? null : "date")}
+                    style={{ border:`1px solid ${C.border}`, borderRadius:8, background:"#FAFAF8", fontSize:13, color:C.text, fontFamily:"'Montserrat', system-ui, sans-serif", padding:"7px 9px", minHeight:38, textAlign:"left", cursor:"pointer" }}>
+                    {selectedDate ? formatDateShort(selectedDate) : "Data"}
+                  </button>
+                  {terminOpenField === "date" && (
+                    <div className="modal-fade" onClick={e => e.stopPropagation()} style={dropdownPopoverStyle}>
+                      <MiniCalendar value={selectedDate} min={MIN_BOOKING_DATE} onChange={d => { onDateChange(d); setTerminOpenField(null); }} />
+                    </div>
+                  )}
+                </div>
+                <div style={{ position:"relative" }}>
+                  <button onClick={() => setTerminOpenField(f => f === "time" ? null : "time")}
+                    style={{ border:`1px solid ${C.border}`, borderRadius:8, background:"#FAFAF8", fontSize:13, color:C.text, fontFamily:"'Montserrat', system-ui, sans-serif", padding:"7px 9px", minHeight:38, textAlign:"left", cursor:"pointer" }}>
+                    {selectedTime || "Godzina"}
+                  </button>
+                  {terminOpenField === "time" && (
+                    <div className="modal-fade" onClick={e => e.stopPropagation()} style={dropdownPopoverStyle}>
+                      <TimeOptionsList value={selectedTime} onChange={t => { onTimeChange(t); setTerminOpenField(null); }} />
+                    </div>
+                  )}
+                </div>
               </div>
             ) : (
               <div style={{ fontSize:13, color:C.text }}>{terminValue}</div>
