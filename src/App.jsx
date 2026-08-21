@@ -1546,7 +1546,7 @@ function PlaceInterviewForm({ value, onChange, travelArea, kidsMode = false }) {
     <div style={{ maxWidth:480, margin:"0 auto", padding:"20px 16px 20px" }}>
       {travelArea && (
         <div style={{ fontSize:15, fontWeight:600, color:C.text, marginBottom:18, lineHeight:1.5, background:C.selectedBg, border:`1px solid ${C.primary}`, borderRadius:10, padding:"12px 16px" }}>
-          🚗 Artysta dojeżdża w promieniu do {travelAreaDisplay}.
+          Artysta dojeżdża w promieniu do {travelAreaDisplay}.
         </div>
       )}
 
