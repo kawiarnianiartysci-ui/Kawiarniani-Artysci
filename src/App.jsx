@@ -862,10 +862,13 @@ function PartnerTermsModal({ onClose }) {
 
 // Regulamin dla Klientów — treść z pliku Joanny
 // "Regulamin_Klienci_KawiarnianiArtysci_prawomocny_2026 08 22.docx",
-// obowiązujący od 22.08.2026. Numeracja paragrafów dokładnie jak w źródle:
-// w oryginale numeracja przeskakuje z § 3 na § 5 (nie ma § 4) — to tak było
-// w dokumencie, nie poprawiam tego tutaj (ta sama zasada co w
-// PARTNER_TERMS_SECTIONS powyżej).
+// obowiązujący od 22.08.2026. W oryginalnym pliku numeracja przeskakiwała
+// z § 3 na § 5 (dawny § 4 został wcielony jako podpunkt do innego
+// paragrafu) — na prośbę Joanny przenumerowane tutaj na ciągłą sekwencję
+// § 1–§ 14 (dawne § 5–§ 15 → § 4–§ 14), łącznie ze wszystkimi wewnętrznymi
+// odsyłaczami między paragrafami w treści. Wyjątek: odwołania do "art. 394
+// § 1 Kodeksu cywilnego" to numeracja Kodeksu cywilnego, nie tego
+// Regulaminu — te NIE są przenumerowane.
 const CLIENT_TERMS_SECTIONS = [
   { title:"§ 1. Postanowienia ogólne", items: [
     "1. Niniejszy Regulamin określa zasady korzystania z platformy internetowej działającej pod adresem kawiarnianiartysci.pl (dalej: „Platforma”), za pośrednictwem której Klienci mogą zapoznać się z ofertą restauracji i kawiarni oraz artystów prowadzących warsztaty, a także przesyłać zapytania o organizację wydarzenia grupowego, w tym Eventu Dziecięcego.",
@@ -882,7 +885,7 @@ const CLIENT_TERMS_SECTIONS = [
     "Warsztat – zajęcia artystyczne (np. malarskie, Ebru) prowadzone przez Artystę w ramach Wydarzenia.",
     "Wydarzenie – event grupowy organizowany przez Klienta z udziałem Restauracji i Artysty, na warunkach ustalonych bezpośrednio między stronami.",
     "Lokalizacja Klienta – miejsce wskazane przez Klienta do przeprowadzenia Warsztatu, inne niż lokal Restauracji będącej Partnerem Platformy, w tym mieszkanie lub dom Klienta albo inna wynajęta lub udostępniona przez Klienta przestrzeń.",
-    "Podmiot przyjmujący zadatek – Restauracja lub Artysta, w zależności od tego, który z nich przyjmuje od Klienta zadatek zgodnie z § 6 lub § 7 Regulaminu.",
+    "Podmiot przyjmujący zadatek – Restauracja lub Artysta, w zależności od tego, który z nich przyjmuje od Klienta zadatek zgodnie z § 5 lub § 6 Regulaminu.",
     "Małoletni / Dziecko – osoba, która nie ukończyła 18. roku życia, uczestnicząca w Wydarzeniu.",
     "Opiekun – pełnoletni rodzic lub opiekun prawny Małoletniego, albo inna wyznaczona przez rodzica/opiekuna prawnego osoba pełnoletnia, obecna na miejscu Wydarzenia przez cały czas jego trwania i sprawująca nadzór nad Małoletnimi uczestnikami.",
     "Event Dziecięcy – Wydarzenie, w którym uczestniczą Małoletni (np. urodziny lub impreza okolicznościowa dla dzieci), organizowane z udziałem Restauracji i Artysty za pośrednictwem Platformy.",
@@ -892,47 +895,47 @@ const CLIENT_TERMS_SECTIONS = [
   { title:"§ 3. Charakter usług świadczonych przez Platformę", items: [
     "1. Platforma umożliwia Klientom przeglądanie ofert Partnerów oraz przesyłanie Zapytań dotyczących organizacji Wydarzenia.",
     "2. Usługodawca pełni wyłącznie funkcję pośrednika kojarzącego Klienta z odpowiednimi Partnerami. Umowa dotycząca realizacji usługi gastronomicznej oraz umowa dotycząca prowadzenia Warsztatu zawierane są bezpośrednio pomiędzy Klientem a odpowiednio Restauracją i Artystą, z pominięciem Usługodawcy jako strony tych umów.",
-    "3. Usługodawca nie jest stroną umowy o realizację Wydarzenia i nie ponosi odpowiedzialności za jej wykonanie przez Partnerów, z zastrzeżeniem postanowień § 11.",
-    "4. Platforma nie jest organizatorem imprez turystycznych ani agencją eventową w rozumieniu przepisów szczególnych, jak również nie świadczy usług opieki nad dziećmi w rozumieniu obowiązujących przepisów prawa. Powyższe dotyczy również Wydarzeń, w których uczestniczą Małoletni – zasady szczególne dotyczące takich Wydarzeń określa § 9.",
+    "3. Usługodawca nie jest stroną umowy o realizację Wydarzenia i nie ponosi odpowiedzialności za jej wykonanie przez Partnerów, z zastrzeżeniem postanowień § 10.",
+    "4. Platforma nie jest organizatorem imprez turystycznych ani agencją eventową w rozumieniu przepisów szczególnych, jak również nie świadczy usług opieki nad dziećmi w rozumieniu obowiązujących przepisów prawa. Powyższe dotyczy również Wydarzeń, w których uczestniczą Małoletni – zasady szczególne dotyczące takich Wydarzeń określa § 8.",
   ]},
-  { title:"§ 5. Proces składania Zapytania i zawarcia umowy", items: [
+  { title:"§ 4. Proces składania Zapytania i zawarcia umowy", items: [
     "1. Klient wybiera interesujące go parametry Wydarzenia (Restaurację, pakiet gastronomiczny, Warsztat, termin, liczbę osób) i przesyła Zapytanie za pośrednictwem formularza na Platformie.",
     "2. Zapytanie przekazywane jest do właściwego Artysty oraz Restauracji.",
     "3. Przesłanie Zapytania nie stanowi zawarcia umowy ani gwarancji dostępności wybranego terminu. Do zawarcia umowy dotyczącej Wydarzenia dochodzi dopiero po potwierdzeniu dostępności przez Artystę oraz ustaleniu i potwierdzeniu szczegółów (w tym menu i ceny) przez Restaurację.",
     "4. Ostateczne warunki Wydarzenia, w tym cena, ustalane są bezpośrednio pomiędzy Klientem a Restauracją i Artystą. Platforma i Usługodawca poza skojarzeniem Partnerów i Klienta nie uczestniczy w realizacji Wydarzenia i nie ponosi odpowiedzialności za jego realizację.",
-    "5. W przypadku Zapytania dotyczącego Eventu Dziecięcego, Klient przesyłając Zapytanie oświadcza, że zapoznał się z zasadami określonymi w § 9 Regulaminu i zobowiązuje się do ich przestrzegania.",
-    "6. W przypadku Zapytania dotyczącego Warsztatu w Lokalizacji Klienta, Klient przesyłając Zapytanie oświadcza, że informacje przekazane o miejscu realizacji Warsztatu są zgodne z prawdą i kompletne, zgodnie z zasadami określonymi w § 7 Regulaminu.",
+    "5. W przypadku Zapytania dotyczącego Eventu Dziecięcego, Klient przesyłając Zapytanie oświadcza, że zapoznał się z zasadami określonymi w § 8 Regulaminu i zobowiązuje się do ich przestrzegania.",
+    "6. W przypadku Zapytania dotyczącego Warsztatu w Lokalizacji Klienta, Klient przesyłając Zapytanie oświadcza, że informacje przekazane o miejscu realizacji Warsztatu są zgodne z prawdą i kompletne, zgodnie z zasadami określonymi w § 6 Regulaminu.",
   ]},
-  { title:"§ 6. Ceny i płatności", items: [
+  { title:"§ 5. Ceny i płatności", items: [
     "1. Ceny i pakiety prezentowane na Platformie mają charakter orientacyjny i mogą zostać doprecyzowane w toku bezpośrednich ustaleń Klienta z Restauracją i Artystą.",
-    "2. Platforma nie pośredniczy w płatnościach i nie przyjmuje od Klienta jakichkolwiek środków pieniężnych związanych z realizacją Wydarzenia. Wszystkie płatności Klient dokonuje wyłącznie bezpośrednio na rzecz Restauracji lub Artysty, zgodnie z zasadami określonymi w niniejszym paragrafie oraz w § 7.",
+    "2. Platforma nie pośredniczy w płatnościach i nie przyjmuje od Klienta jakichkolwiek środków pieniężnych związanych z realizacją Wydarzenia. Wszystkie płatności Klient dokonuje wyłącznie bezpośrednio na rzecz Restauracji lub Artysty, zgodnie z zasadami określonymi w niniejszym paragrafie oraz w § 6.",
     "3. Po potwierdzeniu terminu i warunków Wydarzenia realizowanego w Restauracji Klient wpłaca na rzecz Restauracji zadatek w wysokości 30% łącznej wartości zamówienia, obejmującej usługę gastronomiczną oraz Warsztat. Zadatek zabezpiecza łącznie rezerwację usługi gastronomicznej i usługi warsztatowej.",
     "4. Pozostałą część należności, w wysokości 70% łącznej wartości zamówienia, Klient rozlicza bezpośrednio z Restauracją, co do zasady w dniu Wydarzenia, chyba że Restauracja ustali z Klientem inny termin płatności.",
     "5. Restauracja, na podstawie odrębnych ustaleń zawartych z Artystą, rozlicza się z Artystą we własnym zakresie i przekazuje mu należne wynagrodzenie z tytułu przeprowadzenia Warsztatu. Usługodawca nie jest stroną tego rozliczenia, nie pośredniczy w nim i nie ponosi za nie odpowiedzialności.",
     "6. Wszelkie pytania dotyczące podziału wpłaconej kwoty pomiędzy Restaurację a Artystę Klient powinien kierować bezpośrednio do Restauracji, jako podmiotu przyjmującego płatność od Klienta.",
-    "7. Zasady płatności w przypadku Warsztatów realizowanych poza Restauracją, w tym w Lokalizacji Klienta, określa § 7 Regulaminu.",
+    "7. Zasady płatności w przypadku Warsztatów realizowanych poza Restauracją, w tym w Lokalizacji Klienta, określa § 6 Regulaminu.",
   ]},
-  { title:"§ 7. Warsztaty realizowane w Lokalizacji Klienta (poza Restauracją)", items: [
+  { title:"§ 6. Warsztaty realizowane w Lokalizacji Klienta (poza Restauracją)", items: [
     "1. Klient może zaprosić Artystę do przeprowadzenia Warsztatu w miejscu przez siebie wskazanym, w tym we własnym mieszkaniu lub domu, bądź w innej przestrzeni wynajętej lub udostępnionej przez Klienta (Lokalizacja Klienta). Postanowienia niniejszego paragrafu mają zastosowanie w zakresie, w jakim Wydarzenie nie jest realizowane w lokalu Restauracji będącej Partnerem Platformy.",
     "2. Klient zobowiązany jest przekazać Artyście rzetelne, prawdziwe i kompletne informacje o Lokalizacji Klienta, w szczególności dokładny adres, warunki lokalowe (m.in. dostęp do wody i prądu, powierzchnię, liczbę stołów i krzeseł, wentylację), możliwość dojazdu i parkowania oraz wszelkie inne okoliczności mogące mieć wpływ na możliwość i bezpieczeństwo przeprowadzenia Warsztatu.",
     "3. Artysta powinien potwierdzić otrzymane od Klienta informacje o Lokalizacji Klienta w formie pisemnej (np. wiadomość e-mail lub wiadomość tekstowa) przed potwierdzeniem rezerwacji terminu Warsztatu. Potwierdzenie to stanowi dla stron podstawę do ustalenia, czy warunki zastane na miejscu były zgodne z informacjami przekazanymi wcześniej przez Klienta, w szczególności na potrzeby ust. 5 poniżej.",
     "4. Artysta ma prawo odmówić przeprowadzenia Warsztatu w Lokalizacji Klienta, jeżeli warunki zastane na miejscu – w tym warunki bezpieczeństwa, sanitarne lub techniczne – w istotny sposób odbiegają od informacji przekazanych przez Klienta lub w inny sposób uniemożliwiają rzetelne i bezpieczne przeprowadzenie Warsztatu. Artysta niezwłocznie informuje Klienta o przyczynach odmowy.",
-    "5. Jeżeli odmowa, o której mowa w ust. 4, następuje z przyczyn leżących po stronie Klienta, w szczególności wskutek podania nieprawdziwych, niepełnych lub wprowadzających w błąd informacji o Lokalizacji Klienta, niezgodnych z potwierdzeniem, o którym mowa w ust. 3, zastosowanie mają zasady określone w § 8 ust. 2 i 5 (zatrzymanie zadatku przez Artystę).",
-    "6. W przypadku Warsztatów realizowanych w Lokalizacji Klienta, Klient wpłaca na rzecz Artysty zadatek w wysokości 30% ustalonego wynagrodzenia za przeprowadzenie Warsztatu, na zasadach analogicznych do określonych w § 6 ust. 3, przed potwierdzeniem rezerwacji terminu Warsztatu. Pozostałą część wynagrodzenia Klient rozlicza bezpośrednio z Artystą, na zasadach ustalonych indywidualnie.",
+    "5. Jeżeli odmowa, o której mowa w ust. 4, następuje z przyczyn leżących po stronie Klienta, w szczególności wskutek podania nieprawdziwych, niepełnych lub wprowadzających w błąd informacji o Lokalizacji Klienta, niezgodnych z potwierdzeniem, o którym mowa w ust. 3, zastosowanie mają zasady określone w § 7 ust. 2 i 5 (zatrzymanie zadatku przez Artystę).",
+    "6. W przypadku Warsztatów realizowanych w Lokalizacji Klienta, Klient wpłaca na rzecz Artysty zadatek w wysokości 30% ustalonego wynagrodzenia za przeprowadzenie Warsztatu, na zasadach analogicznych do określonych w § 5 ust. 3, przed potwierdzeniem rezerwacji terminu Warsztatu. Pozostałą część wynagrodzenia Klient rozlicza bezpośrednio z Artystą, na zasadach ustalonych indywidualnie.",
     "7. Usługodawca nie weryfikuje ani nie ponosi odpowiedzialności za warunki panujące w Lokalizacji Klienta, w tym za jej bezpieczeństwo, stan techniczny, wyposażenie ani zgodność z powszechnie obowiązującymi przepisami prawa (np. przepisami przeciwpożarowymi, sanitarnymi lub budowlanymi).",
-    "8. Usługodawca nie ponosi odpowiedzialności za jakość, przebieg ani sposób przeprowadzenia Warsztatu, niezależnie od miejsca jego realizacji – odpowiedzialność w tym zakresie ponosi wyłącznie Artysta jako strona umowy z Klientem, zgodnie z § 11 Regulaminu.",
+    "8. Usługodawca nie ponosi odpowiedzialności za jakość, przebieg ani sposób przeprowadzenia Warsztatu, niezależnie od miejsca jego realizacji – odpowiedzialność w tym zakresie ponosi wyłącznie Artysta jako strona umowy z Klientem, zgodnie z § 10 Regulaminu.",
     "9. Szczegółowe warunki organizacyjne Warsztatu, w tym w szczególności czas trwania, niezbędne materiały oraz wymagania dotyczące przestrzeni, Klient ustala bezpośrednio z Artystą po nawiązaniu kontaktu za pośrednictwem Platformy.",
   ]},
-  { title:"§ 8. Odwołanie Wydarzenia", items: [
+  { title:"§ 7. Odwołanie Wydarzenia", items: [
     "1. Klient może odwołać Wydarzenie bez ponoszenia dodatkowych konsekwencji finansowych nie później niż na 14 dni przed ustalonym terminem Wydarzenia. Odwołanie w tym terminie skutkuje zwrotem przez Podmiot przyjmujący zadatek wpłaconego zadatku w terminie 14 dni od dnia odwołania.",
     "2. Odwołanie Wydarzenia przez Klienta w terminie krótszym niż 14 dni przed ustalonym terminem uprawnia Podmiot przyjmujący zadatek do zachowania wpłaconego zadatku, zgodnie z art. 394 § 1 Kodeksu cywilnego, tytułem rekompensaty za dokonaną rezerwację.",
     "3. W przypadku odwołania Wydarzenia przez Restaurację lub Artystę z przyczyn leżących po ich stronie, Klientowi przysługuje zwrot wpłaconego zadatku w podwójnej wysokości od Podmiotu przyjmującego zadatek, zgodnie z art. 394 § 1 Kodeksu cywilnego, chyba że Klient i Podmiot przyjmujący zadatek uzgodnią inny sposób rekompensaty, w szczególności ustalenie nowego terminu Wydarzenia zaakceptowanego przez Klienta.",
     "4. Postanowień ust. 2 i 3 nie stosuje się w przypadku odwołania Wydarzenia z przyczyn stanowiących siłę wyższą (w szczególności klęski żywiołowe, decyzje organów administracji publicznej, nagłe zamknięcie lokalu z przyczyn sanitarnych lub bezpieczeństwa) – w takim przypadku wpłacony zadatek podlega zwrotowi Klientowi w pełnej wysokości.",
-    "5. Odmowa przeprowadzenia Warsztatu przez Artystę na podstawie § 7 ust. 4, dokonana z przyczyn leżących po stronie Klienta zgodnie z § 7 ust. 5, jest traktowana jako odwołanie Wydarzenia przez Klienta w rozumieniu ust. 2 powyżej.",
+    "5. Odmowa przeprowadzenia Warsztatu przez Artystę na podstawie § 6 ust. 4, dokonana z przyczyn leżących po stronie Klienta zgodnie z § 6 ust. 5, jest traktowana jako odwołanie Wydarzenia przez Klienta w rozumieniu ust. 2 powyżej.",
     "6. Odwołanie uznaje się za skutecznie złożone z momentem przekazania przez Klienta do Podmiotu przyjmującego zadatek informacji o odwołaniu. Rekomenduje się formę pisemną odwołania (e-mail lub sms). Analogicznie również, odwołanie uznaje się za skutecznie złożone z momentem przekazania przez Artystę lub Restauracje informacji o odwołaniu do Klienta. Rekomenduje się formę pisemną odwołania (e-mail lub sms).",
     "7. Usługodawca nie jest stroną rozliczenia zadatku i nie ponosi odpowiedzialności za jego zwrot lub zatrzymanie przez Restaurację lub Artystę – kwestie te regulowane są bezpośrednio pomiędzy Klientem a Podmiotem przyjmującym zadatek, z zastrzeżeniem ust. 1–5 powyżej.",
   ]},
-  { title:"§ 9. Zasady organizacji Eventów i Urodzin dla Dzieci (Małoletnich)", items: [
+  { title:"§ 8. Zasady organizacji Eventów i Urodzin dla Dzieci (Małoletnich)", items: [
     "1. Platforma umożliwia Klientom przesyłanie Zapytań dotyczących Eventów Dziecięcych, w tym urodzin oraz imprez okolicznościowych dla dzieci.",
     "2. Ani Usługodawca, ani Restauracja, ani Artysta nie świadczą usług opieki nad dziećmi w rozumieniu obowiązujących przepisów prawa (w szczególności nie są przedszkolem, żłobkiem, klubem dziecięcym ani placówką wypoczynku dzieci i młodzieży) i nie przejmują obowiązku nadzoru nad Małoletnimi w rozumieniu art. 427 Kodeksu cywilnego.",
     "3. Klient zgłaszający Event Dziecięcy zobowiązany jest zapewnić obecność co najmniej jednego pełnoletniego Opiekuna przez cały czas trwania Wydarzenia. Opiekun sprawuje wyłączny nadzór nad Małoletnimi uczestnikami Wydarzenia i ponosi za nich pełną odpowiedzialność.",
@@ -944,30 +947,30 @@ const CLIENT_TERMS_SECTIONS = [
     "9. Usługodawca nie zbiera ani nie przetwarza takich zgód i nie ponosi odpowiedzialności za ich brak lub wadliwość.",
     "10. Usługodawca nie zbiera, nie gromadzi i nie wykorzystuje w żaden sposób utrwalonego podczas Wydarzenia wizerunku Małoletnich.",
     "11. Artysta oraz Restauracja, jako podmioty samodzielnie prowadzące działalność, w ramach której mogą mieć kontakt z Małoletnimi, odpowiadają we własnym zakresie za spełnienie obowiązków wynikających z ustawy z dnia 13 maja 2016 r. o przeciwdziałaniu zagrożeniom przestępczością na tle seksualnym i ochronie małoletnich, w tym w zakresie standardów ochrony małoletnich, o ile obowiązki te znajdują zastosowanie do prowadzonej przez nich działalności. Usługodawca rekomenduje Partnerom weryfikację tego obowiązku we własnym zakresie i nie ponosi odpowiedzialności za jego niedopełnienie przez Partnera.",
-    "12. Do Wydarzeń, o których mowa w niniejszym paragrafie, stosuje się odpowiednio pozostałe postanowienia Regulaminu, w szczególności dotyczące płatności (§ 6), odwołania Wydarzenia (§ 8) oraz Odpowiedzialności (§ 11).",
+    "12. Do Wydarzeń, o których mowa w niniejszym paragrafie, stosuje się odpowiednio pozostałe postanowienia Regulaminu, w szczególności dotyczące płatności (§ 5), odwołania Wydarzenia (§ 7) oraz Odpowiedzialności (§ 10).",
   ]},
-  { title:"§ 10. Prawo odstąpienia od umowy zawartej na odległość", items: [
-    "Z uwagi na fakt, że przedmiotem umowy jest usługa związana z wydarzeniem, dla którego oznaczono konkretny dzień świadczenia, na podstawie art. 38 ust. 1 pkt 12 ustawy z dnia 30 maja 2014 r. o prawach konsumenta Klientowi nie przysługuje prawo odstąpienia od umowy w terminie 14 dni. Zasady rezygnacji z Wydarzenia reguluje § 8 niniejszego Regulaminu.",
+  { title:"§ 9. Prawo odstąpienia od umowy zawartej na odległość", items: [
+    "Z uwagi na fakt, że przedmiotem umowy jest usługa związana z wydarzeniem, dla którego oznaczono konkretny dzień świadczenia, na podstawie art. 38 ust. 1 pkt 12 ustawy z dnia 30 maja 2014 r. o prawach konsumenta Klientowi nie przysługuje prawo odstąpienia od umowy w terminie 14 dni. Zasady rezygnacji z Wydarzenia reguluje § 7 niniejszego Regulaminu.",
   ]},
-  { title:"§ 11. Odpowiedzialność", items: [
-    "1. Usługodawca nie ponosi odpowiedzialności za jakość, przebieg, terminowość ani sposób realizacji Warsztatu lub usługi gastronomicznej – w tym zakresie odpowiedzialność ponoszą odpowiednio Artysta i Restauracja jako strony umowy z Klientem; dotyczy to również Warsztatów realizowanych w Lokalizacji Klienta, o których mowa w § 7.",
+  { title:"§ 10. Odpowiedzialność", items: [
+    "1. Usługodawca nie ponosi odpowiedzialności za jakość, przebieg, terminowość ani sposób realizacji Warsztatu lub usługi gastronomicznej – w tym zakresie odpowiedzialność ponoszą odpowiednio Artysta i Restauracja jako strony umowy z Klientem; dotyczy to również Warsztatów realizowanych w Lokalizacji Klienta, o których mowa w § 6.",
     "2. Usługodawca dokłada starań, aby informacje prezentowane na Platformie (opisy, ceny, dostępność) były aktualne i rzetelne, jednak nie gwarantuje ich pełnej zgodności ze stanem faktycznym w każdym momencie i zaleca potwierdzenie kluczowych warunków bezpośrednio z Partnerem przed Wydarzeniem.",
     "3. Usługodawca nie ponosi odpowiedzialności za przerwy w działaniu Platformy wynikające z przyczyn technicznych pozostających poza jego kontrolą.",
-    "4. Usługodawca nie ponosi odpowiedzialności za rozliczenia finansowe pomiędzy Restauracją a Artystą ani za jakiekolwiek szkody osobowe lub majątkowe powstałe w trakcie Wydarzenia, w tym szkody wyrządzone przez lub wobec Małoletnich uczestników – odpowiedzialność w tym zakresie ponoszą odpowiednio Restauracja, Artysta oraz Opiekunowie i Klient, zgodnie z § 6, § 8 i § 9 Regulaminu oraz przepisami Kodeksu cywilnego.",
+    "4. Usługodawca nie ponosi odpowiedzialności za rozliczenia finansowe pomiędzy Restauracją a Artystą ani za jakiekolwiek szkody osobowe lub majątkowe powstałe w trakcie Wydarzenia, w tym szkody wyrządzone przez lub wobec Małoletnich uczestników – odpowiedzialność w tym zakresie ponoszą odpowiednio Restauracja, Artysta oraz Opiekunowie i Klient, zgodnie z § 5, § 7 i § 8 Regulaminu oraz przepisami Kodeksu cywilnego.",
     "5. Usługodawca nie jest organizatorem Wydarzenia w rozumieniu przepisów prawa cywilnego ani przepisów szczególnych i nie ponosi odpowiedzialności jako organizator.",
   ]},
-  { title:"§ 12. Reklamacje i kontakt", items: [
+  { title:"§ 11. Reklamacje i kontakt", items: [
     "1. Wszelkie uwagi, pytania i reklamacje dotyczące działania Platformy należy kierować na adres e-mail: kawiarnianiartysci@gmail.com.",
     "2. Reklamacje dotyczące jakości Warsztatu lub usługi gastronomicznej należy kierować bezpośrednio do właściwego Artysty lub Restauracji. Usługodawca może pośredniczyć w takim kontakcie na prośbę Klienta.",
     "3. Reklamacje dotyczące funkcjonowania Platformy rozpatrywane są w terminie 14 dni od dnia ich zgłoszenia.",
   ]},
-  { title:"§ 13. Dane osobowe", items: [
+  { title:"§ 12. Dane osobowe", items: [
     "Zasady przetwarzania danych osobowych Klientów, określa odrębna Polityka Prywatności, dostępna na Platformie.",
   ]},
-  { title:"§ 14. Pozasądowe rozstrzyganie sporów", items: [
+  { title:"§ 13. Pozasądowe rozstrzyganie sporów", items: [
     "Klient będący konsumentem ma możliwość skorzystania z pozasądowych sposobów rozpatrywania reklamacji i dochodzenia roszczeń, w tym zwrócenia się o pomoc do właściwego miejskiego lub powiatowego rzecznika konsumentów.",
   ]},
-  { title:"§ 15. Postanowienia końcowe", items: [
+  { title:"§ 14. Postanowienia końcowe", items: [
     "1. Niniejszy Regulamin obowiązuje od dnia 22.08.2026.",
     "2. Usługodawca zastrzega sobie prawo do zmiany Regulaminu; o zmianach Klienci zostaną poinformowani poprzez opublikowanie nowej treści Regulaminu na Platformie z odpowiednim wyprzedzeniem.",
     "3. W sprawach nieuregulowanych niniejszym Regulaminem zastosowanie mają przepisy prawa polskiego, w szczególności Kodeksu cywilnego oraz ustawy o prawach konsumenta.",
