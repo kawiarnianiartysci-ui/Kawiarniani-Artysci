@@ -1745,7 +1745,7 @@ function PlaceInterviewForm({ value, onChange, travelArea, kidsMode = false }) {
 
 // ══ Krok 3 — podsumowanie i formularz kontaktowy ═════════════
 
-function Step4ContactForm({ restaurant, variant, workshop, groupSize, selectedDate, onDateChange, selectedTime, onTimeChange, ppp, total, workshopOnlyTotal, onEditStep, onSubmitted, kidsMode = false, kidsCount, adultsCount, ownPlace = false, placeInfo }) {
+function Step4ContactForm({ restaurant, variant, workshop, groupSize, selectedDate, onDateChange, selectedTime, onTimeChange, ppp, total, workshopOnlyTotal, onEditStep, onSubmitted, kidsMode = false, kidsCount, adultsCount, ownPlace = false, placeInfo, workshopStep = 1, placeStep = 2 }) {
   const [form, setForm] = useState({ name:"", email:"", phone:"", message:"" });
   const [consent, setConsent] = useState(false);
   const [termsAccepted, setTermsAccepted] = useState(false);
@@ -1815,11 +1815,18 @@ function Step4ContactForm({ restaurant, variant, workshop, groupSize, selectedDa
       .catch(() => { setSending(false); setError("Nie udało się wysłać zapytania. Spróbuj ponownie."); });
   };
 
+  // Numer kroku dla każdego linku "zmień" zależy od tego, którą ścieżkę
+  // klient wybrał na starcie (Warsztat najpierw, czy Miejsce najpierw) —
+  // NIE jest to zawsze 1/2 w tej samej kolejności. Bez `workshopStep`/
+  // `placeStep` przekazanych z App() (gdzie znana jest kolejność `path`),
+  // linki "zmień" prowadziły na odwrotny krok dla klientów, którzy zaczęli
+  // od "Wybierz restaurację/kawiarnię" — "zmień" przy Warsztacie pokazywał
+  // listę restauracji zamiast warsztatów, i odwrotnie.
   const summaryRowsTop = [
-    { label:"Warsztat", value: workshop ? `${workshop.name} (${workshop.artist})` : "—", step:1 },
+    { label:"Warsztat", value: workshop ? `${workshop.name} (${workshop.artist})` : "—", step: workshopStep },
     { label:"Miejsce", value: ownPlace
       ? `${placeInfo?.address || "Wasz adres"} (dojazd artysty)`
-      : (restaurant ? `${restaurant.name}${variant ? " · " + variant.label : ""}` : "—"), step:2 },
+      : (restaurant ? `${restaurant.name}${variant ? " · " + variant.label : ""}` : "—"), step: placeStep },
   ];
   const summaryRowsBottom = kidsMode ? [
     { label:"Liczba dzieci", value: kidsCount != null ? `${kidsCount}` : "—" },
@@ -2509,6 +2516,7 @@ export default function App() {
                     onSubmitted={() => setSubmitted(true)}
                     kidsMode kidsCount={kidsCount} adultsCount={adultsCount}
                     ownPlace={ownPlace} placeInfo={placeInfo}
+                    workshopStep={step1Kind === "workshop" ? 1 : 2} placeStep={step1Kind === "workshop" ? 2 : 1}
                   />
                 )}
               </div>
@@ -2608,6 +2616,7 @@ export default function App() {
                     onEditStep={n => setWizardStep(n)}
                     onSubmitted={() => setSubmitted(true)}
                     ownPlace={ownPlace} placeInfo={placeInfo}
+                    workshopStep={step1Kind === "workshop" ? 1 : 2} placeStep={step1Kind === "workshop" ? 2 : 1}
                   />
                 )}
               </div>
