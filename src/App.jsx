@@ -2214,6 +2214,19 @@ export default function App() {
     lastWizardModeRef.current = m;
     setMode(m);
   };
+  // `lastWizardModeRef` musi zostać zsynchronizowany z `mode` nawet gdy coś
+  // INNEGO niż `goWizardMode` zmienia tryb — kliknięcie logo (resetuje do
+  // "client" wprost przez setMode) i przywrócenie stanu przez popstate
+  // (przycisk "Wstecz" przeglądarki) obie omijają goWizardMode. Bez tego
+  // ref zostawał nieaktualny i późniejsze kliknięcie przełącznika trybu w
+  // nagłówku mogło albo pominąć reset, który powinien się wydarzyć (wybory
+  // z jednego trybu przeciekają do drugiego), albo niepotrzebnie zresetować
+  // stan przy kliknięciu już aktywnego przycisku. Celowo pomija "b2b" — ref
+  // ma śledzić tylko ostatni tryb KREATORA, żeby przejściowa wizyta w
+  // Współpracy nie liczyła się jako zmiana trybu.
+  useEffect(() => {
+    if (mode === "client" || mode === "kids") lastWizardModeRef.current = mode;
+  }, [mode]);
 
   const workshop   = workshops.find(w => w.id === selectedW);
   const restaurant = restaurants.find(r => r.id === selectedR);
