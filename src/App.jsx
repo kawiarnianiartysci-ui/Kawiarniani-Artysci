@@ -619,7 +619,7 @@ function RestaurantCard({ r, isSelected, selectedVariantId, onToggle, onVariantS
 
 // ══ Karta warsztatu ══════════════════════════════════════════
 
-function WorkshopCard({ w, isSelected, onToggle, onProfile, kidsMode = false }) {
+function WorkshopCard({ w, isSelected, onToggle, onProfile, kidsMode = false, ownPlace = false }) {
   const soon = w.comingSoon;
   return (
     <div className={soon ? "" : "card-h"} style={{ background: isSelected ? C.selectedBg : soon ? "#F5F4F1" : C.card, border:`2px solid ${isSelected ? C.primary : "transparent"}`, borderRadius:14, overflow:"hidden", boxShadow: isSelected ? "0 4px 16px rgba(67,42,22,0.14)" : soon ? "none" : "0 1px 5px rgba(0,0,0,0.07)", position:"relative", opacity: soon ? 0.78 : 1, display:"flex", flexDirection:"column", width:"100%" }}>
@@ -661,7 +661,9 @@ function WorkshopCard({ w, isSelected, onToggle, onProfile, kidsMode = false }) 
 
         {w.requiresSeparateRoom && !soon && (
           <div style={{ fontSize:11, color:C.muted, lineHeight:1.5, marginBottom:8 }}>
-            Ten warsztat wymaga osobnej sali — na kolejnym kroku pokażemy miejsca, które ją mają.
+            {ownPlace
+              ? "Ten warsztat wymaga osobnej sali lub wydzielonej przestrzeni — zapytamy Was o to w kolejnym kroku."
+              : "Ten warsztat wymaga osobnej sali — na kolejnym kroku pokażemy miejsca, które ją mają."}
           </div>
         )}
 
@@ -1608,7 +1610,7 @@ function WizardProgressBar({ step, path, onStepClick }) {
 
 // ══ Krok 1 / krok 2 — wybór warsztatu lub restauracji ═══════
 
-function PickStep({ kind, items, selectedId, selectedVariantId, onToggle, onVariantSelect, onProfile, onFallback, onBackToStep1, notice, kidsMode = false }) {
+function PickStep({ kind, items, selectedId, selectedVariantId, onToggle, onVariantSelect, onProfile, onFallback, onBackToStep1, notice, kidsMode = false, ownPlace = false }) {
   const isRestaurant = kind === "restaurant";
   const empty = items.length === 0;
   return (
@@ -1646,7 +1648,7 @@ function PickStep({ kind, items, selectedId, selectedVariantId, onToggle, onVari
                 isSelected={selectedId === item.id}
                 onToggle={() => onToggle(item.id)}
                 onProfile={() => onProfile(item)}
-                kidsMode={kidsMode} />
+                kidsMode={kidsMode} ownPlace={ownPlace} />
             )
           ))}
         </div>
@@ -2477,7 +2479,7 @@ export default function App() {
                       onProfile={item => setProfileItem({ item, type: step1Kind })}
                       onFallback={() => setWizardStep(3)}
                       onBackToStep1={() => { if (step1Kind === "workshop") { setSelectedR(null); setSelectedVariant(null); } else setSelectedW(null); }}
-                      kidsMode
+                      kidsMode ownPlace={ownPlace}
                     />
                   </>
                 )}
@@ -2582,6 +2584,7 @@ export default function App() {
                     onProfile={item => setProfileItem({ item, type: step1Kind })}
                     onFallback={() => setWizardStep(3)}
                     onBackToStep1={() => { if (step1Kind === "workshop") { setSelectedR(null); setSelectedVariant(null); } else setSelectedW(null); }}
+                    ownPlace={ownPlace}
                     />
                   </>
                 )}
