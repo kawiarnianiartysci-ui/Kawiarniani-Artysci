@@ -2,7 +2,7 @@
 
 Booking platform connecting cafés/restaurants with creative-workshop artists (painting, ebru, improv, aromatherapy, etc.) for private group events in Poznań, Poland. Clients pick a venue + a workshop (or an artist who travels to them), pick a date/headcount, and send a booking inquiry — the platform then coordinates artist ↔ restaurant ↔ client by email.
 
-**Live:** https://www.kawiarnianiartysci.pl
+**Live:** https://www.kawiarnianiartysci.pl — launched 2026-08-22, after a full manual QA pass across every mode/path and a real end-to-end inquiry (client submission → artist accept → restaurant confirm, all emails delivered) confirmed working by the site owner.
 
 ## Tech stack
 
