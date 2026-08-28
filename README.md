@@ -45,6 +45,34 @@ public/fonts/       self-hosted webfont
 docs/superpowers/   spec + implementation plan for the "Eventy dla dzieci" (kids mode) feature — a real worked example of the planning docs this codebase uses for larger features
 ```
 
+## SEO Status
+
+✅ **Platform is live and discoverable in Google** (as of 2026-08-28):
+- Google Search Console shows **23 clicks from Google** (last 28 days)
+- Average position: **2.1** (top results)
+- Click-through rate: **62.2%** (very high — meta description is engaging)
+- Metadata: title, description, Open Graph tags, schema.org LocalBusiness all present ✓
+- **robots.txt** and **sitemap.xml** added 2026-08-28 ✓
+
+### React SPA vs. prerendering
+
+The site is a React SPA with no SSR/prerendering, but **Google can read it fine**. The platform doesn't need static generation (SSG) right now:
+- Google's renderer can execute JS and index dynamic content without issues
+- If search performance degrades later, prerendering can be added to `vite.config.js` (e.g., via `@vitejs/plugin-ssr-preload` or exporting pages statically before build)
+- For now, focus is on **backlinks** (by far the highest-impact SEO lever)
+
+### What affects ranking most
+
+1. **Backlinks** (70% of ranking weight) — high-impact, in progress as of 2026-08-28
+2. **Metadata & structure** (10%) — done ✓
+3. **Performance/UX** (10%) — React app is fast enough
+4. **Prerendering/crawlability** (10%) — working, no change needed
+
+### Monitoring
+
+- Weekly check: Search Console → Performance tab (clicks, impressions, CTR, position trend)
+- Backlink strategy was ready as of 2026-08-12; results expected within 2–4 weeks
+
 ## Who to ask
 
 Site owner: Joanna (contact via the platform's own "Kim jesteśmy" email link). Not a technical background — expect to explain changes in plain terms, and expect the Google Sheet (not code) to be the answer to most "can you change X" data questions. See [CONTRIBUTING.md](CONTRIBUTING.md) for the full list of conventions and known gotchas before making changes.
