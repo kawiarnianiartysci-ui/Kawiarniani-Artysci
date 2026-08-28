@@ -1,0 +1,139 @@
+KAWIARNIANI ARTYŚCI — DOKUMENTACJA PLATFORMY (2026-08-28),,,
+"Dokumentacja aktualizowana: 2026-08-28",,
+"Status: ✅ LIVE",,
+,,,
+🔗 NAJWAŻNIEJSZE LINKI,,,
+Typ,URL/Informacja,Dostęp,Opis
+Live Site,https://www.kawiarnianiartysci.pl,✅ Publiczna,Strona użytkowników
+GitHub Repo,https://github.com/kawiarnianiartysci-ui/Kawiarniani-Artysci,✅ Public + Push,Kod platformy
+Vercel Hosting,https://vercel.com/kawiarnianiartysci-ui,🔒 Joanna,Auto-deploy
+Google Analytics,https://analytics.google.com (G-KCXWSP03Y1),🔒 Joanna,Monitoring trafficu
+Search Console,https://search.google.com/search-console,🔒 Joanna,Ranking + keywords
+,,,
+📁 LOKALIZACJE PLIKÓW,,,
+LOKALNIE (Komputer Joanny),,,
+Co,Gdzie,Backup,Notatka
+Główny folder,"C:\Users\cybjo\OneDrive\Pulpit\BIZNES\ważne informacje dla powstania wyszukiwarki z eventami i restauracjami\kody na vercel","📂 OneDrive","Auto-sync, kopia na dysku"
+Kod aplikacji,repo/,GitHub,Git repository
+Aplikacja React,repo/src/App.jsx,GitHub,"2300+ linii, cała logika"
+Backend functions,repo/api/,GitHub,"inquiry.js, respond.js, confirm.js"
+Publiczne pliki,repo/public/,GitHub,"Zdjęcia, robots.txt, sitemap.xml"
+Dokumentacja,"repo/README.md, CONTRIBUTING.md",GitHub,Dla nowych developerów
+Memory pliki,"C:\Users\cybjo\.claude\projects\...",Local only,Historia decyzji
+Recovery codes,recovery-codes.txt,Safe location,GitHub account backup
+,,,
+NA GITHUB (Cloud),,,
+Co,Gdzie,Dostęp,Notatka
+Repository,https://github.com/kawiarnianiartysci-ui/Kawiarniani-Artysci,Public + Push,"Cały kod, docs"
+Branch,main,Auto-deploy,Automatycznie deploy na Vercel
+Dokumentacja,README.md + CONTRIBUTING.md + DOKUMENTACJA_PLATFORMY.md,Public,Dla wszystkich
+,,,
+DANE (Google Sheets),,,
+Dane,Sheet ID,CSV URL,Edycja
+Restauracje,gid=563383430,https://docs.google.com/spreadsheets/d/e/2PACX-1vQj-im-saKt9v_ANh2m42skFGZrBDRhckh5OjESFVhAk6vPcAg5M8m20xAB3RTAqlRsizOa_9ken2t_/pub?gid=563383430&single=true&output=csv,Joanna + Forms automation
+Warsztaty,gid=273766010,https://docs.google.com/spreadsheets/d/e/2PACX-1vQj-im-saKt9v_ANh2m42skFGZrBDRhckh5OjESFVhAk6vPcAg5M8m20xAB3RTAqlRsizOa_9ken2t_/pub?gid=273766010&single=true&output=csv,Joanna + Forms automation
+,,,
+🔐 SEKRETY — Environment Variables (Vercel Dashboard Only),,,
+Zmienna,Wartość,Gdzie,Notatka
+RESEND_API_KEY,[REDACTED],Vercel Project Settings,Email API
+RESEND_FROM_EMAIL,zapytania@kawiarnianiartysci.pl,Vercel Project Settings,Sender email
+INQUIRY_SIGNING_SECRET,[REDACTED],Vercel Project Settings,HMAC secret
+OWNER_EMAIL,cybjoa@gmail.com,Vercel Project Settings,Joanna's email
+SITE_URL,https://www.kawiarnianiartysci.pl,Vercel Project Settings,For absolute links
+,,,
+⚠️ WAŻNE: Sekrety nigdy w GitHub!,,,
+"❌ Nie w .env, .env.local, czy repo",,
+✅ Tylko na Vercel Dashboard,,
+✅ Recovery codes = backup GitHub account,,
+,,,
+👥 MATRYCA DOSTĘPÓW,,,
+Usługa/Plik,Joanna,Nowy Developer,Notatka
+GitHub - Clone,✅,✅,Public
+GitHub - Push main,✅,❌,Tylko Joanna
+GitHub - Review,✅,❌,Joanna decyduje
+Vercel Hosting,✅,❌,Dashboard
+Vercel Env Vars,✅,❌,Sekrety
+Vercel Deploy,✅,❌,Auto na push
+Google Sheets Read,✅,❌,Restauracje + Warsztaty
+Google Sheets Edit,✅,❌,Tylko Joanna
+Resend API,✅,❌,Email backend
+Search Console,✅,❌,Analytics
+Google Analytics,✅,❌,Traffic monitoring
+Recovery Codes,✅,❌,Account backup
+,,,
+⚙️ TECH STACK,,,
+Warstwa,Technologia,Opis,Linki
+Frontend,React 18 + Vite,SPA (Single Page App) brak routera,src/App.jsx
+Backend,Vercel Functions,Serverless endpoints,api/inquiry.js respond.js confirm.js
+Email,Resend API,SMTP zapytania@kawiarnianiartysci.pl,https://resend.com
+Data,Google Sheets CSV,Restauracje + Warsztaty dynamic,gid=563383430 i gid=273766010
+Forms,Google Forms + Apps Script,Auto-populate + email chain,Google Workspace
+Hosting,Vercel,Auto-deploy main,https://vercel.com
+Domain,Hostinger DNS,kawiarnianiartysci.pl,Hostinger
+Monitoring,GA4 + GSC,Analytics + Search ranking,G-KCXWSP03Y1
+,,,
+📊 SEO STATUS (2026-08-28),,,
+Metryka,Wartość,Status,Notatka
+Kliknięcia z Google,23,"✅ Live","ostatnie 28 dni"
+Wyświetlenia,37,"✅ Live","w wynikach"
+CTR,62.2%,"✅ Wysoki","snippet jest atrakcyjny"
+Średnia pozycja,2.1,"✅ TOP","dobre ranki"
+Trend,"↗️ Wzrostowy","✅ OK","od 20-28 sierpnia rośnie"
+robots.txt,Live,"✅ Dodany","https://kawiarnianiartysci.pl/robots.txt"
+sitemap.xml,Live,"✅ Dodany","https://kawiarnianiartysci.pl/sitemap.xml"
+Metadane,"Title, OG, JSON-LD","✅ OK","Google widzi wszystko"
+Prerendering,React SPA bez SSR,"✅ OK","Google radzi sobie z JS"
+Backlinki,W toku,"⏳ Priorytet","Najważniejszy dla rankingu"
+,,,
+🚨 EMERGENCY — Co robić jeśli...,,,
+Problem,Rozwiązanie,Czas,Notatka
+Strona padnie 500,"1. Zaloguj Vercel
+2. Deployments → wróć do ostatniego working
+3. LUB: Push dummy commit (nowy deploy auto)","1-2 min","Musiał być commit do deploy"
+Ktoś skaże kod,"1. git log --oneline
+2. git revert <id>
+3. git push main","5 min","Live natychmiast"
+Stracę GitHub access,"1. recovery-codes.txt
+2. GitHub login z codes
+3. Regeneruj SSH key","5-10 min","Codes w recovery-codes.txt"
+Stracę Vercel access,"1. Zaloguj z GitHub account
+2. Przywróć dostęp do projektu
+3. Regeneruj env vars","5-10 min","GitHub account = backup"
+Zapomniałem env vars,"❌ Nie da się odzyskać (Vercel >>)
+✅ Regeneruj API keys","30 min","Resend + inne serwisy"
+Deployment stuck,"1. Vercel → Redeploy
+2. LUB: Push nowy commit
+3. Czekaj max 10 minut","10 min","Zwykle się samo naprawia"
+,,,
+✅ ONBOARDING — Checklist dla nowego developera,,,
+Kroki,Opis,Status
+"1. Klonuj repo","git clone https://github.com/kawiarnianiartysci-ui/Kawiarniani-Artysci.git",☐
+"2. Czytaj README.md","Tech stack + SEO info",☐
+"3. Czytaj CONTRIBUTING.md","Conventions i gotchas",☐
+"4. npm install","Install dependencies",☐
+"5. npm run dev","Start local dev server (localhost:5173)",☐
+"6. Testuj lokalnie","Sprawdź czy strona działa",☐
+"7. Czytaj memory/MEMORY.md","Historia decyzji i features",☐
+"8. Pytaj o Vercel access","Env vars + deployment",☐
+"9. Szukaj relevantnego memory file","Do swojego zadania",☐
+"10. Czytaj GitHub Issues","Jeśli są",☐
+"11. Zaczynam kodować!","Follow CONTRIBUTING.md conventions",☐
+,,,
+📞 KONTAKTY,,,
+Osoba/Usługa,Email/URL,Rola,Dostęp
+Joanna (Owner),cybjoa@gmail.com,Site owner + backend,Full access
+GitHub,https://github.com/kawiarnianiartysci-ui,Version control,Public
+Vercel,https://vercel.com,Hosting + deployment,🔒 Joanna
+Google Workspace,N/A,Data (Sheets + Forms),🔒 Joanna
+Resend,https://resend.com,Email API,🔒 Joanna
+Hostinger,N/A,Domain DNS,🔒 Joanna
+,,,
+📝 WERSJA TEGO DOKUMENTU,,,
+Aktualizacja,Zmiany,Autor
+2026-08-28,"robots.txt + sitemap.xml dodane, SEO status Live, GitHub docs updated","Claude (AI)"
+2026-08-22,"Site launched, QA pass, kids mode live",Joanna
+2026-08-12,"SEO meta tags, Analytics GA4, backlinks strategy",Joanna + Claude
+,,,
+"🔒 WAŻNE: Ten dokument zawiera publiczne linki i ogólne info.",,
+"❌ NIE udostępniaj: Recovery Codes, Env Vars wartości, hasła",,
+"✅ Zawsze weryfikuj najnowszą wersję na GitHub: DOKUMENTACJA_PLATFORMY.md",,
