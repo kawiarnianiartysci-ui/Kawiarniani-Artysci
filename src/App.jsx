@@ -400,7 +400,7 @@ function ProfileModal({ item, type, isSelected, onToggleSelect, selectedVariantI
             <PhotoGallery photos={item.photos} />
           ) : item.photo ? (
             <div style={{ borderRadius:10, overflow:"hidden", marginBottom:20 }}>
-              <img src={item.photo} alt={item.name} loading="lazy" style={{ width:"100%", height:180, objectFit:"cover", objectPosition: item.photo.includes("workshop-painting-photo") ? "center 25%" : item.photo.includes("agata-photo") ? "center 40%" : "center", display:"block" }} />
+              <img src={item.photo} alt={item.name} loading="lazy" style={{ width:"100%", height:180, objectFit:"cover", objectPosition: item.photo.includes("workshop-painting-photo") ? "center 25%" : item.photo.includes("agata-photo") ? "center 40%" : item.photo.includes("isabelsue-photo") ? "center 62%" : "center", display:"block" }} />
             </div>
           ) : (
             <div style={{ marginBottom:20 }}>
@@ -625,7 +625,7 @@ function WorkshopCard({ w, isSelected, onToggle, onProfile, kidsMode = false, ow
     <div className={soon ? "" : "card-h"} style={{ background: isSelected ? C.selectedBg : soon ? "#F5F4F1" : C.card, border:`2px solid ${isSelected ? C.primary : "transparent"}`, borderRadius:14, overflow:"hidden", boxShadow: isSelected ? "0 4px 16px rgba(67,42,22,0.14)" : soon ? "none" : "0 1px 5px rgba(0,0,0,0.07)", position:"relative", opacity: soon ? 0.78 : 1, display:"flex", flexDirection:"column", width:"100%" }}>
       {w.photo ? (
         <div style={{ height:140, overflow:"hidden", position:"relative" }}>
-          <img src={w.photo} alt={w.name} loading="lazy" style={{ width:"100%", height:"100%", objectFit:"cover", objectPosition: w.photo.includes("workshop-painting-photo") ? "center 25%" : w.photo.includes("agata-photo") ? "center 40%" : "center", display:"block" }} />
+          <img src={w.photo} alt={w.name} loading="lazy" style={{ width:"100%", height:"100%", objectFit:"cover", objectPosition: w.photo.includes("workshop-painting-photo") ? "center 25%" : w.photo.includes("agata-photo") ? "center 40%" : w.photo.includes("isabelsue-photo") ? "center 62%" : "center", display:"block" }} />
         </div>
       ) : w.logo ? (
         <div style={{ height:140, overflow:"hidden", position:"relative", background:"#ECE4D7", display:"flex", alignItems:"center", justifyContent:"center" }}>
@@ -644,7 +644,7 @@ function WorkshopCard({ w, isSelected, onToggle, onProfile, kidsMode = false, ow
         )}
         <div className="card-title-clamp" style={{ fontFamily:"'Montserrat', system-ui, sans-serif", fontSize:20, fontWeight:400, lineHeight:1.25, color: soon ? "#999" : C.text, marginBottom:2 }}>{w.name}</div>
         <div style={{ fontSize:10, letterSpacing:"0.1em", color:C.muted, marginBottom:8 }}>{w.artist}</div>
-        <p style={{ fontSize:13, color:C.muted, margin:"0 0 12px", lineHeight:1.55, fontWeight:300 }}>{w.description}</p>
+        <p style={{ fontSize:13, color:C.muted, margin:"0 0 12px", lineHeight:1.55, fontWeight:300, whiteSpace:"pre-line" }}>{w.description}</p>
 
         {!soon && (
           <span style={{ fontSize:11, padding:"3px 9px", borderRadius:10, background: isSelected ? "rgba(255,255,255,0.6)" : C.tagBg, color:C.muted }}>{w.duration}</span>
