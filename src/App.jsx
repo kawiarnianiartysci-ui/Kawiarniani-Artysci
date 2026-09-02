@@ -1610,7 +1610,7 @@ function WizardProgressBar({ step, path, onStepClick }) {
 
 // ══ Krok 1 / krok 2 — wybór warsztatu lub restauracji ═══════
 
-function PickStep({ kind, items, selectedId, selectedVariantId, onToggle, onVariantSelect, onProfile, onFallback, onBackToStep1, notice, kidsMode = false, ownPlace = false }) {
+function PickStep({ kind, items, selectedId, selectedVariantId, onToggle, onVariantSelect, onProfile, onFallback, onBackToStep1, onOwnPlace, notice, kidsMode = false, ownPlace = false }) {
   const isRestaurant = kind === "restaurant";
   const empty = items.length === 0;
   return (
@@ -1629,6 +1629,7 @@ function PickStep({ kind, items, selectedId, selectedVariantId, onToggle, onVari
           </p>
           <div style={{ display:"flex", gap:10, justifyContent:"center", flexWrap:"wrap" }}>
             <button onClick={onBackToStep1} style={{ padding:"12px 22px", borderRadius:9, border:`1px solid ${C.border}`, background:"#FFF", color:C.text, fontSize:13, fontWeight:600, cursor:"pointer", minHeight:44 }}>Zmień wybór</button>
+            {isRestaurant && onOwnPlace && <button onClick={onOwnPlace} style={{ padding:"12px 22px", borderRadius:9, border:`1px solid ${C.border}`, background:"#FFF", color:C.text, fontSize:13, fontWeight:600, cursor:"pointer", minHeight:44 }}>Zaproś artystę do siebie</button>}
             <button onClick={onFallback} style={{ padding:"12px 22px", borderRadius:9, border:"none", background:C.primary, color:"#FFF", fontSize:13, fontWeight:600, cursor:"pointer", minHeight:44 }}>Napisz do nas</button>
           </div>
         </div>
@@ -2479,6 +2480,7 @@ export default function App() {
                       onProfile={item => setProfileItem({ item, type: step1Kind })}
                       onFallback={() => setWizardStep(3)}
                       onBackToStep1={() => { if (step1Kind === "workshop") { setSelectedR(null); setSelectedVariant(null); } else setSelectedW(null); }}
+                      onOwnPlace={() => setPath("ownplace")}
                       kidsMode ownPlace={ownPlace}
                     />
                   </>
@@ -2497,6 +2499,7 @@ export default function App() {
                       onProfile={item => setProfileItem({ item, type: step2Kind })}
                       onFallback={() => setWizardStep(3)}
                       onBackToStep1={() => window.history.back()}
+                      onOwnPlace={() => setPath("ownplace")}
                       notice={step2Kind === "restaurant" ? [
                         workshop?.requiresSeparateRoom && "Pokazujemy miejsca z osobną salą — tego wymaga wybrany warsztat.",
                         selectedTime && selectedDate && "Pokazujemy miejsca otwarte o tej porze w wybranym dniu, w których warsztat zdąży się skończyć przed zamknięciem.",
@@ -2584,6 +2587,7 @@ export default function App() {
                     onProfile={item => setProfileItem({ item, type: step1Kind })}
                     onFallback={() => setWizardStep(3)}
                     onBackToStep1={() => { if (step1Kind === "workshop") { setSelectedR(null); setSelectedVariant(null); } else setSelectedW(null); }}
+                    onOwnPlace={() => setPath("ownplace")}
                     ownPlace={ownPlace}
                     />
                   </>
@@ -2602,6 +2606,7 @@ export default function App() {
                       onProfile={item => setProfileItem({ item, type: step2Kind })}
                       onFallback={() => setWizardStep(3)}
                       onBackToStep1={() => window.history.back()}
+                      onOwnPlace={() => setPath("ownplace")}
                       notice={step2Kind === "restaurant" ? [
                         workshop?.requiresSeparateRoom && "Pokazujemy miejsca z osobną salą — tego wymaga wybrany warsztat.",
                         selectedTime && selectedDate && "Pokazujemy miejsca otwarte o tej porze w wybranym dniu, w których warsztat zdąży się skończyć przed zamknięciem.",
