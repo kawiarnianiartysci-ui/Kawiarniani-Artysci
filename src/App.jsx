@@ -1628,9 +1628,9 @@ function PickStep({ kind, items, selectedId, selectedVariantId, onToggle, onVari
               : "Żaden dostępny warsztat nie pasuje jeszcze do tego miejsca. Zmień wybór albo napisz do nas — poszukamy artysty."}
           </p>
           <div style={{ display:"flex", gap:10, justifyContent:"center", flexWrap:"wrap" }}>
-            <button onClick={onBackToStep1} style={{ padding:"12px 22px", borderRadius:9, border:`1px solid ${C.border}`, background:"#FFF", color:C.text, fontSize:13, fontWeight:600, cursor:"pointer", minHeight:44 }}>Zmień wybór</button>
-            {isRestaurant && onOwnPlace && <button onClick={onOwnPlace} style={{ padding:"12px 22px", borderRadius:9, border:`1px solid ${C.border}`, background:"#FFF", color:C.text, fontSize:13, fontWeight:600, cursor:"pointer", minHeight:44 }}>Zaproś artystę do siebie</button>}
-            <button onClick={onFallback} style={{ padding:"12px 22px", borderRadius:9, border:"none", background:C.primary, color:"#FFF", fontSize:13, fontWeight:600, cursor:"pointer", minHeight:44 }}>Napisz do nas</button>
+            <button onClick={onBackToStep1} style={{ padding:"12px 22px", borderRadius:999, border:`1px solid ${C.border}`, background:"#FFF", color:C.text, fontSize:13, fontWeight:600, cursor:"pointer", minHeight:44 }}>Zmień wybór</button>
+            {isRestaurant && onOwnPlace && <button onClick={onOwnPlace} style={{ padding:"12px 22px", borderRadius:999, border:`1px solid ${C.border}`, background:"#FFF", color:C.text, fontSize:13, fontWeight:600, cursor:"pointer", minHeight:44 }}>Zaproś artystę do siebie</button>}
+            <button onClick={onFallback} style={{ padding:"12px 22px", borderRadius:999, border:"none", background:C.primary, color:"#FFF", fontSize:13, fontWeight:600, cursor:"pointer", minHeight:44 }}>Napisz do nas</button>
           </div>
         </div>
       ) : (
