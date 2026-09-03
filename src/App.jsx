@@ -183,6 +183,10 @@ function workshopFromRow(row) {
     canInvoice: toTriBool(row.canInvoice),
     forKids: toBool(row.forKids) || undefined,
     kidsMinAge: toNum(row.kidsMinAge) ?? undefined,
+    // Warsztat dedykowany wyłącznie dzieciom (np. ElektroLab) — niewidoczny
+    // w zwykłej ścieżce "Planuję event", tylko w trybie "Eventy dla dzieci".
+    // Analogicznie do pustych `variants` u restauracji tylko-dla-dzieci.
+    kidsOnly: toBool(row.kidsOnly) || undefined,
     // Wyłącznik ścieżki "Mam miejsce" (artysta dojeżdża do klienta) — tylko
     // artyści z travelsToClient=tak są tam wybieralni, patrz withOwnPlaceTile w App().
     travelsToClient: toTriBool(row.travelsToClient),
@@ -1473,7 +1477,10 @@ function HomeScreen({ restaurants, workshops, onStart, groupSize, setGroupSize, 
   const videoRef = useRef(null);
   const pathTilesRef = useRef(null);
   const activeRestaurants = restaurants.filter(r => !r.comingSoon);
-  const activeWorkshops = workshops.filter(w => !w.comingSoon);
+  // `kidsOnly` wyklucza warsztat z widoku dla dorosłych (pasek zaufania,
+  // kafelek "Mam miejsce") — patrz też compatibleWorkshops/ownPlaceWorkshops w App().
+  const activeWorkshops = workshops.filter(w => !w.comingSoon && !w.kidsOnly);
+  const adultPathWorkshops = workshops.filter(w => !w.kidsOnly);
 
   const seekToStart = () => { if (videoRef.current) videoRef.current.currentTime = HERO_VIDEO_START; };
   const handleEnded = () => { seekToStart(); videoRef.current?.play(); };
@@ -1516,7 +1523,7 @@ function HomeScreen({ restaurants, workshops, onStart, groupSize, setGroupSize, 
 
         {/* 3. Dwa kafelki startowe */}
         <div ref={pathTilesRef} style={{ marginBottom:16, scrollMarginTop:20 }}>
-          <PathTiles activeKey="workshop" onSelect={onStart} labels={withOwnPlaceTile(DEFAULT_PATH_TILE_LABELS, workshops)} />
+          <PathTiles activeKey="workshop" onSelect={onStart} labels={withOwnPlaceTile(DEFAULT_PATH_TILE_LABELS, adultPathWorkshops)} />
         </div>
       </div>
 
@@ -2271,11 +2278,13 @@ export default function App() {
   // kidsVariants) i nie pokazujemy jej tutaj. "Wkrótce" nadal pokazujemy
   // zawsze, tak jak dotychczas.
   const compatibleRestaurants = restaurants.filter(r => r.comingSoon || (r.variants.length > 0 && isCompatible(workshop, r)));
-  const compatibleWorkshops   = workshops.filter(w => w.comingSoon || isCompatible(w, restaurant));
+  // `kidsOnly` wyklucza warsztat z całej ścieżki dla dorosłych, analogicznie
+  // do pustych `variants` u restauracji tylko-dla-dzieci powyżej.
+  const compatibleWorkshops   = workshops.filter(w => !w.kidsOnly && (w.comingSoon || isCompatible(w, restaurant)));
 
   // Krok 1 ścieżki "Mam miejsce" — tylko artyści z travelsToClient=tak
   // (żadnego dopasowania do restauracji, bo jej tu w ogóle nie ma).
-  const ownPlaceWorkshops = workshops.filter(w => w.comingSoon || w.travelsToClient === true);
+  const ownPlaceWorkshops = workshops.filter(w => !w.kidsOnly && (w.comingSoon || w.travelsToClient === true));
 
   const variant    = restaurant?.variants.find(v => v.id === selectedVariant);
   const ppp        = (variant?.price ?? 0) + (workshop?.pricePerPerson ?? 0);
@@ -2575,7 +2584,7 @@ export default function App() {
                 {wizardStep === 1 && (
                   <>
                     <div style={{ maxWidth:1160, margin:"0 auto", padding:"0 16px" }}>
-                      <PathTiles activeKey={path} onSelect={switchPath} labels={withOwnPlaceTile(DEFAULT_PATH_TILE_LABELS, workshops)} />
+                      <PathTiles activeKey={path} onSelect={switchPath} labels={withOwnPlaceTile(DEFAULT_PATH_TILE_LABELS, workshops.filter(w => !w.kidsOnly))} />
                     </div>
                     <PickStep
                     kind={step1Kind}
