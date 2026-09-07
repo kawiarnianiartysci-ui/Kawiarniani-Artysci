@@ -96,6 +96,19 @@ const toTriBool = v => {
   return t === "" ? undefined : toBool(t);
 };
 const imgPath = filename => (filename ? `/images/${filename.trim()}` : undefined);
+// Ręczne poprawki kadrowania zdjęcia głównego (WorkshopCard/ProfileModal) dla
+// pojedynczych zdjęć, których domyślne wyśrodkowanie ucina istotną treść
+// (np. wklejony na zdjęciu napis/logo) — dopisywane pojedynczo na życzenie.
+const COVER_POSITION_OVERRIDES = {
+  "workshop-painting-photo": "center 25%",
+  "agata-photo": "center 40%",
+  "isabelsue-photo": "center 62%",
+  "derwich-photo": "center 32%",
+};
+const coverPosition = filename => {
+  const key = Object.keys(COVER_POSITION_OVERRIDES).find(k => filename.includes(k));
+  return key ? COVER_POSITION_OVERRIDES[key] : "center";
+};
 const imgListPath = list => !list ? [] : list.split(",").map(s => s.trim()).filter(Boolean).map(entry => {
   const [filename, ...mods] = entry.split("@");
   if (mods.length === 0) return imgPath(filename);
@@ -404,7 +417,7 @@ function ProfileModal({ item, type, isSelected, onToggleSelect, selectedVariantI
             <PhotoGallery photos={item.photos} />
           ) : item.photo ? (
             <div style={{ borderRadius:10, overflow:"hidden", marginBottom:20 }}>
-              <img src={item.photo} alt={item.name} loading="lazy" style={{ width:"100%", height:180, objectFit:"cover", objectPosition: item.photo.includes("workshop-painting-photo") ? "center 25%" : item.photo.includes("agata-photo") ? "center 40%" : item.photo.includes("isabelsue-photo") ? "center 62%" : "center", display:"block" }} />
+              <img src={item.photo} alt={item.name} loading="lazy" style={{ width:"100%", height:180, objectFit:"cover", objectPosition: coverPosition(item.photo), display:"block" }} />
             </div>
           ) : (
             <div style={{ marginBottom:20 }}>
@@ -629,7 +642,7 @@ function WorkshopCard({ w, isSelected, onToggle, onProfile, kidsMode = false, ow
     <div className={soon ? "" : "card-h"} style={{ background: isSelected ? C.selectedBg : soon ? "#F5F4F1" : C.card, border:`2px solid ${isSelected ? C.primary : "transparent"}`, borderRadius:14, overflow:"hidden", boxShadow: isSelected ? "0 4px 16px rgba(67,42,22,0.14)" : soon ? "none" : "0 1px 5px rgba(0,0,0,0.07)", position:"relative", opacity: soon ? 0.78 : 1, display:"flex", flexDirection:"column", width:"100%" }}>
       {w.photo ? (
         <div style={{ height:140, overflow:"hidden", position:"relative" }}>
-          <img src={w.photo} alt={w.name} loading="lazy" style={{ width:"100%", height:"100%", objectFit:"cover", objectPosition: w.photo.includes("workshop-painting-photo") ? "center 25%" : w.photo.includes("agata-photo") ? "center 40%" : w.photo.includes("isabelsue-photo") ? "center 62%" : "center", display:"block" }} />
+          <img src={w.photo} alt={w.name} loading="lazy" style={{ width:"100%", height:"100%", objectFit:"cover", objectPosition: coverPosition(w.photo), display:"block" }} />
         </div>
       ) : w.logo ? (
         <div style={{ height:140, overflow:"hidden", position:"relative", background:"#ECE4D7", display:"flex", alignItems:"center", justifyContent:"center" }}>
