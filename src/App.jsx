@@ -2119,6 +2119,200 @@ function PartnersView({ openTermsOnMount }) {
   );
 }
 
+// ══ Formularz kontaktowy (ContactModal) ═════════════════════
+const ContactModal = ({ isOpen, onClose, onSubmit }) => {
+  const [email, setEmail] = useState('');
+  const [message, setMessage] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+  const [success, setSuccess] = useState(false);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setError('');
+    setSuccess(false);
+
+    if (!email.trim()) {
+      setError('Email je wymagany');
+      return;
+    }
+
+    if (!message.trim()) {
+      setError('Wiadomość jest wymagana');
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      const response = await fetch('/api/contact', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, message }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok || !data.success) {
+        setError(data.error || 'Nie udało się wysłać. Spróbuj ponownie.');
+        setLoading(false);
+        return;
+      }
+
+      setSuccess(true);
+      setEmail('');
+      setMessage('');
+      setLoading(false);
+
+      // Auto-close after 2 seconds on success
+      setTimeout(() => {
+        onClose();
+        setSuccess(false);
+      }, 2000);
+    } catch (err) {
+      console.error('Contact form error:', err);
+      setError('Nie udało się wysłać. Spróbuj ponownie.');
+      setLoading(false);
+    }
+  };
+
+  if (!isOpen) return null;
+
+  return (
+    <div
+      style={{
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        backgroundColor: 'rgba(0, 0, 0, 0.5)',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        zIndex: 1000,
+      }}
+      onClick={onClose}
+    >
+      <div
+        style={{
+          backgroundColor: '#fff',
+          borderRadius: '8px',
+          padding: '24px',
+          maxWidth: '500px',
+          width: '90%',
+          boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)',
+        }}
+        onClick={(e) => e.stopPropagation()}
+      >
+        <h2 style={{ marginTop: 0, marginBottom: '16px', fontSize: '18px' }}>
+          Skontaktuj się z nami
+        </h2>
+
+        <p style={{ marginBottom: '20px', fontSize: '14px', color: '#666' }}>
+          Masz pytania o działanie platformy, uwagi czy jak możemy ci pomóc,
+          napisz do nas postaramy się odpowiedziec jaknajszybciej...
+        </p>
+
+        {error && (
+          <div style={{ color: '#d32f2f', marginBottom: '16px', fontSize: '14px' }}>
+            {error}
+          </div>
+        )}
+
+        {success ? (
+          <div style={{ color: '#388e3c', fontSize: '14px' }}>
+            Dziękujemy! Otrzymaliśmy Twoją wiadomość, odpowiemy najszybciej jak
+            potrafimy.
+          </div>
+        ) : (
+          <form onSubmit={handleSubmit}>
+            <div style={{ marginBottom: '16px' }}>
+              <label style={{ display: 'block', marginBottom: '6px', fontSize: '14px' }}>
+                Email
+              </label>
+              <input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="Twój email"
+                disabled={loading}
+                style={{
+                  width: '100%',
+                  padding: '8px',
+                  border: '1px solid #ddd',
+                  borderRadius: '4px',
+                  fontSize: '14px',
+                  boxSizing: 'border-box',
+                  fontFamily: 'inherit',
+                }}
+              />
+            </div>
+
+            <div style={{ marginBottom: '16px' }}>
+              <label style={{ display: 'block', marginBottom: '6px', fontSize: '14px' }}>
+                Wiadomość
+              </label>
+              <textarea
+                value={message}
+                onChange={(e) => setMessage(e.target.value)}
+                placeholder="Twoja wiadomość"
+                disabled={loading}
+                rows="5"
+                style={{
+                  width: '100%',
+                  padding: '8px',
+                  border: '1px solid #ddd',
+                  borderRadius: '4px',
+                  fontSize: '14px',
+                  fontFamily: 'inherit',
+                  resize: 'none',
+                  boxSizing: 'border-box',
+                }}
+              />
+            </div>
+
+            <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
+              <button
+                type="button"
+                onClick={onClose}
+                disabled={loading}
+                style={{
+                  padding: '8px 16px',
+                  border: '1px solid #ddd',
+                  backgroundColor: '#fff',
+                  borderRadius: '4px',
+                  cursor: 'pointer',
+                  fontSize: '14px',
+                  opacity: loading ? 0.5 : 1,
+                }}
+              >
+                Anuluj
+              </button>
+              <button
+                type="submit"
+                disabled={loading}
+                style={{
+                  padding: '8px 16px',
+                  backgroundColor: '#432A16',
+                  color: '#fff',
+                  border: 'none',
+                  borderRadius: '4px',
+                  cursor: loading ? 'not-allowed' : 'pointer',
+                  fontSize: '14px',
+                  opacity: loading ? 0.7 : 1,
+                }}
+              >
+                {loading ? 'Wysyłanie...' : 'Wyślij'}
+              </button>
+            </div>
+          </form>
+        )}
+      </div>
+    </div>
+  );
+};
+
 export default function App() {
   const { restaurants, workshops, dataLoading, dataError } = useSheetData();
   // Pozwala na bezpośredni link do regulaminu Partnerów (np. wklejony w
