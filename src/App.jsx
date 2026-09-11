@@ -1486,7 +1486,7 @@ function PartnerLogosBar({ restaurants, workshops }) {
   );
 }
 
-function HomeScreen({ restaurants, workshops, onStart, groupSize, setGroupSize, selectedDate, setSelectedDate, selectedTime, setSelectedTime }) {
+function HomeScreen({ restaurants, workshops, onStart, groupSize, setGroupSize, selectedDate, setSelectedDate, selectedTime, setSelectedTime, onContactClick }) {
   const videoRef = useRef(null);
   const pathTilesRef = useRef(null);
   const activeRestaurants = restaurants.filter(r => !r.comingSoon);
@@ -1548,6 +1548,31 @@ function HomeScreen({ restaurants, workshops, onStart, groupSize, setGroupSize, 
 
       {/* 6. Kim jesteśmy */}
       <AboutUsSection />
+
+      {/* 7. Stopka z przyciskiem kontaktu */}
+      <div
+        style={{
+          marginTop: '40px',
+          paddingTop: '20px',
+          borderTop: '1px solid #e0e0e0',
+          textAlign: 'center',
+        }}
+      >
+        <button
+          onClick={onContactClick}
+          style={{
+            background: 'none',
+            border: 'none',
+            color: '#432A16',
+            cursor: 'pointer',
+            fontSize: '14px',
+            textDecoration: 'underline',
+            padding: '8px',
+          }}
+        >
+          Skontaktuj się z nami
+        </button>
+      </div>
     </div>
   );
 }
@@ -2335,6 +2360,7 @@ export default function App() {
   const [profileItem,     setProfileItem]     = useState(null);
   const [selectedDate,    setSelectedDate]    = useState("");
   const [selectedTime,    setSelectedTime]    = useState("");
+  const [isContactModalOpen, setIsContactModalOpen] = useState(false);
 
   // ══ Google Analytics 4 ══════════════════════════════════════
   useEffect(() => {
@@ -2756,6 +2782,7 @@ export default function App() {
                 groupSize={groupSize} setGroupSize={setGroupSize}
                 selectedDate={selectedDate} setSelectedDate={setSelectedDate}
                 selectedTime={selectedTime} setSelectedTime={setSelectedTime}
+                onContactClick={() => setIsContactModalOpen(true)}
               />
               <Footer />
             </>
@@ -2868,6 +2895,11 @@ export default function App() {
           }}
           onClose={() => window.history.back()} />
       )}
+
+      <ContactModal
+        isOpen={isContactModalOpen}
+        onClose={() => setIsContactModalOpen(false)}
+      />
     </div>
   );
 }
