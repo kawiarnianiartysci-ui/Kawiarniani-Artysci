@@ -2235,8 +2235,7 @@ const ContactModal = ({ isOpen, onClose, onSubmit }) => {
         </h2>
 
         <p style={{ marginBottom: '20px', fontSize: '14px', color: '#666' }}>
-          Masz pytania o działanie platformy, uwagi czy jak możemy ci pomóc,
-          napisz do nas postaramy się odpowiedziec jaknajszybciej...
+          Chcesz o coś zapytać, podzielić się pomysłem albo po prostu porozmawiać o platformie? Napisz do nas! Chętnie pomożemy i odpowiemy tak szybko, jak to możliwe.
         </p>
 
         {error && (
