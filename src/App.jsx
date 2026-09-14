@@ -1403,12 +1403,12 @@ function AboutUsSection() {
 const HOW_IT_WORKS_STEPS = [
   { n:"1", t:"Wybieracie warsztat i miejsce", d:"Malowanie, rękodzieło albo inna aktywność — w kawiarni lub restauracji, która Wam pasuje." },
   { n:"2", t:"Wysyłacie krótkie zapytanie", d:"Termin, liczba osób, kilka słów od Was." },
-  { n:"3", t:"Dogrywamy szczegóły i potwierdzamy", d:"Kontaktujemy się z restauracją i artystą, ustalamy menu i finalną cenę, a potem potwierdzamy termin." },
+  { n:"3", t:"Dogrywamy szczegóły i potwierdzamy", d:"Kontaktujemy się z restauracją i artystą, ustalamy menu i finalną cenę, a potem potwierdzamy termin.", subBullets: [{ title: "Proste rozliczenie", desc: "Po evencie rozliczasz się z restauracją jednorazowo i wygodnie." }] },
 ];
 const KIDS_HOW_IT_WORKS_STEPS = [
   { n:"1", t:"Wybieracie warsztat i miejsce", d:"Malowanie, rękodzieło albo inna kreatywna zabawa — w kawiarni, która lubi młodych gości." },
   { n:"2", t:"Wysyłacie krótkie zapytanie", d:"Termin, liczba dzieci, wiek, kilka słów od Was." },
-  { n:"3", t:"Dogrywamy szczegóły i potwierdzamy", d:"Kontaktujemy się z miejscem i artystą, ustalamy menu i finalną cenę, potem potwierdzamy termin." },
+  { n:"3", t:"Dogrywamy szczegóły i potwierdzamy", d:"Kontaktujemy się z miejscem i artystą, ustalamy menu i finalną cenę, potem potwierdzamy termin.", subBullets: [{ title: "Proste rozliczenie", desc: "Po evencie rozliczasz się z restauracją jednorazowo i wygodnie." }] },
 ];
 
 // Krótki, NIEklikalny opis 3-krokowego procesu — wizualnie inny niż
@@ -1425,9 +1425,22 @@ function HowItWorksSteps({ steps = HOW_IT_WORKS_STEPS }) {
         {steps.map(s => (
           <div key={s.n} style={{ display:"flex", gap:16, alignItems:"flex-start" }}>
             <div style={{ width:32, height:32, borderRadius:"50%", background:C.tagBg, color:C.primary, fontWeight:700, fontSize:14, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>{s.n}</div>
-            <div>
+            <div style={{ flex:1 }}>
               <div style={{ fontWeight:600, fontSize:15, marginBottom:4, color:C.text }}>{s.t}</div>
               <div style={{ fontSize:13, color:C.muted, lineHeight:1.6 }}>{s.d}</div>
+              {s.subBullets && s.subBullets.length > 0 && (
+                <div style={{ marginTop:12 }}>
+                  {s.subBullets.map((sb, i) => (
+                    <div key={i} style={{ fontSize:13, color:C.muted, lineHeight:1.6, display:"flex", gap:8, alignItems:"flex-start" }}>
+                      <span style={{ fontWeight:600, color:C.primary, flexShrink:0 }}>*</span>
+                      <div>
+                        <div style={{ fontWeight:500, color:C.text, marginBottom:2 }}>{sb.title}</div>
+                        <div>{sb.desc}</div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
         ))}
