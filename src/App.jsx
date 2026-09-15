@@ -1750,9 +1750,10 @@ function YesNoToggle({ value, onChange }) {
   return <div style={{ display:"flex", gap:8 }}>{opt("tak","Tak")}{opt("nie","Nie")}</div>;
 }
 
-function PlaceInterviewForm({ value, onChange, travelArea, kidsMode = false, requesterType }) {
+function PlaceInterviewForm({ value, onChange, travelArea, kidsMode = false, requesterType, touched = false }) {
   const inp = { width:"100%", padding:"11px 13px", border:`1px solid ${C.border}`, borderRadius:8, fontSize:14, color:C.text, background:"#FAFAF8", minHeight:44, fontFamily:"'Montserrat', system-ui, sans-serif" };
   const lbl = { display:"block", fontSize:11, fontWeight:600, color:C.muted, marginBottom:5, letterSpacing:"0.08em" };
+  const errStyle = { color:"#C0392B", fontSize:11, marginTop:5 };
   const set = k => v => onChange({ ...value, [k]: v });
   const placeTypeOptions = requesterType === "business" ? PLACE_TYPE_OPTIONS_BUSINESS : PLACE_TYPE_OPTIONS_PRIVATE;
   // Wpisywane w arkuszu jako sama liczba (np. "50", czasem zakres "100-120") —
@@ -1771,12 +1772,14 @@ function PlaceInterviewForm({ value, onChange, travelArea, kidsMode = false, req
         <div style={{ marginBottom:14 }}>
           <label style={lbl}>Nazwa restauracji lub kawiarni *</label>
           <input type="text" placeholder="np. Kawiarnia Pod Lipami" value={value.businessName} onChange={e => set("businessName")(e.target.value)} style={inp} />
+          {touched && !value.businessName.trim() && <div style={errStyle}>Podaj nazwę restauracji lub kawiarni.</div>}
         </div>
       )}
 
       <div style={{ marginBottom:14 }}>
         <label style={lbl}>Adres / lokalizacja eventu *</label>
         <input type="text" placeholder="ul. Przykładowa 12, Poznań" value={value.address} onChange={e => set("address")(e.target.value)} style={inp} />
+        {touched && !value.address.trim() && <div style={errStyle}>Podaj adres eventu.</div>}
       </div>
 
       <div style={{ marginBottom:14 }}>
@@ -2395,7 +2398,14 @@ export default function App() {
   // PLACE_TYPE_OPTIONS_PRIVATE/_BUSINESS) — przy zmianie wyczyść dotychczasowy
   // wybór, żeby nie zostawić nieistniejącej już opcji (np. "Dom" wybrane
   // jako osoba prywatna, potem przełączenie na restauracja).
-  const chooseRequesterType = t => { setRequesterType(t); setPlaceInfo(p => ({ ...p, placeType:"", businessName:"" })); };
+  const chooseRequesterType = t => { setRequesterType(t); setPlaceInfo(p => ({ ...p, placeType:"", businessName:"" })); setPlaceInfoTouched(false); };
+  // "Dalej" na kroku "Twoje miejsce" był po prostu wyłączony, dopóki pola
+  // wymagane (adres, ew. nazwa restauracji) są puste — bez żadnego
+  // komunikatu klient nie wiedział, czego brakuje, i wyglądało to jak
+  // brak przycisku akcji w ogóle. Teraz przycisk jest zawsze klikalny;
+  // klik z brakującymi polami ustawia to, co pokazuje błędy pod polami
+  // (patrz PlaceInterviewForm) zamiast cicho nic nie robić.
+  const [placeInfoTouched, setPlaceInfoTouched] = useState(false);
   // Tryb "Mam miejsce" — pole "Wymagana faktura VAT" (nie / tak)
   const [invoiceRequired, setInvoiceRequired] = useState(false);
   const [profileItem,     setProfileItem]     = useState(null);
@@ -2493,7 +2503,7 @@ export default function App() {
     setGroupSize(null); setSelectedDate(""); setSelectedTime("");
     setKidsCount(null); setAdultsCount(null);
     setPlaceInfo({ address:"", businessName:"", placeType:"", hasSeparateRoom:"", area:"", hasTables:"", hasWater:"", hasPower:"", notes:"" });
-    setRequesterType("private"); setInvoiceRequired(false);
+    setRequesterType("private"); setInvoiceRequired(false); setPlaceInfoTouched(false);
   };
 
   // Przełącznik trybu kreatora (client/kids) w nagłówku — porównanie z samym
@@ -2747,10 +2757,11 @@ export default function App() {
                     ppp={ownPlace ? (kidsWorkshopPpp ?? 0) : (kidsPpp ?? 0)}
                     total={ownPlace ? (kidsWorkshopTotal ?? 0) : (kidsTotal ?? 0)}
                     workshopOnlyPpp={kidsWorkshopPpp ?? 0} workshopOnlyTotal={kidsWorkshopTotal ?? 0}
-                    canAdvance={wizardStep === 1 ? step1Selected : step2Selected}
+                    canAdvance={wizardStep === 1 ? step1Selected : (ownPlace ? true : step2Selected)}
                     nextLabel="Dalej"
                     priceUnavailableLabel={!ownPlace && restaurant?.kidsVariants?.length && !kidsPriceKnown ? "Cenę ustalisz bezpośrednio z restauracją" : undefined}
                     onNext={() => {
+                      if (wizardStep === 2 && ownPlace && !step2Selected) { setPlaceInfoTouched(true); return; }
                       if (wizardStep === 1 && selectedW && selectedR) setWizardStep(3);
                       else setWizardStep(s => s + 1);
                     }}
@@ -2805,7 +2816,7 @@ export default function App() {
                 )}
                 {wizardStep === 2 && (
                   ownPlace ? (
-                    <PlaceInterviewForm value={placeInfo} onChange={setPlaceInfo} travelArea={workshop?.travelArea} requesterType={requesterType} kidsMode />
+                    <PlaceInterviewForm value={placeInfo} onChange={setPlaceInfo} travelArea={workshop?.travelArea} requesterType={requesterType} touched={placeInfoTouched} kidsMode />
                   ) : (
                     <PickStep
                       kind={step2Kind}
@@ -2877,9 +2888,10 @@ export default function App() {
                   <WizardStickyBar
                     restaurant={restaurant} workshop={workshop}
                     groupSize={groupSize} ppp={ppp} total={total}
-                    canAdvance={wizardStep === 1 ? step1Selected : step2Selected}
+                    canAdvance={wizardStep === 1 ? step1Selected : (ownPlace ? true : step2Selected)}
                     nextLabel="Dalej"
                     onNext={() => {
+                      if (wizardStep === 2 && ownPlace && !step2Selected) { setPlaceInfoTouched(true); return; }
                       // Przełącznik ścieżki na górze kroku 1 pozwala wybrać
                       // OBA elementy (warsztat i restaurację) bez opuszczania
                       // kroku 1 — w takim wypadku krok 2 (wybór tego samego,
@@ -2939,7 +2951,7 @@ export default function App() {
                 )}
                 {wizardStep === 2 && (
                   ownPlace ? (
-                    <PlaceInterviewForm value={placeInfo} onChange={setPlaceInfo} travelArea={workshop?.travelArea} requesterType={requesterType} />
+                    <PlaceInterviewForm value={placeInfo} onChange={setPlaceInfo} travelArea={workshop?.travelArea} requesterType={requesterType} touched={placeInfoTouched} />
                   ) : (
                     <PickStep
                       kind={step2Kind}
