@@ -2755,28 +2755,22 @@ export default function App() {
                     </div>
                     {/* Pola wyboru dla trybu "Mam miejsce" — kids mode */}
                     {ownPlace && (
-                      <div style={{ maxWidth:1160, margin:"20px auto 0", padding:"0 16px" }}>
-                        <div style={{ background:C.card, border:`1px solid ${C.border}`, borderRadius:14, padding:"16px 20px", marginBottom:20 }}>
+                      <div style={{ maxWidth:480, margin:"20px auto 0", padding:"0 16px" }}>
+                        <div style={{ background:C.card, border:`1px solid ${C.border}`, borderRadius:12, padding:"14px 16px", marginBottom:20 }}>
                           {/* Pole "Zamawiam jako" */}
-                          <div style={{ marginBottom:20 }}>
-                            <div style={{ fontSize:11, fontWeight:600, color:C.muted, marginBottom:10, letterSpacing:"0.08em" }}>ZAMAWIAM JAKO</div>
-                            <div style={{ display:"flex", gap:16 }}>
-                              <label style={{ display:"flex", alignItems:"center", gap:8, cursor:"pointer", fontSize:14, color:C.text }}>
-                                <input type="radio" name="requester" value="private" checked={requesterType === "private"} onChange={() => setRequesterType("private")} style={{ width:18, height:18, cursor:"pointer" }} />
-                                Osoba prywatna
-                              </label>
-                              <label style={{ display:"flex", alignItems:"center", gap:8, cursor:"pointer", fontSize:14, color:C.text }}>
-                                <input type="radio" name="requester" value="business" checked={requesterType === "business"} onChange={() => setRequesterType("business")} style={{ width:18, height:18, cursor:"pointer" }} />
-                                Restauracja lub kawiarnia
-                              </label>
+                          <div style={{ marginBottom:14 }}>
+                            <div style={{ fontSize:10, fontWeight:600, color:C.muted, marginBottom:8, letterSpacing:"0.08em" }}>ZAMAWIAM JAKO</div>
+                            <div style={{ display:"flex", gap:8, flexWrap:"wrap" }}>
+                              <button onClick={() => setRequesterType("private")} style={{ padding:"6px 14px", border:`2px solid ${requesterType === "private" ? C.primary : C.border}`, background:"transparent", borderRadius:8, color: requesterType === "private" ? C.primary : C.muted, fontWeight:600, fontSize:12, cursor:"pointer", minHeight:34 }}>Osoba prywatna</button>
+                              <button onClick={() => setRequesterType("business")} style={{ padding:"6px 14px", border:`2px solid ${requesterType === "business" ? C.primary : C.border}`, background:"transparent", borderRadius:8, color: requesterType === "business" ? C.primary : C.muted, fontWeight:600, fontSize:12, cursor:"pointer", minHeight:34 }}>Restauracja lub kawiarnia</button>
                             </div>
                           </div>
                           {/* Pole "Wymagana faktura VAT" */}
                           <div>
-                            <div style={{ fontSize:11, fontWeight:600, color:C.muted, marginBottom:10, letterSpacing:"0.08em" }}>WYMAGANA FAKTURA VAT</div>
-                            <div style={{ display:"flex", gap:12, alignItems:"center" }}>
-                              <button onClick={() => setInvoiceRequired(false)} style={{ padding:"8px 16px", border:`2px solid ${!invoiceRequired ? C.primary : C.border}`, background:"transparent", borderRadius:8, color:!invoiceRequired ? C.primary : C.muted, fontWeight:600, fontSize:13, cursor:"pointer", minHeight:40 }}>Nie</button>
-                              <button onClick={() => setInvoiceRequired(true)} style={{ padding:"8px 16px", border:`2px solid ${invoiceRequired ? C.primary : C.border}`, background:"transparent", borderRadius:8, color:invoiceRequired ? C.primary : C.muted, fontWeight:600, fontSize:13, cursor:"pointer", minHeight:40 }}>Tak</button>
+                            <div style={{ fontSize:10, fontWeight:600, color:C.muted, marginBottom:8, letterSpacing:"0.08em" }}>WYMAGANA FAKTURA VAT</div>
+                            <div style={{ display:"flex", gap:8, alignItems:"center" }}>
+                              <button onClick={() => setInvoiceRequired(false)} style={{ padding:"6px 14px", border:`2px solid ${!invoiceRequired ? C.primary : C.border}`, background:"transparent", borderRadius:8, color:!invoiceRequired ? C.primary : C.muted, fontWeight:600, fontSize:12, cursor:"pointer", minHeight:34 }}>Nie</button>
+                              <button onClick={() => setInvoiceRequired(true)} style={{ padding:"6px 14px", border:`2px solid ${invoiceRequired ? C.primary : C.border}`, background:"transparent", borderRadius:8, color:invoiceRequired ? C.primary : C.muted, fontWeight:600, fontSize:12, cursor:"pointer", minHeight:34 }}>Tak</button>
                             </div>
                           </div>
                         </div>
@@ -2894,28 +2888,22 @@ export default function App() {
                     </div>
                     {/* Pola wyboru dla trybu "Mam miejsce" */}
                     {ownPlace && (
-                      <div style={{ maxWidth:1160, margin:"20px auto 0", padding:"0 16px" }}>
-                        <div style={{ background:C.card, border:`1px solid ${C.border}`, borderRadius:14, padding:"16px 20px", marginBottom:20 }}>
+                      <div style={{ maxWidth:480, margin:"20px auto 0", padding:"0 16px" }}>
+                        <div style={{ background:C.card, border:`1px solid ${C.border}`, borderRadius:12, padding:"14px 16px", marginBottom:20 }}>
                           {/* Pole "Zamawiam jako" */}
-                          <div style={{ marginBottom:20 }}>
-                            <div style={{ fontSize:11, fontWeight:600, color:C.muted, marginBottom:10, letterSpacing:"0.08em" }}>ZAMAWIAM JAKO</div>
-                            <div style={{ display:"flex", gap:16 }}>
-                              <label style={{ display:"flex", alignItems:"center", gap:8, cursor:"pointer", fontSize:14, color:C.text }}>
-                                <input type="radio" name="requester" value="private" checked={requesterType === "private"} onChange={() => setRequesterType("private")} style={{ width:18, height:18, cursor:"pointer" }} />
-                                Osoba prywatna
-                              </label>
-                              <label style={{ display:"flex", alignItems:"center", gap:8, cursor:"pointer", fontSize:14, color:C.text }}>
-                                <input type="radio" name="requester" value="business" checked={requesterType === "business"} onChange={() => setRequesterType("business")} style={{ width:18, height:18, cursor:"pointer" }} />
-                                Restauracja lub kawiarnia
-                              </label>
+                          <div style={{ marginBottom:14 }}>
+                            <div style={{ fontSize:10, fontWeight:600, color:C.muted, marginBottom:8, letterSpacing:"0.08em" }}>ZAMAWIAM JAKO</div>
+                            <div style={{ display:"flex", gap:8, flexWrap:"wrap" }}>
+                              <button onClick={() => setRequesterType("private")} style={{ padding:"6px 14px", border:`2px solid ${requesterType === "private" ? C.primary : C.border}`, background:"transparent", borderRadius:8, color: requesterType === "private" ? C.primary : C.muted, fontWeight:600, fontSize:12, cursor:"pointer", minHeight:34 }}>Osoba prywatna</button>
+                              <button onClick={() => setRequesterType("business")} style={{ padding:"6px 14px", border:`2px solid ${requesterType === "business" ? C.primary : C.border}`, background:"transparent", borderRadius:8, color: requesterType === "business" ? C.primary : C.muted, fontWeight:600, fontSize:12, cursor:"pointer", minHeight:34 }}>Restauracja lub kawiarnia</button>
                             </div>
                           </div>
                           {/* Pole "Wymagana faktura VAT" */}
                           <div>
-                            <div style={{ fontSize:11, fontWeight:600, color:C.muted, marginBottom:10, letterSpacing:"0.08em" }}>WYMAGANA FAKTURA VAT</div>
-                            <div style={{ display:"flex", gap:12, alignItems:"center" }}>
-                              <button onClick={() => setInvoiceRequired(false)} style={{ padding:"8px 16px", border:`2px solid ${!invoiceRequired ? C.primary : C.border}`, background:"transparent", borderRadius:8, color:!invoiceRequired ? C.primary : C.muted, fontWeight:600, fontSize:13, cursor:"pointer", minHeight:40 }}>Nie</button>
-                              <button onClick={() => setInvoiceRequired(true)} style={{ padding:"8px 16px", border:`2px solid ${invoiceRequired ? C.primary : C.border}`, background:"transparent", borderRadius:8, color:invoiceRequired ? C.primary : C.muted, fontWeight:600, fontSize:13, cursor:"pointer", minHeight:40 }}>Tak</button>
+                            <div style={{ fontSize:10, fontWeight:600, color:C.muted, marginBottom:8, letterSpacing:"0.08em" }}>WYMAGANA FAKTURA VAT</div>
+                            <div style={{ display:"flex", gap:8, alignItems:"center" }}>
+                              <button onClick={() => setInvoiceRequired(false)} style={{ padding:"6px 14px", border:`2px solid ${!invoiceRequired ? C.primary : C.border}`, background:"transparent", borderRadius:8, color:!invoiceRequired ? C.primary : C.muted, fontWeight:600, fontSize:12, cursor:"pointer", minHeight:34 }}>Nie</button>
+                              <button onClick={() => setInvoiceRequired(true)} style={{ padding:"6px 14px", border:`2px solid ${invoiceRequired ? C.primary : C.border}`, background:"transparent", borderRadius:8, color:invoiceRequired ? C.primary : C.muted, fontWeight:600, fontSize:12, cursor:"pointer", minHeight:34 }}>Tak</button>
                             </div>
                           </div>
                         </div>
