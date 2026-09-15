@@ -1369,7 +1369,7 @@ const KIDS_PATH_TILE_LABELS = {
 // (wywołujący sam sprawdza to na przekazanej liście `workshops`). Osobny,
 // widoczny od razu kafelek (a nie coś ukrytego w środku kreatora) — łatwiej
 // go znaleźć niż poprzednią wersję zagnieżdżoną w kroku 2.
-const OWN_PLACE_TILE = { label:"Mam miejsce, zaproście artystę", sub:"Przyjedziemy do Was" };
+const OWN_PLACE_TILE = { label:"Mam miejsce, zaproście artystę", sub:"Dla restauracji, kawiarni i osób prywatnych" };
 function withOwnPlaceTile(labels, workshops) {
   return workshops.some(w => w.travelsToClient === true) ? { ...labels, ownplace: OWN_PLACE_TILE } : labels;
 }
@@ -1806,8 +1806,8 @@ function PlaceInterviewForm({ value, onChange, travelArea, kidsMode = false }) {
 
 // ══ Krok 3 — podsumowanie i formularz kontaktowy ═════════════
 
-function Step4ContactForm({ restaurant, variant, workshop, groupSize, selectedDate, onDateChange, selectedTime, onTimeChange, ppp, total, workshopOnlyTotal, onEditStep, onSubmitted, kidsMode = false, kidsCount, adultsCount, ownPlace = false, placeInfo, workshopStep = 1, placeStep = 2 }) {
-  const [form, setForm] = useState({ name:"", email:"", phone:"", message:"" });
+function Step4ContactForm({ restaurant, variant, workshop, groupSize, selectedDate, onDateChange, selectedTime, onTimeChange, ppp, total, workshopOnlyTotal, onEditStep, onSubmitted, kidsMode = false, kidsCount, adultsCount, ownPlace = false, placeInfo, workshopStep = 1, placeStep = 2, requesterType, invoiceRequired }) {
+  const [form, setForm] = useState({ name:"", email:"", phone:"", message:"", businessName:"" });
   const [consent, setConsent] = useState(false);
   const [termsAccepted, setTermsAccepted] = useState(false);
   const [showPrivacy, setShowPrivacy] = useState(false);
@@ -1826,6 +1826,8 @@ function Step4ContactForm({ restaurant, variant, workshop, groupSize, selectedDa
     const nextErrors = {};
     if (!form.name) nextErrors.name = "Podaj imię i nazwisko.";
     if (!form.email) nextErrors.email = "Podaj adres email.";
+    // Jeśli w trybie ownPlace klient wybiera "Restauracja" — pole "Nazwa restauracji" wymagane
+    if (ownPlace && requesterType === "business" && !form.businessName) nextErrors.businessName = "Podaj nazwę restauracji lub kawiarni.";
     if (!consent) nextErrors.consent = "Zaznacz zgodę na przetwarzanie danych osobowych.";
     if (!termsAccepted) nextErrors.terms = "Zaznacz akceptację Regulaminu.";
     setErrors(nextErrors);
@@ -1869,6 +1871,10 @@ function Step4ContactForm({ restaurant, variant, workshop, groupSize, selectedDa
         placeHasWater: ownPlace ? (placeInfo?.hasWater || "") : undefined,
         placeHasPower: ownPlace ? (placeInfo?.hasPower || "") : undefined,
         placeNotes: ownPlace ? (placeInfo?.notes || "") : undefined,
+        // Pole "Zamawiam jako" (osoba prywatna / restauracja) i nazwa restauracji
+        requesterType: ownPlace ? requesterType : undefined,
+        businessName: ownPlace && requesterType === "business" ? form.businessName : undefined,
+        invoiceRequired: ownPlace ? invoiceRequired : undefined,
       }),
     })
       .then(r => { if (!r.ok) throw new Error(); return r.json(); })
@@ -2004,6 +2010,14 @@ function Step4ContactForm({ restaurant, variant, workshop, groupSize, selectedDa
           {errors[f.k] && <div style={errStyle}>{errors[f.k]}</div>}
         </div>
       ))}
+      {/* Pole "Nazwa restauracji" — tylko w trybie ownPlace gdy klient wybiera "Restauracja" */}
+      {ownPlace && requesterType === "business" && (
+        <div style={{ marginBottom:14 }}>
+          <label style={lbl}>Nazwa restauracji lub kawiarni *</label>
+          <input type="text" value={form.businessName} onChange={set("businessName")} style={inp} />
+          {errors.businessName && <div style={errStyle}>{errors.businessName}</div>}
+        </div>
+      )}
       <div style={{ marginBottom:18 }}>
         <label style={lbl}>Dodatkowe uwagi</label>
         <textarea rows={3} placeholder="Okazja, szczególne wymagania, pytania..." value={form.message} onChange={set("message")} style={{ ...inp, resize:"vertical", minHeight:70 }} />
@@ -2369,6 +2383,10 @@ export default function App() {
   // "Mam miejsce" to trzeci top-level path (obok "workshop"/"restaurant"),
   // nie osobny toggle — patrz const path poniżej ("workshop"|"restaurant"|"ownplace").
   const [placeInfo,       setPlaceInfo]       = useState({ address:"", placeType:"", hasSeparateRoom:"", area:"", hasTables:"", hasWater:"", hasPower:"", notes:"" });
+  // Tryb "Mam miejsce" — pole "Zamawiam jako" (osoba prywatna / restauracja)
+  const [requesterType,   setRequesterType]   = useState("private"); // "private" | "business"
+  // Tryb "Mam miejsce" — pole "Wymagana faktura VAT" (nie / tak)
+  const [invoiceRequired, setInvoiceRequired] = useState(false);
   const [profileItem,     setProfileItem]     = useState(null);
   const [selectedDate,    setSelectedDate]    = useState("");
   const [selectedTime,    setSelectedTime]    = useState("");
@@ -2464,6 +2482,7 @@ export default function App() {
     setGroupSize(null); setSelectedDate(""); setSelectedTime("");
     setKidsCount(null); setAdultsCount(null);
     setPlaceInfo({ address:"", placeType:"", hasSeparateRoom:"", area:"", hasTables:"", hasWater:"", hasPower:"", notes:"" });
+    setRequesterType("private"); setInvoiceRequired(false);
   };
 
   // Przełącznik trybu kreatora (client/kids) w nagłówku — porównanie z samym
@@ -2529,7 +2548,13 @@ export default function App() {
 
   // Krok 1 ścieżki "Mam miejsce" — tylko artyści z travelsToClient=tak
   // (żadnego dopasowania do restauracji, bo jej tu w ogóle nie ma).
-  const ownPlaceWorkshops = workshops.filter(w => !w.kidsOnly && (w.comingSoon || w.travelsToClient === true));
+  // Filtrowanie po canInvoice jeśli klient wybrał "Wymagana faktura VAT".
+  const ownPlaceWorkshops = workshops.filter(w => {
+    if (w.kidsOnly) return false;
+    if (!w.comingSoon && w.travelsToClient !== true) return false;
+    if (invoiceRequired && w.canInvoice !== true) return false;
+    return true;
+  });
 
   const variant    = restaurant?.variants.find(v => v.id === selectedVariant);
   const ppp        = (variant?.price ?? 0) + (workshop?.pricePerPerson ?? 0);
@@ -2568,7 +2593,11 @@ export default function App() {
     .filter(r => r.comingSoon || isKidsCompatible(workshop, r))
     .map(toKidsRestaurantView);
   const compatibleWorkshopsKids = workshops.filter(w => w.comingSoon || isKidsCompatible(w, restaurant));
-  const ownPlaceWorkshopsKids = workshops.filter(w => w.comingSoon || (w.travelsToClient === true && w.forKids));
+  const ownPlaceWorkshopsKids = workshops.filter(w => {
+    if (!w.comingSoon && !(w.travelsToClient === true && w.forKids)) return false;
+    if (invoiceRequired && w.canInvoice !== true) return false;
+    return true;
+  });
 
   const kidsVariant = restaurant?.kidsVariants?.find(v => v.id === selectedVariant);
   const kidsPriceKnown = kidsVariant && kidsVariant.price != null;
@@ -2724,6 +2753,35 @@ export default function App() {
                     <div style={{ maxWidth:1160, margin:"0 auto", padding:"0 16px" }}>
                       <PathTiles activeKey={path} onSelect={switchPath} labels={withOwnPlaceTile(KIDS_PATH_TILE_LABELS, workshops.filter(w => w.forKids))} />
                     </div>
+                    {/* Pola wyboru dla trybu "Mam miejsce" — kids mode */}
+                    {ownPlace && (
+                      <div style={{ maxWidth:1160, margin:"20px auto 0", padding:"0 16px" }}>
+                        <div style={{ background:C.card, border:`1px solid ${C.border}`, borderRadius:14, padding:"16px 20px", marginBottom:20 }}>
+                          {/* Pole "Zamawiam jako" */}
+                          <div style={{ marginBottom:20 }}>
+                            <div style={{ fontSize:11, fontWeight:600, color:C.muted, marginBottom:10, letterSpacing:"0.08em" }}>ZAMAWIAM JAKO</div>
+                            <div style={{ display:"flex", gap:16 }}>
+                              <label style={{ display:"flex", alignItems:"center", gap:8, cursor:"pointer", fontSize:14, color:C.text }}>
+                                <input type="radio" name="requester" value="private" checked={requesterType === "private"} onChange={() => setRequesterType("private")} style={{ width:18, height:18, cursor:"pointer" }} />
+                                Osoba prywatna
+                              </label>
+                              <label style={{ display:"flex", alignItems:"center", gap:8, cursor:"pointer", fontSize:14, color:C.text }}>
+                                <input type="radio" name="requester" value="business" checked={requesterType === "business"} onChange={() => setRequesterType("business")} style={{ width:18, height:18, cursor:"pointer" }} />
+                                Restauracja lub kawiarnia
+                              </label>
+                            </div>
+                          </div>
+                          {/* Pole "Wymagana faktura VAT" */}
+                          <div>
+                            <div style={{ fontSize:11, fontWeight:600, color:C.muted, marginBottom:10, letterSpacing:"0.08em" }}>WYMAGANA FAKTURA VAT</div>
+                            <div style={{ display:"flex", gap:12, alignItems:"center" }}>
+                              <button onClick={() => setInvoiceRequired(false)} style={{ padding:"8px 16px", border:`2px solid ${!invoiceRequired ? C.primary : C.border}`, background:"transparent", borderRadius:8, color:!invoiceRequired ? C.primary : C.muted, fontWeight:600, fontSize:13, cursor:"pointer", minHeight:40 }}>Nie</button>
+                              <button onClick={() => setInvoiceRequired(true)} style={{ padding:"8px 16px", border:`2px solid ${invoiceRequired ? C.primary : C.border}`, background:"transparent", borderRadius:8, color:invoiceRequired ? C.primary : C.muted, fontWeight:600, fontSize:13, cursor:"pointer", minHeight:40 }}>Tak</button>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    )}
                     <PickStep
                       kind={step1Kind}
                       items={ownPlace ? ownPlaceWorkshopsKids : (step1Kind === "workshop" ? compatibleWorkshopsKids : compatibleRestaurantsKids)}
@@ -2776,6 +2834,8 @@ export default function App() {
                     kidsMode kidsCount={kidsCount} adultsCount={adultsCount}
                     ownPlace={ownPlace} placeInfo={placeInfo}
                     workshopStep={step1Kind === "workshop" ? 1 : 2} placeStep={step1Kind === "workshop" ? 2 : 1}
+                    requesterType={ownPlace ? requesterType : undefined}
+                    invoiceRequired={ownPlace ? invoiceRequired : undefined}
                   />
                 )}
               </div>
@@ -2832,6 +2892,35 @@ export default function App() {
                     <div style={{ maxWidth:1160, margin:"0 auto", padding:"0 16px" }}>
                       <PathTiles activeKey={path} onSelect={switchPath} labels={withOwnPlaceTile(DEFAULT_PATH_TILE_LABELS, workshops.filter(w => !w.kidsOnly))} />
                     </div>
+                    {/* Pola wyboru dla trybu "Mam miejsce" */}
+                    {ownPlace && (
+                      <div style={{ maxWidth:1160, margin:"20px auto 0", padding:"0 16px" }}>
+                        <div style={{ background:C.card, border:`1px solid ${C.border}`, borderRadius:14, padding:"16px 20px", marginBottom:20 }}>
+                          {/* Pole "Zamawiam jako" */}
+                          <div style={{ marginBottom:20 }}>
+                            <div style={{ fontSize:11, fontWeight:600, color:C.muted, marginBottom:10, letterSpacing:"0.08em" }}>ZAMAWIAM JAKO</div>
+                            <div style={{ display:"flex", gap:16 }}>
+                              <label style={{ display:"flex", alignItems:"center", gap:8, cursor:"pointer", fontSize:14, color:C.text }}>
+                                <input type="radio" name="requester" value="private" checked={requesterType === "private"} onChange={() => setRequesterType("private")} style={{ width:18, height:18, cursor:"pointer" }} />
+                                Osoba prywatna
+                              </label>
+                              <label style={{ display:"flex", alignItems:"center", gap:8, cursor:"pointer", fontSize:14, color:C.text }}>
+                                <input type="radio" name="requester" value="business" checked={requesterType === "business"} onChange={() => setRequesterType("business")} style={{ width:18, height:18, cursor:"pointer" }} />
+                                Restauracja lub kawiarnia
+                              </label>
+                            </div>
+                          </div>
+                          {/* Pole "Wymagana faktura VAT" */}
+                          <div>
+                            <div style={{ fontSize:11, fontWeight:600, color:C.muted, marginBottom:10, letterSpacing:"0.08em" }}>WYMAGANA FAKTURA VAT</div>
+                            <div style={{ display:"flex", gap:12, alignItems:"center" }}>
+                              <button onClick={() => setInvoiceRequired(false)} style={{ padding:"8px 16px", border:`2px solid ${!invoiceRequired ? C.primary : C.border}`, background:"transparent", borderRadius:8, color:!invoiceRequired ? C.primary : C.muted, fontWeight:600, fontSize:13, cursor:"pointer", minHeight:40 }}>Nie</button>
+                              <button onClick={() => setInvoiceRequired(true)} style={{ padding:"8px 16px", border:`2px solid ${invoiceRequired ? C.primary : C.border}`, background:"transparent", borderRadius:8, color:invoiceRequired ? C.primary : C.muted, fontWeight:600, fontSize:13, cursor:"pointer", minHeight:40 }}>Tak</button>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    )}
                     <PickStep
                     kind={step1Kind}
                     items={ownPlace ? ownPlaceWorkshops : (step1Kind === "workshop" ? compatibleWorkshops : compatibleRestaurants)}
@@ -2880,6 +2969,8 @@ export default function App() {
                     onSubmitted={() => setSubmitted(true)}
                     ownPlace={ownPlace} placeInfo={placeInfo}
                     workshopStep={step1Kind === "workshop" ? 1 : 2} placeStep={step1Kind === "workshop" ? 2 : 1}
+                    requesterType={ownPlace ? requesterType : undefined}
+                    invoiceRequired={ownPlace ? invoiceRequired : undefined}
                   />
                 )}
               </div>

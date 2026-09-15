@@ -17,6 +17,7 @@ export default async function handler(req, res) {
       groupSize, date, message,
       isKidsEvent, kidsCount, adultsCount, kidsPackageName, kidsAmountLabel,
       isOwnPlace, placeAddress, placeType, placeHasSeparateRoom, placeArea, placeHasTables, placeHasWater, placeHasPower, placeNotes,
+      requesterType, businessName, invoiceRequired,
     } = req.body || {};
 
     // Sekcja doklejana do każdego z 3 maili, tylko gdy zapytanie dotyczy
@@ -87,6 +88,8 @@ export default async function handler(req, res) {
           <p>${isOwnPlace
             ? `Klient chce zaprosić Cię do siebie na warsztat „${workshopName || ""}" — bez restauracji, na własnym miejscu. Oto szczegóły:`
             : `Restauracja <strong>${restaurantName || ""}</strong> dostała zapytanie o Twój warsztat „${workshopName || ""}". Oto szczegóły:`}</p>
+          ${isOwnPlace && requesterType ? `<p><strong>Zamawia jako:</strong> ${requesterType === "business" ? `Restauracja — ${businessName || "-"}` : "Osoba prywatna"}</p>` : ""}
+          ${isOwnPlace && invoiceRequired !== undefined ? `<p><strong>Wymagana faktura VAT:</strong> ${invoiceRequired ? "Tak" : "Nie"}</p>` : ""}
           ${kidsEventBlock}
           ${placeInfoBlock}
           <ul>
@@ -133,6 +136,8 @@ export default async function handler(req, res) {
       subject: `Nowe zapytanie: ${restaurantName || (isOwnPlace ? "bez restauracji (mam miejsce)" : "-")} + ${workshopName || "-"}`,
       html: emailHtml(`
         <p>Nowe zapytanie na stronie:</p>
+        ${isOwnPlace && requesterType ? `<p><strong>Zamawia jako:</strong> ${requesterType === "business" ? `Restauracja — ${businessName || "-"}` : "Osoba prywatna"}</p>` : ""}
+        ${isOwnPlace && invoiceRequired !== undefined ? `<p><strong>Wymagana faktura VAT:</strong> ${invoiceRequired ? "Tak" : "Nie"}</p>` : ""}
         ${kidsEventBlock}
         ${placeInfoBlock}
         <ul>
