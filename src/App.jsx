@@ -2755,13 +2755,13 @@ export default function App() {
                     </div>
                     {/* Pola wyboru dla trybu "Mam miejsce" — kids mode */}
                     {ownPlace && (
-                      <div style={{ maxWidth:480, margin:"20px auto 0", padding:"0 16px" }}>
-                        <div style={{ background:C.card, border:`1px solid ${C.border}`, borderRadius:12, padding:"14px 16px", marginBottom:20 }}>
+                      <div style={{ maxWidth:1160, margin:"20px auto 0", padding:"0 16px" }}>
+                        <div style={{ background:C.card, border:`1px solid ${C.border}`, borderRadius:14, boxShadow:"0 1px 5px rgba(0,0,0,0.07)", padding:"18px 20px", marginBottom:20 }}>
                           {/* Pole "Zamawiam jako" — kafelki-pigułki równej szerokości, ten sam
                               styl co PathTiles (tint C.selectedBg + obramowanie C.primary). */}
                           <div style={{ marginBottom:12 }}>
                             <div style={{ fontSize:11, fontWeight:600, color:C.muted, marginBottom:8 }}>Zamawiam jako</div>
-                            <div style={{ display:"flex", gap:8 }}>
+                            <div style={{ display:"flex", gap:8, maxWidth:460 }}>
                               <button onClick={() => setRequesterType("private")} style={{ flex:1, textAlign:"center", padding:"8px 10px", borderRadius:999, cursor:"pointer", background: requesterType === "private" ? C.selectedBg : C.card, border:`1.5px solid ${requesterType === "private" ? C.primary : C.border}`, color:C.primary, fontWeight:500, fontSize:12, fontFamily:"'Montserrat', system-ui, sans-serif" }}>Osoba prywatna</button>
                               <button onClick={() => setRequesterType("business")} style={{ flex:1, textAlign:"center", padding:"8px 10px", borderRadius:999, cursor:"pointer", background: requesterType === "business" ? C.selectedBg : C.card, border:`1.5px solid ${requesterType === "business" ? C.primary : C.border}`, color:C.primary, fontWeight:500, fontSize:12, fontFamily:"'Montserrat', system-ui, sans-serif" }}>Restauracja lub kawiarnia</button>
                             </div>
@@ -2889,13 +2889,13 @@ export default function App() {
                     </div>
                     {/* Pola wyboru dla trybu "Mam miejsce" */}
                     {ownPlace && (
-                      <div style={{ maxWidth:480, margin:"20px auto 0", padding:"0 16px" }}>
-                        <div style={{ background:C.card, border:`1px solid ${C.border}`, borderRadius:12, padding:"14px 16px", marginBottom:20 }}>
+                      <div style={{ maxWidth:1160, margin:"20px auto 0", padding:"0 16px" }}>
+                        <div style={{ background:C.card, border:`1px solid ${C.border}`, borderRadius:14, boxShadow:"0 1px 5px rgba(0,0,0,0.07)", padding:"18px 20px", marginBottom:20 }}>
                           {/* Pole "Zamawiam jako" — kafelki-pigułki równej szerokości, ten sam
                               styl co PathTiles (tint C.selectedBg + obramowanie C.primary). */}
                           <div style={{ marginBottom:12 }}>
                             <div style={{ fontSize:11, fontWeight:600, color:C.muted, marginBottom:8 }}>Zamawiam jako</div>
-                            <div style={{ display:"flex", gap:8 }}>
+                            <div style={{ display:"flex", gap:8, maxWidth:460 }}>
                               <button onClick={() => setRequesterType("private")} style={{ flex:1, textAlign:"center", padding:"8px 10px", borderRadius:999, cursor:"pointer", background: requesterType === "private" ? C.selectedBg : C.card, border:`1.5px solid ${requesterType === "private" ? C.primary : C.border}`, color:C.primary, fontWeight:500, fontSize:12, fontFamily:"'Montserrat', system-ui, sans-serif" }}>Osoba prywatna</button>
                               <button onClick={() => setRequesterType("business")} style={{ flex:1, textAlign:"center", padding:"8px 10px", borderRadius:999, cursor:"pointer", background: requesterType === "business" ? C.selectedBg : C.card, border:`1.5px solid ${requesterType === "business" ? C.primary : C.border}`, color:C.primary, fontWeight:500, fontSize:12, fontFamily:"'Montserrat', system-ui, sans-serif" }}>Restauracja lub kawiarnia</button>
                             </div>
