@@ -1722,11 +1722,19 @@ function PickStep({ kind, items, selectedId, selectedVariantId, onToggle, onVari
 // (`value`/`onChange`) jest podniesiony do App(), więc powrót na ten krok
 // (np. przez "zmień" w kroku 3) pokazuje wcześniej wpisane dane, tak samo
 // jak data/godzina na ekranie głównym.
-const PLACE_TYPE_OPTIONS = [
+// Osoba prywatna: miejsce zamieszkania. Restauracja/kawiarnia: miejsce w
+// samym lokalu — inny zestaw opcji, patrz PlaceInterviewForm.
+const PLACE_TYPE_OPTIONS_PRIVATE = [
   { id:"dom", label:"Dom" },
   { id:"mieszkanie", label:"Mieszkanie w bloku" },
   { id:"ogrod", label:"Ogród" },
   { id:"sala", label:"Sala" },
+  { id:"inne", label:"Inne" },
+];
+const PLACE_TYPE_OPTIONS_BUSINESS = [
+  { id:"ogrod", label:"Ogród" },
+  { id:"osobna_sala", label:"Osobna sala" },
+  { id:"wspolna_sala", label:"Miejsce na wspólnej sali" },
   { id:"inne", label:"Inne" },
 ];
 
@@ -1742,10 +1750,11 @@ function YesNoToggle({ value, onChange }) {
   return <div style={{ display:"flex", gap:8 }}>{opt("tak","Tak")}{opt("nie","Nie")}</div>;
 }
 
-function PlaceInterviewForm({ value, onChange, travelArea, kidsMode = false }) {
+function PlaceInterviewForm({ value, onChange, travelArea, kidsMode = false, requesterType }) {
   const inp = { width:"100%", padding:"11px 13px", border:`1px solid ${C.border}`, borderRadius:8, fontSize:14, color:C.text, background:"#FAFAF8", minHeight:44, fontFamily:"'Montserrat', system-ui, sans-serif" };
   const lbl = { display:"block", fontSize:11, fontWeight:600, color:C.muted, marginBottom:5, letterSpacing:"0.08em" };
   const set = k => v => onChange({ ...value, [k]: v });
+  const placeTypeOptions = requesterType === "business" ? PLACE_TYPE_OPTIONS_BUSINESS : PLACE_TYPE_OPTIONS_PRIVATE;
   // Wpisywane w arkuszu jako sama liczba (np. "50", czasem zakres "100-120") —
   // dopisujemy skrót "km", chyba że ktoś już go wpisał ręcznie.
   const travelAreaDisplay = travelArea && !/km/i.test(travelArea) ? `${travelArea} km` : travelArea;
@@ -1767,7 +1776,7 @@ function PlaceInterviewForm({ value, onChange, travelArea, kidsMode = false }) {
         <label style={lbl}>Typ miejsca</label>
         <select value={value.placeType} onChange={e => set("placeType")(e.target.value)} style={inp}>
           <option value="">Wybierz...</option>
-          {PLACE_TYPE_OPTIONS.map(o => <option key={o.id} value={o.id}>{o.label}</option>)}
+          {placeTypeOptions.map(o => <option key={o.id} value={o.id}>{o.label}</option>)}
         </select>
       </div>
 
@@ -2385,6 +2394,11 @@ export default function App() {
   const [placeInfo,       setPlaceInfo]       = useState({ address:"", placeType:"", hasSeparateRoom:"", area:"", hasTables:"", hasWater:"", hasPower:"", notes:"" });
   // Tryb "Mam miejsce" — pole "Zamawiam jako" (osoba prywatna / restauracja)
   const [requesterType,   setRequesterType]   = useState("private"); // "private" | "business"
+  // "Typ miejsca" ma różne opcje dla osoby prywatnej i restauracji (patrz
+  // PLACE_TYPE_OPTIONS_PRIVATE/_BUSINESS) — przy zmianie wyczyść dotychczasowy
+  // wybór, żeby nie zostawić nieistniejącej już opcji (np. "Dom" wybrane
+  // jako osoba prywatna, potem przełączenie na restauracja).
+  const chooseRequesterType = t => { setRequesterType(t); setPlaceInfo(p => ({ ...p, placeType:"" })); };
   // Tryb "Mam miejsce" — pole "Wymagana faktura VAT" (nie / tak)
   const [invoiceRequired, setInvoiceRequired] = useState(false);
   const [profileItem,     setProfileItem]     = useState(null);
@@ -2762,8 +2776,8 @@ export default function App() {
                           <div style={{ marginBottom:12 }}>
                             <div style={{ fontSize:11, fontWeight:600, color:C.muted, marginBottom:8 }}>Zamawiam jako</div>
                             <div style={{ display:"flex", gap:8, maxWidth:460 }}>
-                              <button onClick={() => setRequesterType("private")} style={{ flex:1, textAlign:"center", padding:"8px 10px", borderRadius:999, cursor:"pointer", background: requesterType === "private" ? C.selectedBg : C.card, border:`1.5px solid ${requesterType === "private" ? C.primary : C.border}`, color:C.primary, fontWeight:500, fontSize:12, fontFamily:"'Montserrat', system-ui, sans-serif" }}>Osoba prywatna</button>
-                              <button onClick={() => setRequesterType("business")} style={{ flex:1, textAlign:"center", padding:"8px 10px", borderRadius:999, cursor:"pointer", background: requesterType === "business" ? C.selectedBg : C.card, border:`1.5px solid ${requesterType === "business" ? C.primary : C.border}`, color:C.primary, fontWeight:500, fontSize:12, fontFamily:"'Montserrat', system-ui, sans-serif" }}>Restauracja lub kawiarnia</button>
+                              <button onClick={() => chooseRequesterType("private")} style={{ flex:1, textAlign:"center", padding:"8px 10px", borderRadius:999, cursor:"pointer", background: requesterType === "private" ? C.selectedBg : C.card, border:`1.5px solid ${requesterType === "private" ? C.primary : C.border}`, color:C.primary, fontWeight:500, fontSize:12, fontFamily:"'Montserrat', system-ui, sans-serif" }}>Osoba prywatna</button>
+                              <button onClick={() => chooseRequesterType("business")} style={{ flex:1, textAlign:"center", padding:"8px 10px", borderRadius:999, cursor:"pointer", background: requesterType === "business" ? C.selectedBg : C.card, border:`1.5px solid ${requesterType === "business" ? C.primary : C.border}`, color:C.primary, fontWeight:500, fontSize:12, fontFamily:"'Montserrat', system-ui, sans-serif" }}>Restauracja lub kawiarnia</button>
                             </div>
                           </div>
                           {/* Pole "Wymagana faktura VAT" — etykieta w tej samej linii co przyciski */}
@@ -2794,7 +2808,7 @@ export default function App() {
                 )}
                 {wizardStep === 2 && (
                   ownPlace ? (
-                    <PlaceInterviewForm value={placeInfo} onChange={setPlaceInfo} travelArea={workshop?.travelArea} kidsMode />
+                    <PlaceInterviewForm value={placeInfo} onChange={setPlaceInfo} travelArea={workshop?.travelArea} requesterType={requesterType} kidsMode />
                   ) : (
                     <PickStep
                       kind={step2Kind}
@@ -2896,8 +2910,8 @@ export default function App() {
                           <div style={{ marginBottom:12 }}>
                             <div style={{ fontSize:11, fontWeight:600, color:C.muted, marginBottom:8 }}>Zamawiam jako</div>
                             <div style={{ display:"flex", gap:8, maxWidth:460 }}>
-                              <button onClick={() => setRequesterType("private")} style={{ flex:1, textAlign:"center", padding:"8px 10px", borderRadius:999, cursor:"pointer", background: requesterType === "private" ? C.selectedBg : C.card, border:`1.5px solid ${requesterType === "private" ? C.primary : C.border}`, color:C.primary, fontWeight:500, fontSize:12, fontFamily:"'Montserrat', system-ui, sans-serif" }}>Osoba prywatna</button>
-                              <button onClick={() => setRequesterType("business")} style={{ flex:1, textAlign:"center", padding:"8px 10px", borderRadius:999, cursor:"pointer", background: requesterType === "business" ? C.selectedBg : C.card, border:`1.5px solid ${requesterType === "business" ? C.primary : C.border}`, color:C.primary, fontWeight:500, fontSize:12, fontFamily:"'Montserrat', system-ui, sans-serif" }}>Restauracja lub kawiarnia</button>
+                              <button onClick={() => chooseRequesterType("private")} style={{ flex:1, textAlign:"center", padding:"8px 10px", borderRadius:999, cursor:"pointer", background: requesterType === "private" ? C.selectedBg : C.card, border:`1.5px solid ${requesterType === "private" ? C.primary : C.border}`, color:C.primary, fontWeight:500, fontSize:12, fontFamily:"'Montserrat', system-ui, sans-serif" }}>Osoba prywatna</button>
+                              <button onClick={() => chooseRequesterType("business")} style={{ flex:1, textAlign:"center", padding:"8px 10px", borderRadius:999, cursor:"pointer", background: requesterType === "business" ? C.selectedBg : C.card, border:`1.5px solid ${requesterType === "business" ? C.primary : C.border}`, color:C.primary, fontWeight:500, fontSize:12, fontFamily:"'Montserrat', system-ui, sans-serif" }}>Restauracja lub kawiarnia</button>
                             </div>
                           </div>
                           {/* Pole "Wymagana faktura VAT" — etykieta w tej samej linii co przyciski */}
@@ -2928,7 +2942,7 @@ export default function App() {
                 )}
                 {wizardStep === 2 && (
                   ownPlace ? (
-                    <PlaceInterviewForm value={placeInfo} onChange={setPlaceInfo} travelArea={workshop?.travelArea} />
+                    <PlaceInterviewForm value={placeInfo} onChange={setPlaceInfo} travelArea={workshop?.travelArea} requesterType={requesterType} />
                   ) : (
                     <PickStep
                       kind={step2Kind}
