@@ -2815,7 +2815,14 @@ export default function App() {
                   </>
                 )}
                 {wizardStep === 2 && (
-                  ownPlace ? (
+                  <>
+                    {/* Przełącznik ścieżki dostępny też na kroku 2 (nie tylko na
+                        kroku 1) — bez tego nie było jak przejść na "Mam miejsce"
+                        po wybraniu warsztatu i wejściu w listę restauracji. */}
+                    <div style={{ maxWidth:1160, margin:"0 auto", padding:"0 16px" }}>
+                      <PathTiles activeKey={path} onSelect={switchPath} labels={withOwnPlaceTile(KIDS_PATH_TILE_LABELS, workshops.filter(w => w.forKids))} />
+                    </div>
+                    {ownPlace ? (
                     <PlaceInterviewForm value={placeInfo} onChange={setPlaceInfo} travelArea={workshop?.travelArea} requesterType={requesterType} touched={placeInfoTouched} kidsMode />
                   ) : (
                     <PickStep
@@ -2835,7 +2842,8 @@ export default function App() {
                       ].filter(Boolean) : null}
                       kidsMode
                     />
-                  )
+                  )}
+                  </>
                 )}
                 {wizardStep === 3 && (
                   <Step4ContactForm
@@ -2950,7 +2958,14 @@ export default function App() {
                   </>
                 )}
                 {wizardStep === 2 && (
-                  ownPlace ? (
+                  <>
+                    {/* Przełącznik ścieżki dostępny też na kroku 2 (nie tylko na
+                        kroku 1) — bez tego nie było jak przejść na "Mam miejsce"
+                        po wybraniu warsztatu i wejściu w listę restauracji. */}
+                    <div style={{ maxWidth:1160, margin:"0 auto", padding:"0 16px" }}>
+                      <PathTiles activeKey={path} onSelect={switchPath} labels={withOwnPlaceTile(DEFAULT_PATH_TILE_LABELS, workshops.filter(w => !w.kidsOnly))} />
+                    </div>
+                    {ownPlace ? (
                     <PlaceInterviewForm value={placeInfo} onChange={setPlaceInfo} travelArea={workshop?.travelArea} requesterType={requesterType} touched={placeInfoTouched} />
                   ) : (
                     <PickStep
@@ -2969,7 +2984,8 @@ export default function App() {
                         selectedTime && selectedDate && "Pokazujemy miejsca otwarte o tej porze w wybranym dniu, w których warsztat zdąży się skończyć przed zamknięciem.",
                       ].filter(Boolean) : null}
                     />
-                  )
+                  )}
+                  </>
                 )}
                 {wizardStep === 3 && (
                   <Step4ContactForm
