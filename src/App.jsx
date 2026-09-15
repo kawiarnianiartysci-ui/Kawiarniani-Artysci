@@ -1767,6 +1767,13 @@ function PlaceInterviewForm({ value, onChange, travelArea, kidsMode = false, req
         </div>
       )}
 
+      {requesterType === "business" && (
+        <div style={{ marginBottom:14 }}>
+          <label style={lbl}>Nazwa restauracji lub kawiarni *</label>
+          <input type="text" placeholder="np. Kawiarnia Pod Lipami" value={value.businessName} onChange={e => set("businessName")(e.target.value)} style={inp} />
+        </div>
+      )}
+
       <div style={{ marginBottom:14 }}>
         <label style={lbl}>Adres / lokalizacja eventu *</label>
         <input type="text" placeholder="ul. Przykładowa 12, Poznań" value={value.address} onChange={e => set("address")(e.target.value)} style={inp} />
@@ -1816,7 +1823,7 @@ function PlaceInterviewForm({ value, onChange, travelArea, kidsMode = false, req
 // ══ Krok 3 — podsumowanie i formularz kontaktowy ═════════════
 
 function Step4ContactForm({ restaurant, variant, workshop, groupSize, selectedDate, onDateChange, selectedTime, onTimeChange, ppp, total, workshopOnlyTotal, onEditStep, onSubmitted, kidsMode = false, kidsCount, adultsCount, ownPlace = false, placeInfo, workshopStep = 1, placeStep = 2, requesterType, invoiceRequired }) {
-  const [form, setForm] = useState({ name:"", email:"", phone:"", message:"", businessName:"" });
+  const [form, setForm] = useState({ name:"", email:"", phone:"", message:"" });
   const [consent, setConsent] = useState(false);
   const [termsAccepted, setTermsAccepted] = useState(false);
   const [showPrivacy, setShowPrivacy] = useState(false);
@@ -1835,8 +1842,6 @@ function Step4ContactForm({ restaurant, variant, workshop, groupSize, selectedDa
     const nextErrors = {};
     if (!form.name) nextErrors.name = "Podaj imię i nazwisko.";
     if (!form.email) nextErrors.email = "Podaj adres email.";
-    // Jeśli w trybie ownPlace klient wybiera "Restauracja" — pole "Nazwa restauracji" wymagane
-    if (ownPlace && requesterType === "business" && !form.businessName) nextErrors.businessName = "Podaj nazwę restauracji lub kawiarni.";
     if (!consent) nextErrors.consent = "Zaznacz zgodę na przetwarzanie danych osobowych.";
     if (!termsAccepted) nextErrors.terms = "Zaznacz akceptację Regulaminu.";
     setErrors(nextErrors);
@@ -1882,7 +1887,7 @@ function Step4ContactForm({ restaurant, variant, workshop, groupSize, selectedDa
         placeNotes: ownPlace ? (placeInfo?.notes || "") : undefined,
         // Pole "Zamawiam jako" (osoba prywatna / restauracja) i nazwa restauracji
         requesterType: ownPlace ? requesterType : undefined,
-        businessName: ownPlace && requesterType === "business" ? form.businessName : undefined,
+        businessName: ownPlace && requesterType === "business" ? (placeInfo?.businessName || "") : undefined,
         invoiceRequired: ownPlace ? invoiceRequired : undefined,
       }),
     })
@@ -1901,7 +1906,7 @@ function Step4ContactForm({ restaurant, variant, workshop, groupSize, selectedDa
   const summaryRowsTop = [
     { label:"Warsztat", value: workshop ? `${workshop.name} (${workshop.artist})` : "—", step: workshopStep },
     { label:"Miejsce", value: ownPlace
-      ? `${placeInfo?.address || "Wasz adres"} (dojazd artysty)`
+      ? `${placeInfo?.businessName ? placeInfo.businessName + " — " : ""}${placeInfo?.address || "Wasz adres"} (dojazd artysty)`
       : (restaurant ? `${restaurant.name}${variant ? " · " + variant.label : ""}` : "—"), step: placeStep },
   ];
   const summaryRowsBottom = kidsMode ? [
@@ -2019,14 +2024,6 @@ function Step4ContactForm({ restaurant, variant, workshop, groupSize, selectedDa
           {errors[f.k] && <div style={errStyle}>{errors[f.k]}</div>}
         </div>
       ))}
-      {/* Pole "Nazwa restauracji" — tylko w trybie ownPlace gdy klient wybiera "Restauracja" */}
-      {ownPlace && requesterType === "business" && (
-        <div style={{ marginBottom:14 }}>
-          <label style={lbl}>Nazwa restauracji lub kawiarni *</label>
-          <input type="text" value={form.businessName} onChange={set("businessName")} style={inp} />
-          {errors.businessName && <div style={errStyle}>{errors.businessName}</div>}
-        </div>
-      )}
       <div style={{ marginBottom:18 }}>
         <label style={lbl}>Dodatkowe uwagi</label>
         <textarea rows={3} placeholder="Okazja, szczególne wymagania, pytania..." value={form.message} onChange={set("message")} style={{ ...inp, resize:"vertical", minHeight:70 }} />
@@ -2391,14 +2388,14 @@ export default function App() {
   const [adultsCount,     setAdultsCount]     = useState(null);      // tryb "kids" — wyłącznie informacyjne
   // "Mam miejsce" to trzeci top-level path (obok "workshop"/"restaurant"),
   // nie osobny toggle — patrz const path poniżej ("workshop"|"restaurant"|"ownplace").
-  const [placeInfo,       setPlaceInfo]       = useState({ address:"", placeType:"", hasSeparateRoom:"", area:"", hasTables:"", hasWater:"", hasPower:"", notes:"" });
+  const [placeInfo,       setPlaceInfo]       = useState({ address:"", businessName:"", placeType:"", hasSeparateRoom:"", area:"", hasTables:"", hasWater:"", hasPower:"", notes:"" });
   // Tryb "Mam miejsce" — pole "Zamawiam jako" (osoba prywatna / restauracja)
   const [requesterType,   setRequesterType]   = useState("private"); // "private" | "business"
   // "Typ miejsca" ma różne opcje dla osoby prywatnej i restauracji (patrz
   // PLACE_TYPE_OPTIONS_PRIVATE/_BUSINESS) — przy zmianie wyczyść dotychczasowy
   // wybór, żeby nie zostawić nieistniejącej już opcji (np. "Dom" wybrane
   // jako osoba prywatna, potem przełączenie na restauracja).
-  const chooseRequesterType = t => { setRequesterType(t); setPlaceInfo(p => ({ ...p, placeType:"" })); };
+  const chooseRequesterType = t => { setRequesterType(t); setPlaceInfo(p => ({ ...p, placeType:"", businessName:"" })); };
   // Tryb "Mam miejsce" — pole "Wymagana faktura VAT" (nie / tak)
   const [invoiceRequired, setInvoiceRequired] = useState(false);
   const [profileItem,     setProfileItem]     = useState(null);
@@ -2495,7 +2492,7 @@ export default function App() {
     setSelectedR(null); setSelectedVariant(null); setSelectedW(null);
     setGroupSize(null); setSelectedDate(""); setSelectedTime("");
     setKidsCount(null); setAdultsCount(null);
-    setPlaceInfo({ address:"", placeType:"", hasSeparateRoom:"", area:"", hasTables:"", hasWater:"", hasPower:"", notes:"" });
+    setPlaceInfo({ address:"", businessName:"", placeType:"", hasSeparateRoom:"", area:"", hasTables:"", hasWater:"", hasPower:"", notes:"" });
     setRequesterType("private"); setInvoiceRequired(false);
   };
 
@@ -2682,7 +2679,7 @@ export default function App() {
   const ownPlace = path === "ownplace";
 
   const step2Selected = ownPlace
-    ? placeInfo.address.trim() !== ""
+    ? placeInfo.address.trim() !== "" && (requesterType !== "business" || placeInfo.businessName.trim() !== "")
     : (path === "restaurant" ? !!selectedW : !!selectedR);
 
   return (
