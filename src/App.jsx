@@ -281,12 +281,21 @@ const globalCSS = `
     .search-divider { width:100%; height:1px; align-self:auto; margin:2px 0; }
   }
   .wizard-nav-spacer { display:none; }
+  .wizard-nav-bar-floating { display:none; }
   @media (max-width: 640px) {
     .wizard-nav-bar { position:fixed; left:0; right:0; bottom:0; top:auto; max-width:none !important; margin:0 !important; padding:10px 28px !important; background:${C.bg}; box-shadow:0 -6px 20px rgba(0,0,0,0.14); z-index:200; }
     .wizard-nav-spacer { display:block; height:76px; }
   }
   @media (min-width: 641px) {
     .hero-video { transform: scale(1.15); transform-origin: 70% 68%; }
+    /* Pływający pasek nawigacji kreatora — pojawia się tylko, gdy JS
+       (IntersectionObserver w WizardStickyBar) wykryje, że oryginalny
+       pasek na górze wyszedł poza widok po scrollu. Spacer rezerwuje
+       stałe miejsce na dole listy (jak na mobile), żeby ostatnia karta
+       nigdy nie chowała się pod paskiem, niezależnie od tego, czy pasek
+       akurat jest widoczny. */
+    .wizard-nav-bar-floating { display:block; position:fixed; left:0; right:0; bottom:0; padding:10px 0; background:${C.bg}; box-shadow:0 -6px 20px rgba(0,0,0,0.14); z-index:200; }
+    .wizard-nav-spacer { display:block; height:76px; }
   }
   @media (max-width: 640px) {
     .mode-switcher { flex-wrap: nowrap !important; padding: 3px !important; }
@@ -2088,22 +2097,55 @@ function WizardStickyBar({ restaurant, workshop, groupSize, ppp, total, canAdvan
     ? [restaurant?.name, workshop?.name].filter(Boolean).join(" + ")
     : "");
   const navBtn = { WebkitAppearance:"none", appearance:"none", border:"none", borderRadius:999, fontWeight:600, minHeight:44, width:104, padding:"8px 10px", fontSize:13, lineHeight:1.25, textAlign:"center" };
-  return (
-    <div style={{ maxWidth:1160, margin:"0 auto 20px", padding:"0 16px" }}>
-      <div style={{ display:"grid", gridTemplateColumns:"auto 1fr auto", alignItems:"center", gap:10, background:C.tagBg, borderRadius:999, padding:6 }}>
-        <button onClick={onBack} style={{ ...navBtn, background:"transparent", border:`1.5px solid ${C.primary}`, color:C.primary, cursor:"pointer" }}>Wstecz</button>
-        <div style={{ textAlign:"center", minWidth:0, overflow:"hidden" }}>
-          <div style={{ fontFamily:"'Montserrat', system-ui, sans-serif", fontSize:18, color:C.text, fontWeight:600, whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis" }}>
-            {total > 0 ? `${total.toLocaleString("pl-PL")} zł` : showWorkshopOnly ? `${workshopOnlyTotal.toLocaleString("pl-PL")} zł` : summary}
-          </div>
-          {total > 0 && <div style={{ fontSize:11, color:C.muted, whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis" }}>{groupSize} × {ppp} zł</div>}
-          {showWorkshopOnly && <div style={{ fontSize:11, color:C.muted, whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis" }}>cena za warsztat · {groupSize} × {workshopOnlyPpp} zł</div>}
+
+  // Na desktopie ten sam pasek jest oryginalnie statyczny (nie przyklejony,
+  // jak na mobile) — przy długiej liście trzeba było scrollować z powrotem
+  // do góry, żeby kliknąć "Dalej". `topBarRef` + IntersectionObserver
+  // wykrywa, kiedy oryginalny pasek znika z widoku po scrollu, i wtedy
+  // pokazuje dokładnie ten sam pasek przyklejony do dołu okna — tylko na
+  // desktopie (na mobile oryginalny pasek jest już position:fixed, więc
+  // zawsze "przecina się" z viewportem i floatingVisible nigdy nie wskoczy;
+  // .wizard-nav-bar-floating dodatkowo ma display:none poniżej 641px jako
+  // zabezpieczenie, gdyby to założenie kiedyś przestało być prawdą).
+  const topBarRef = useRef(null);
+  const [floatingVisible, setFloatingVisible] = useState(false);
+  useEffect(() => {
+    const el = topBarRef.current;
+    if (!el) return;
+    const observer = new IntersectionObserver(([entry]) => setFloatingVisible(!entry.isIntersecting), { threshold: 0 });
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
+
+  const barInner = (
+    <div style={{ display:"grid", gridTemplateColumns:"auto 1fr auto", alignItems:"center", gap:10, background:C.tagBg, borderRadius:999, padding:6 }}>
+      <button onClick={onBack} style={{ ...navBtn, background:"transparent", border:`1.5px solid ${C.primary}`, color:C.primary, cursor:"pointer" }}>Wstecz</button>
+      <div style={{ textAlign:"center", minWidth:0, overflow:"hidden" }}>
+        <div style={{ fontFamily:"'Montserrat', system-ui, sans-serif", fontSize:18, color:C.text, fontWeight:600, whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis" }}>
+          {total > 0 ? `${total.toLocaleString("pl-PL")} zł` : showWorkshopOnly ? `${workshopOnlyTotal.toLocaleString("pl-PL")} zł` : summary}
         </div>
-        <button onClick={onNext} disabled={!canAdvance} style={{ ...navBtn, background: canAdvance ? C.primary : "#DDD9D2", color: canAdvance ? "#FFF" : "#9A968D", cursor: canAdvance ? "pointer" : "default" }}>
-          {nextLabel}
-        </button>
+        {total > 0 && <div style={{ fontSize:11, color:C.muted, whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis" }}>{groupSize} × {ppp} zł</div>}
+        {showWorkshopOnly && <div style={{ fontSize:11, color:C.muted, whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis" }}>cena za warsztat · {groupSize} × {workshopOnlyPpp} zł</div>}
       </div>
+      <button onClick={onNext} disabled={!canAdvance} style={{ ...navBtn, background: canAdvance ? C.primary : "#DDD9D2", color: canAdvance ? "#FFF" : "#9A968D", cursor: canAdvance ? "pointer" : "default" }}>
+        {nextLabel}
+      </button>
     </div>
+  );
+
+  return (
+    <>
+      <div ref={topBarRef} style={{ maxWidth:1160, margin:"0 auto 20px", padding:"0 16px" }}>
+        {barInner}
+      </div>
+      {floatingVisible && (
+        <div className="wizard-nav-bar-floating">
+          <div style={{ maxWidth:1160, margin:"0 auto", padding:"0 16px" }}>
+            {barInner}
+          </div>
+        </div>
+      )}
+    </>
   );
 }
 
