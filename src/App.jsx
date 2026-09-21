@@ -1539,7 +1539,7 @@ function HomeScreen({ restaurants, workshops, onStart, groupSize, setGroupSize, 
       <div style={{ maxWidth:1160, margin:"0 auto", padding:"0 16px 56px" }}>
         <div className="hero-copy-wrap" style={{ textAlign:"center", maxWidth:760, marginLeft:"auto", marginRight:"auto" }}>
           <h1 className="hero-title" style={{ fontFamily:"'Pan Pizza', cursive", fontSize:"clamp(48px,8.5vw,76px)", fontWeight:400, lineHeight:1.2, color:C.primary }}>
-            Kawiarniani Artyści — warsztaty artystyczne w restauracjach w Poznaniu
+            {COPY.siteName}
           </h1>
           <p className="hero-subtitle" style={{ color:C.text, fontWeight:500, maxWidth:500, marginLeft:"auto", marginRight:"auto" }}>
             {COPY.heroSubtitle}
