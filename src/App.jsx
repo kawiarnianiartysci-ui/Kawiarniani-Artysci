@@ -330,7 +330,7 @@ function PhotoGallery({ photos }) {
         <div style={{ display:"grid", gridTemplateColumns:"repeat(2, 1fr)", gap:8 }}>
           {photos.map((p, i) => (
             <div key={i} onClick={() => setExpandedIdx(i)} className="gallery-thumb" style={{ borderRadius:10, overflow:"hidden", cursor:"pointer", aspectRatio:"4 / 3", background:C.tagBg }}>
-              <img src={getSrc(p)} alt={`Zdjęcie ${i + 1}`} loading="lazy" style={{ width:"100%", height:"100%", objectFit:getFit(p), objectPosition:getPosition(p), display:"block" }} />
+              <img src={getSrc(p)} alt={`Galeria zdjęcia ${i + 1}`} loading="lazy" style={{ width:"100%", height:"100%", objectFit:getFit(p), objectPosition:getPosition(p), display:"block" }} />
             </div>
           ))}
         </div>
@@ -341,11 +341,11 @@ function PhotoGallery({ photos }) {
   return (
     <div style={{ marginBottom:22 }}>
       <div onClick={() => setExpandedIdx(null)} style={{ borderRadius:12, overflow:"hidden", cursor:"zoom-out", marginBottom:8, background:"#111", display:"flex", justifyContent:"center", alignItems:"center" }}>
-        <img src={getSrc(photos[expandedIdx])} alt={`Zdjęcie ${expandedIdx + 1}`} loading="lazy" style={{ width:"100%", maxHeight:280, objectFit:"contain", display:"block" }} />
+        <img src={getSrc(photos[expandedIdx])} alt={`Rozwinięte zdjęcie ${expandedIdx + 1}`} loading="lazy" style={{ width:"100%", maxHeight:280, objectFit:"contain", display:"block" }} />
       </div>
       <div style={{ display:"flex", gap:8, overflowX:"auto", paddingBottom:4 }}>
         {photos.map((p, i) => (
-          <img key={i} src={getSrc(p)} onClick={() => setExpandedIdx(i)} alt={`Miniatura ${i + 1}`} loading="lazy"
+          <img key={i} src={getSrc(p)} onClick={() => setExpandedIdx(i)} alt={`Podgląd zdjęcia ${i + 1}`} loading="lazy"
             style={{ width:64, height:48, objectFit:getFit(p), objectPosition:getPosition(p), borderRadius:6, cursor:"pointer", flexShrink:0, border: i === expandedIdx ? `2px solid ${C.primary}` : "2px solid transparent", opacity: i === expandedIdx ? 1 : 0.7 }} />
         ))}
       </div>
@@ -1525,7 +1525,7 @@ function HomeScreen({ restaurants, workshops, onStart, groupSize, setGroupSize, 
     <div>
       {/* 1. Hero — wideo + nazwa + podtytuł + CTA */}
       <div style={{ position:"relative", width:"100%", height:"clamp(340px, 46vw, 460px)", overflow:"hidden" }}>
-        <video ref={videoRef} className="hero-video" autoPlay muted playsInline preload="auto" poster={HERO_PHOTO}
+        <video ref={videoRef} className="hero-video" autoPlay muted playsInline preload="metadata" poster={HERO_PHOTO}
           onLoadedMetadata={seekToStart} onEnded={handleEnded}
           style={{ position:"absolute", inset:0, width:"100%", height:"100%", objectFit:"cover", objectPosition:"center 68%" }}>
           <source src="/videos/hero.mov" />
@@ -1539,7 +1539,7 @@ function HomeScreen({ restaurants, workshops, onStart, groupSize, setGroupSize, 
       <div style={{ maxWidth:1160, margin:"0 auto", padding:"0 16px 56px" }}>
         <div className="hero-copy-wrap" style={{ textAlign:"center", maxWidth:760, marginLeft:"auto", marginRight:"auto" }}>
           <h1 className="hero-title" style={{ fontFamily:"'Pan Pizza', cursive", fontSize:"clamp(48px,8.5vw,76px)", fontWeight:400, lineHeight:1.2, color:C.primary }}>
-            {COPY.siteName}
+            Kawiarniani Artyści — warsztaty artystyczne w restauracjach w Poznaniu
           </h1>
           <p className="hero-subtitle" style={{ color:C.text, fontWeight:500, maxWidth:500, marginLeft:"auto", marginRight:"auto" }}>
             {COPY.heroSubtitle}

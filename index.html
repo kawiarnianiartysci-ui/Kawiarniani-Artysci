@@ -28,17 +28,24 @@
       "@context": "https://schema.org",
       "@type": "LocalBusiness",
       "name": "Kawiarniani Artyści",
-      "description": "Platforma łącząca artystów, restauracje i klientów na eventy grupowe",
+      "description": "Platforma łącząca artystów, restauracje i klientów na eventy grupowe w Poznaniu — warsztaty kreatywne (malowanie, ebru, improwizacja) w restauracjach i kawiarniach.",
       "url": "https://www.kawiarnianiartysci.pl",
       "image": "https://www.kawiarnianiartysci.pl/images/hero-photo.jpg",
       "areaServed": {
         "@type": "City",
         "name": "Poznań"
       },
-      "serviceType": ["Workshop", "Event Planning"],
+      "priceRange": "50–270 zł",
+      "serviceType": ["Warsztaty artystyczne", "Organizacja eventów grupowych"],
+      "sameAs": [
+        "https://www.instagram.com/kawiarniani_artysci/",
+        "https://www.facebook.com/profile.php?id=61552403980459"
+      ],
       "offers": {
         "@type": "AggregateOffer",
         "priceCurrency": "PLN",
+        "lowPrice": "50",
+        "highPrice": "270",
         "description": "Warsztaty artystyczne + restauracja na eventy grupowe"
       }
     }
@@ -46,6 +53,18 @@
   </head>
   <body>
     <div id="root"></div>
+    <noscript>
+      <div style="padding: 40px 20px; line-height: 1.6; color: #333; max-width: 800px; margin: 0 auto;">
+        <h1 style="font-size: 28px; margin-bottom: 20px; color: #432A16;">Kawiarniani Artyści</h1>
+        <p style="margin: 16px 0; font-size: 16px;">Witaj na platformie Kawiarniani Artyści — miejscu, gdzie art spotyka się z dobrym jedzeniem w Poznaniu.</p>
+        <p style="margin: 16px 0; font-size: 16px;">Organizujemy niesamowite warsztaty artystyczne (malowanie, ebru, improwizacja) połączone z posiłkami w poznańskich restauracjach i kawiarniach. Idealne na urodziny, wieczory panieńskie, baby shower, integracje firmowe i inne okazje.</p>
+        <p style="margin: 16px 0; font-size: 16px;">Ceny warsztatów zawierają się w przedziale 50–270 zł. Jesteśmy tu, aby pomóc Ci zaplanować niezapomniane spotkanie.</p>
+        <p style="margin: 20px 0; font-size: 16px;"><strong>Zarezerwuj teraz:</strong></p>
+        <p style="margin: 8px 0;"><a href="mailto:kawiarnianiartysci@gmail.com" style="color: #432A16; text-decoration: underline;">kawiarnianiartysci@gmail.com</a></p>
+        <p style="margin: 8px 0;"><a href="https://www.instagram.com/kawiarniani_artysci/" style="color: #432A16; text-decoration: underline;">Instagram: @kawiarniani_artysci</a></p>
+        <p style="margin: 8px 0;"><a href="https://www.facebook.com/profile.php?id=61552403980459" style="color: #432A16; text-decoration: underline;">Facebook: Kawiarniani Artyści</a></p>
+      </div>
+    </noscript>
     <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>
