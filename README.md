@@ -47,12 +47,21 @@ docs/superpowers/   spec + implementation plan for the "Eventy dla dzieci" (kids
 
 ## SEO Status
 
-✅ **Platform is live and discoverable in Google** (as of 2026-08-28):
-- Google Search Console shows **23 clicks from Google** (last 28 days)
+✅ **Platform is live and discoverable in Google** (as of 2026-08-28; enhanced 2026-09-21):
+- Google Search Console shows **23 clicks from Google** (last 28 days, as of 2026-08-28)
 - Average position: **2.1** (top results)
 - Click-through rate: **62.2%** (very high — meta description is engaging)
 - Metadata: title, description, Open Graph tags, schema.org LocalBusiness all present ✓
-- **robots.txt** and **sitemap.xml** added 2026-08-28 ✓
+- **robots.txt** and **sitemap.xml** live 2026-08-28 ✓
+
+### Recent improvements (2026-09-21)
+
+Structured data and UX enhancements to support search ranking:
+- **JSON-LD enrichment**: added `priceRange` ("50–270 zł"), `sameAs` (social profiles), `lowPrice`/`highPrice`
+- **Image alt text**: all gallery images now have descriptive alt text (e.g., "Galeria zdjęcia 1" not generic "Photo")
+- **Video optimization**: hero video `preload="metadata"` for faster mobile loading (Core Web Vitals)
+- **Noscript fallback**: robot-readable content block for users/bots without JavaScript
+- See [`project_seo_improvements_2026_09_21.md`](https://github.com/kawiarnianiartysci-ui/Kawiarniani-Artysci/blob/main/.claude/projects/memory/project_seo_improvements_2026_09_21.md) in memory for full details.
 
 ### React SPA vs. prerendering
 
@@ -64,14 +73,15 @@ The site is a React SPA with no SSR/prerendering, but **Google can read it fine*
 ### What affects ranking most
 
 1. **Backlinks** (70% of ranking weight) — high-impact, in progress as of 2026-08-28
-2. **Metadata & structure** (10%) — done ✓
-3. **Performance/UX** (10%) — React app is fast enough
-4. **Prerendering/crawlability** (10%) — working, no change needed
+2. **Metadata & structure** (10%) — done ✓ (enhanced 2026-09-21)
+3. **Performance/UX** (10%) — React app is fast enough; video optimization 2026-09-21
+4. **Prerendering/crawlability** (10%) — working, no change needed; noscript fallback added 2026-09-21
 
 ### Monitoring
 
 - Weekly check: Search Console → Performance tab (clicks, impressions, CTR, position trend)
 - Backlink strategy was ready as of 2026-08-12; results expected within 2–4 weeks
+- Rescan GSC after 1 week to catch new structured data in SERP enhancements
 
 ## Who to ask
 
