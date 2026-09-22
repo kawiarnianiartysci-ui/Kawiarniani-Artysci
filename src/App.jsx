@@ -1834,6 +1834,15 @@ function PlaceInterviewForm({ value, onChange, travelArea, kidsMode = false, req
 
 // ══ Krok 3 — podsumowanie i formularz kontaktowy ═════════════
 
+// Wysyłka zdarzenia do GA4 (window.gtag ustawiany w App()). Ciche — brak GA
+// (np. adblock) nie może zepsuć działania strony.
+function track(eventName, params = {}) {
+  try {
+    if (typeof window !== "undefined" && typeof window.gtag === "function")
+      window.gtag("event", eventName, params);
+  } catch (e) {}
+}
+
 function Step4ContactForm({ restaurant, variant, workshop, groupSize, selectedDate, onDateChange, selectedTime, onTimeChange, ppp, total, workshopOnlyTotal, onEditStep, onSubmitted, kidsMode = false, kidsCount, adultsCount, ownPlace = false, placeInfo, workshopStep = 1, placeStep = 2, requesterType, invoiceRequired }) {
   const [form, setForm] = useState({ name:"", email:"", phone:"", message:"" });
   const [consent, setConsent] = useState(false);
@@ -1904,7 +1913,19 @@ function Step4ContactForm({ restaurant, variant, workshop, groupSize, selectedDa
       }),
     })
       .then(r => { if (!r.ok) throw new Error(); return r.json(); })
-      .then(() => { setSending(false); onSubmitted(); })
+      .then(() => {
+        setSending(false);
+        // GA4: lead tylko po udanej wysyłce (nie przy kliknięciu ani błędzie)
+        track("generate_lead", {
+          currency: "PLN",
+          value: total > 0 ? total : (workshopOnlyTotal > 0 ? workshopOnlyTotal : 0),
+          lead_type: kidsMode ? "rezerwacja_dzieci" : (ownPlace ? "rezerwacja_wlasne_miejsce" : "rezerwacja"),
+          workshop_name: workshop?.name || "",
+          restaurant_name: ownPlace ? "wlasne_miejsce" : (restaurant?.name || ""),
+          group_size: kidsMode ? kidsCount : groupSize,
+        });
+        onSubmitted();
+      })
       .catch(() => { setSending(false); setError("Nie udało się wysłać zapytania. Spróbuj ponownie."); });
   };
 
@@ -2263,6 +2284,7 @@ const ContactModal = ({ isOpen, onClose, onSubmit }) => {
       }
 
       setSuccess(true);
+      track("generate_lead", { lead_type: "wiadomosc_kontaktowa" });
       setEmail('');
       setMessage('');
       setLoading(false);
@@ -2425,6 +2447,11 @@ export default function App() {
   const [path,            setPath]            = useState(null);     // null | "workshop" | "restaurant" | "ownplace" — null = ekran powitalny
   const [wizardStep,      setWizardStep]      = useState(1);         // 1..3
   const [submitted,       setSubmitted]       = useState(false);
+  // GA4: lejek kreatora — zdarzenie przy każdym wejściu na krok
+  useEffect(() => {
+    if (path === null || submitted) return;
+    track("wizard_step", { step: wizardStep, path: String(path), mode });
+  }, [wizardStep, path, mode, submitted]);
   const [selectedR,       setSelectedR]       = useState(null);
   const [selectedVariant, setSelectedVariant] = useState(null);
   const [selectedW,       setSelectedW]       = useState(null);
@@ -2468,6 +2495,23 @@ export default function App() {
     window.gtag = gtag;
     gtag("js", new Date());
     gtag("config", measurementId);
+
+    // GA4: kliknięcia w dane kontaktowe (mail, telefon, social media)
+    const onDocClick = e => {
+      const a = e.target.closest && e.target.closest("a[href]");
+      if (!a) return;
+      const href = a.getAttribute("href") || "";
+      const h = href.toLowerCase();
+      let method = null;
+      if (h.startsWith("mailto:")) method = "email";
+      else if (h.startsWith("tel:")) method = "telefon";
+      else if (h.includes("instagram.com")) method = "instagram";
+      else if (h.includes("facebook.com") || h.includes("m.me")) method = "facebook";
+      else if (h.includes("wa.me") || h.includes("whatsapp")) method = "whatsapp";
+      if (method) track("contact_click", { method, link_url: href });
+    };
+    document.addEventListener("click", onDocClick);
+    return () => document.removeEventListener("click", onDocClick);
   }, []);
 
   useEffect(() => {
