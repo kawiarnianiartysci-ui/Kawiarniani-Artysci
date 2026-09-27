@@ -372,11 +372,9 @@ const FacebookIcon = ({ size = 20, color = C.primary }) => (
   </svg>
 );
 
-const LinkedInIcon = ({ size = 20, color = C.primary }) => (
+const TikTokIcon = ({ size = 20, color = C.primary }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <rect x="4" y="9.5" width="3.2" height="10.5" fill={color} />
-    <circle cx="5.6" cy="5.6" r="1.9" fill={color} />
-    <path d="M10 9.5h3.1v1.5c.5-.9 1.7-1.8 3.4-1.8 3.2 0 3.8 2 3.8 4.7V20h-3.2v-5.4c0-1.3 0-2.9-1.8-2.9s-2.1 1.4-2.1 2.8V20H10V9.5z" fill={color} />
+    <path d="M16.6 3c.3 2.3 1.7 3.8 4 4v3.1c-1.4.1-2.7-.3-4-1.1v6.2c0 3.8-3.2 6.2-6.6 5.6-2.4-.4-4.2-2.5-4.2-5 0-3.3 3.1-5.8 6.5-5.2v3.3c-1.5-.5-3.2.4-3.3 2-.1 1.2.9 2.3 2.1 2.3 1.3 0 2.2-1 2.2-2.4V3h3.3z" fill={color} />
   </svg>
 );
 
@@ -1402,8 +1400,11 @@ function withOwnPlaceTile(labels, workshops) {
 const SOCIAL_LINKS = [
   { key:"instagram", label:"Instagram", url:"https://www.instagram.com/kawiarniani_artysci/", Icon:InstagramIcon },
   { key:"facebook",  label:"Facebook",  url:"https://www.facebook.com/profile.php?id=61552403980459", Icon:FacebookIcon },
-  { key:"linkedin",  label:"LinkedIn",  url:"https://www.linkedin.com/in/joanna-cybulskagraphicdesigner", Icon:LinkedInIcon },
+  { key:"tiktok",    label:"TikTok",    url:"https://www.tiktok.com/@kawiarniani.artyc", Icon:TikTokIcon },
 ];
+
+// Prywatny LinkedIn Joanny — celowo NIE w ikonach marki, tylko jako link na jej imieniu w "Kim jesteśmy".
+const OWNER_LINKEDIN_URL = "https://www.linkedin.com/in/joanna-cybulskagraphicdesigner";
 
 const contactIconCircle = { display:"flex", alignItems:"center", justifyContent:"center", width:40, height:40, borderRadius:"50%", background:C.tagBg, flexShrink:0 };
 
@@ -1419,7 +1420,7 @@ function AboutUsSection() {
         Kawiarnie i restauracje od zawsze były czymś więcej niż miejscem spożywania posiłków — to tam rodziły się rozmowy, pomysły i sztuka. Kawiarniani Artyści to nasz sposób, żeby to przywrócić: łączymy lokalne restauracje i kawiarnie z artystami prowadzącymi warsztaty artystyczne i nie tylko, tworząc nowy sposób spędzania czasu w gronie znajomych, rodziny czy współpracowników.
       </p>
       <p style={{ fontSize:14, color:C.text, lineHeight:1.75, margin:"0 auto", maxWidth:600, fontWeight:300 }}>
-        Prowadzi nas Joanna — z zawodu grafik komputerowy, z zamiłowania organizatorka kameralnych warsztatów malarskich. Wierzy, że najlepsze wspomnienia rodzą się tam, gdzie jest dobra kawa, jedzenie, dobre towarzystwo oraz odrobina wspólnej twórczości.
+        Prowadzi nas <a href={OWNER_LINKEDIN_URL} target="_blank" rel="noreferrer" title="Joanna na LinkedIn" style={{ color:C.primary, fontWeight:500 }}>Joanna</a> — z zawodu grafik komputerowy, z zamiłowania organizatorka kameralnych warsztatów malarskich. Wierzy, że najlepsze wspomnienia rodzą się tam, gdzie jest dobra kawa, jedzenie, dobre towarzystwo oraz odrobina wspólnej twórczości.
       </p>
     </div>
 
@@ -2546,6 +2547,8 @@ export default function App() {
       else if (h.startsWith("tel:")) method = "telefon";
       else if (h.includes("instagram.com")) method = "instagram";
       else if (h.includes("facebook.com") || h.includes("m.me")) method = "facebook";
+      else if (h.includes("tiktok.com")) method = "tiktok";
+      else if (h.includes("linkedin.com")) method = "linkedin";
       else if (h.includes("wa.me") || h.includes("whatsapp")) method = "whatsapp";
       if (method) track("contact_click", { method, link_url: href });
     };
