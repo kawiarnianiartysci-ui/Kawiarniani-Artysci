@@ -372,6 +372,21 @@ const FacebookIcon = ({ size = 20, color = C.primary }) => (
   </svg>
 );
 
+const LinkedInIcon = ({ size = 20, color = C.primary }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <rect x="4" y="9.5" width="3.2" height="10.5" fill={color} />
+    <circle cx="5.6" cy="5.6" r="1.9" fill={color} />
+    <path d="M10 9.5h3.1v1.5c.5-.9 1.7-1.8 3.4-1.8 3.2 0 3.8 2 3.8 4.7V20h-3.2v-5.4c0-1.3 0-2.9-1.8-2.9s-2.1 1.4-2.1 2.8V20H10V9.5z" fill={color} />
+  </svg>
+);
+
+const MailIcon = ({ size = 20, color = C.primary }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <rect x="3" y="5" width="18" height="14" rx="2.5" stroke={color} strokeWidth="1.8" />
+    <path d="M4 7l8 6 8-6" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+  </svg>
+);
+
 const WebsiteIcon = ({ size = 20, color = C.primary }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
     <circle cx="12" cy="12" r="9" stroke={color} strokeWidth="1.8" />
@@ -1383,9 +1398,19 @@ function withOwnPlaceTile(labels, workshops) {
   return workshops.some(w => w.travelsToClient === true) ? { ...labels, ownplace: OWN_PLACE_TILE } : labels;
 }
 
+// Linki social media w panelu kontaktowym — pusty url = ikona się nie pokazuje.
+const SOCIAL_LINKS = [
+  { key:"instagram", label:"Instagram", url:"https://www.instagram.com/kawiarniani_artysci/", Icon:InstagramIcon },
+  { key:"facebook",  label:"Facebook",  url:"https://www.facebook.com/profile.php?id=61552403980459", Icon:FacebookIcon },
+  { key:"linkedin",  label:"LinkedIn",  url:"https://www.linkedin.com/in/joanna-cybulskagraphicdesigner", Icon:LinkedInIcon },
+];
+
+const contactIconCircle = { display:"flex", alignItems:"center", justifyContent:"center", width:40, height:40, borderRadius:"50%", background:C.tagBg, flexShrink:0 };
+
 // Sekcja "Kim jesteśmy" — wspólna dla ekranu klienta i widoku Współpraca.
 function AboutUsSection() {
   return (
+    <>
     <div style={{ maxWidth:760, margin:"0 auto", padding:"0 16px 48px", textAlign:"center" }}>
       <h2 style={{ fontFamily:"'Montserrat', system-ui, sans-serif", fontSize:"clamp(26px,3.5vw,36px)", fontWeight:300, margin:"0 0 20px", color:C.text }}>
         Kim jesteśmy
@@ -1393,17 +1418,32 @@ function AboutUsSection() {
       <p style={{ fontSize:14, color:C.text, lineHeight:1.75, margin:"0 auto 16px", maxWidth:600, fontWeight:300 }}>
         Kawiarnie i restauracje od zawsze były czymś więcej niż miejscem spożywania posiłków — to tam rodziły się rozmowy, pomysły i sztuka. Kawiarniani Artyści to nasz sposób, żeby to przywrócić: łączymy lokalne restauracje i kawiarnie z artystami prowadzącymi warsztaty artystyczne i nie tylko, tworząc nowy sposób spędzania czasu w gronie znajomych, rodziny czy współpracowników.
       </p>
-      <p style={{ fontSize:14, color:C.text, lineHeight:1.75, margin:"0 auto 36px", maxWidth:600, fontWeight:300 }}>
+      <p style={{ fontSize:14, color:C.text, lineHeight:1.75, margin:"0 auto", maxWidth:600, fontWeight:300 }}>
         Prowadzi nas Joanna — z zawodu grafik komputerowy, z zamiłowania organizatorka kameralnych warsztatów malarskich. Wierzy, że najlepsze wspomnienia rodzą się tam, gdzie jest dobra kawa, jedzenie, dobre towarzystwo oraz odrobina wspólnej twórczości.
       </p>
+    </div>
 
-      <div style={{ fontSize:13, color:C.text, lineHeight:2 }}>
-        <div>E-mail: <a href="mailto:kawiarnianiartysci@gmail.com" style={{ color:C.primary }}>kawiarnianiartysci@gmail.com</a></div>
-        <div>Instagram: <a href="https://www.instagram.com/kawiarniani_artysci/" target="_blank" rel="noreferrer" style={{ color:C.primary }}>@kawiarniani_artysci</a></div>
+    {/* Panel kontaktowy — oddzielony od treści lekkim poziomym gradientem */}
+    <div aria-hidden="true" style={{ height:28, background:`linear-gradient(90deg, rgba(67,42,22,0.22) 0%, rgba(67,42,22,0.10) 55%, rgba(67,42,22,0.03) 100%)` }} />
+    <div style={{ background:C.card, padding:"36px 16px 40px", textAlign:"center" }}>
+      <div style={{ fontSize:14, fontWeight:600, color:C.text, marginBottom:14 }}>Napisz do nas</div>
+      <a href="mailto:kawiarnianiartysci@gmail.com" style={{ display:"inline-flex", alignItems:"center", gap:12, color:C.text, fontSize:14, fontWeight:500, textDecoration:"none" }}>
+        <span style={contactIconCircle}><MailIcon /></span>
+        kawiarnianiartysci@gmail.com
+      </a>
+
+      <div style={{ fontSize:14, fontWeight:600, color:C.text, margin:"28px 0 14px" }}>Odwiedź nasze social media:</div>
+      <div style={{ display:"flex", gap:14, justifyContent:"center" }}>
+        {SOCIAL_LINKS.filter(s => s.url).map(({ key, label, url, Icon }) => (
+          <a key={key} href={url} target="_blank" rel="noreferrer" aria-label={label} title={label} style={contactIconCircle}>
+            <Icon />
+          </a>
+        ))}
       </div>
 
-      <img src={LOGO_IMG} alt={COPY.siteName} loading="lazy" style={{ width:75, height:75, objectFit:"contain", display:"block", margin:"28px auto 0" }} />
+      <img src={LOGO_IMG} alt={COPY.siteName} loading="lazy" style={{ width:75, height:75, objectFit:"contain", display:"block", margin:"32px auto 0" }} />
     </div>
+    </>
   );
 }
 
@@ -1574,8 +1614,8 @@ function HomeScreen({ restaurants, workshops, onStart, groupSize, setGroupSize, 
       {/* 7. Stopka z przyciskiem kontaktu */}
       <div
         style={{
-          marginTop: '40px',
-          paddingTop: '20px',
+          background: C.card,
+          padding: '12px 0 24px',
           borderTop: '1px solid #e0e0e0',
           textAlign: 'center',
         }}
