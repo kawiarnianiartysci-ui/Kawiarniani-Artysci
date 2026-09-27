@@ -1423,9 +1423,8 @@ function AboutUsSection() {
       </p>
     </div>
 
-    {/* Panel kontaktowy — oddzielony od treści lekkim poziomym gradientem */}
-    <div aria-hidden="true" style={{ height:28, background:`linear-gradient(90deg, rgba(67,42,22,0.22) 0%, rgba(67,42,22,0.10) 55%, rgba(67,42,22,0.03) 100%)` }} />
-    <div style={{ background:C.card, padding:"36px 16px 40px", textAlign:"center" }}>
+    {/* Panel kontaktowy — oddzielony od treści delikatnym cieniem (jak pasek wyszukiwania) */}
+    <div style={{ position:"relative", background:C.card, borderTop:`1px solid ${C.border}`, boxShadow:"0 -4px 18px rgba(0,0,0,0.07)", padding:"36px 16px 40px", textAlign:"center" }}>
       <div style={{ fontSize:14, fontWeight:600, color:C.text, marginBottom:14 }}>Napisz do nas</div>
       <a href="mailto:kawiarnianiartysci@gmail.com" style={{ display:"inline-flex", alignItems:"center", gap:12, color:C.text, fontSize:14, fontWeight:500, textDecoration:"none" }}>
         <span style={contactIconCircle}><MailIcon /></span>
