@@ -2621,6 +2621,35 @@ export default function App() {
     return () => window.removeEventListener("popstate", onPopState);
   }, [restaurants, workshops]);
 
+  // Tytuł karty przeglądarki zgodny z tym, co widać (ustawiany PRZED zapisem
+  // do historii poniżej, żeby GA4 zapisał odsłonę z właściwym tytułem).
+  useEffect(() => {
+    document.title = pageTitle({ profileItem, landing: path === null ? landing : null });
+  }, [profileItem, landing, path]);
+
+  useEffect(() => {
+    if (!routeResolvedRef.current) return;
+    if (isPoppingRef.current) { isPoppingRef.current = false; return; }
+    const loc = window.location;
+    const url = profileItem ? profilePath(profileItem.type, profileItem.item)
+      : mode === "b2b" ? (loc.pathname === "/" ? "/" + loc.search : "/")
+      : path === null && landing?.type === "occasion" ? "/" + landing.slug
+      : path === null && landing?.type === "notfound" ? loc.pathname
+      : "/";
+    const atRoot = (mode === "client" || mode === "kids") && path === null && wizardStep === 1 && !submitted && !profileItem && !landing;
+    if (atRoot && loc.pathname === "/") return;
+    const profileState = profileItem ? { itemId: profileItem.item.id, type: profileItem.type } : null;
+    const next = { mode, path, wizardStep, submitted, profileItem: profileState, landing };
+    // Ten sam stan i adres co w bieżącym wpisie (np. zaraz po ręcznym
+    // ustawieniu historii przy wejściu z linku) — nie dublujemy wpisu, inaczej
+    // "Wstecz" musiałoby być klikane dwa razy.
+    if (JSON.stringify(window.history.state) === JSON.stringify(next) && loc.pathname + loc.search === url) return;
+    window.history.pushState(next, "", url);
+  }, [mode, path, wizardStep, submitted, profileItem, landing]);
+
+  // UWAGA: ten efekt musi być ZA efektem zapisu do historii powyżej — przy
+  // pierwszym renderze tamten ma się wykonać jeszcze przed ustaleniem adresu
+  // startowego (i nic nie zapisać), inaczej powstaje zbędny wpis w historii.
   // Wejście na stronę z konkretnego adresu — raz, gdy dane z arkusza są już
   // wczytane (bez nich nie wiadomo, czy profil o danym slugu istnieje).
   useEffect(() => {
@@ -2654,32 +2683,6 @@ export default function App() {
     window.history.replaceState({ mode, path:null, wizardStep:1, submitted:false, profileItem:null, landing }, "", window.location.pathname + window.location.search);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [dataLoading, restaurants, workshops]);
-
-  // Tytuł karty przeglądarki zgodny z tym, co widać (ustawiany PRZED zapisem
-  // do historii poniżej, żeby GA4 zapisał odsłonę z właściwym tytułem).
-  useEffect(() => {
-    document.title = pageTitle({ profileItem, landing: path === null ? landing : null });
-  }, [profileItem, landing, path]);
-
-  useEffect(() => {
-    if (!routeResolvedRef.current) return;
-    if (isPoppingRef.current) { isPoppingRef.current = false; return; }
-    const loc = window.location;
-    const url = profileItem ? profilePath(profileItem.type, profileItem.item)
-      : mode === "b2b" ? (loc.pathname === "/" ? "/" + loc.search : "/")
-      : path === null && landing?.type === "occasion" ? "/" + landing.slug
-      : path === null && landing?.type === "notfound" ? loc.pathname
-      : "/";
-    const atRoot = (mode === "client" || mode === "kids") && path === null && wizardStep === 1 && !submitted && !profileItem && !landing;
-    if (atRoot && loc.pathname === "/") return;
-    const profileState = profileItem ? { itemId: profileItem.item.id, type: profileItem.type } : null;
-    const next = { mode, path, wizardStep, submitted, profileItem: profileState, landing };
-    // Ten sam stan i adres co w bieżącym wpisie (np. zaraz po ręcznym
-    // ustawieniu historii przy wejściu z linku) — nie dublujemy wpisu, inaczej
-    // "Wstecz" musiałoby być klikane dwa razy.
-    if (JSON.stringify(window.history.state) === JSON.stringify(next) && loc.pathname + loc.search === url) return;
-    window.history.pushState(next, "", url);
-  }, [mode, path, wizardStep, submitted, profileItem, landing]);
 
   // Każda zmiana ścieżki/kroku przewija na górę strony — bez tego np.
   // kliknięcie kafelka na dole ekranu powitalnego zostawiało gościa
