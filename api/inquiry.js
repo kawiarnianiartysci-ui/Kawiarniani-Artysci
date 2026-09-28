@@ -21,13 +21,22 @@ export default async function handler(req, res) {
   }
 
   try {
-    const resend = new Resend(process.env.RESEND_API_KEY);
     const body = req.body || {};
 
     if (!body.clientName || !isEmail(body.clientEmail)) {
       res.status(400).json({ error: "Brak imienia lub poprawnego adresu email klienta." });
       return;
     }
+
+    // Brak klucza = źle ustawione zmienne środowiskowe w Vercelu (np. wersja
+    // podglądowa bez zaznaczonego środowiska "Preview") — wyraźny wpis w
+    // logach zamiast tajemniczego błędu.
+    if (!process.env.RESEND_API_KEY) {
+      console.error("Brak RESEND_API_KEY w zmiennych środowiskowych tego środowiska Vercela.");
+      res.status(500).json({ error: "Nie udało się wysłać zapytania." });
+      return;
+    }
+    const resend = new Resend(process.env.RESEND_API_KEY);
 
     const isKidsEvent = !!body.isKidsEvent;
     const isOwnPlace = !!body.isOwnPlace;
