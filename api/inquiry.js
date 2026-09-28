@@ -1,5 +1,5 @@
 import { Resend } from "resend";
-import { FROM_EMAIL, OWNER_EMAIL, SITE_URL, signPayload, emailHtml, escapeHtml, nl2br, sendEmail } from "./_shared.js";
+import { FROM_EMAIL, OWNER_EMAIL, IS_PRODUCTION, SITE_URL, signPayload, emailHtml, escapeHtml, nl2br, sendEmail } from "./_shared.js";
 import { getSheetData } from "./_sheet.js";
 
 // Prosty test formatu adresu — celowo odrzuca też znaki, które mogłyby
@@ -246,6 +246,6 @@ export default async function handler(req, res) {
     res.status(200).json({ ok: true });
   } catch (err) {
     console.error(err);
-    res.status(500).json({ error: "Nie udało się wysłać zapytania." });
+    res.status(500).json({ error: "Nie udało się wysłać zapytania.", ...(IS_PRODUCTION ? {} : { przyczyna: String(err && err.message) }) });
   }
 }

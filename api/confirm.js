@@ -1,12 +1,12 @@
 import { Resend } from "resend";
-import { FROM_EMAIL, OWNER_EMAIL, htmlPage, verifyAndDecode, emailHtml, sendEmail } from "./_shared.js";
+import { FROM_EMAIL, OWNER_EMAIL, IS_PRODUCTION, escapeHtml, htmlPage, verifyAndDecode, emailHtml, sendEmail } from "./_shared.js";
 
 // Restauracja może potrzebować kilku dni na dogadanie szczegółów z klientem,
 // więc ten link żyje wyraźnie dłużej niż typowy link akceptacji/odrzucenia —
 // nie godzinę czy dwie, tylko około tygodnia.
 const MAX_AGE_MS = 7 * 24 * 60 * 60 * 1000;
 
-export default async function handler(req, res) {
+async function obsluz(req, res) {
   const { action, data, sig, confirm } = req.query;
 
   if (action !== "confirm" && action !== "cancel") {
@@ -137,5 +137,17 @@ export default async function handler(req, res) {
   } catch (err) {
     console.error(err);
     res.status(500).send(htmlPage("Błąd", "Coś poszło nie tak przy wysyłce. Spróbuj ponownie za chwilę lub napisz do Joanny."));
+  }
+}
+
+// Błąd spoza bloków try (np. brak INQUIRY_SIGNING_SECRET w ustawieniach
+// Vercela) — zamiast surowego "FUNCTION_INVOCATION_FAILED" czytelna strona;
+// na wersjach podglądowych z dokładną przyczyną, żeby łatwiej ją znaleźć.
+export default async function handler(req, res) {
+  try {
+    await obsluz(req, res);
+  } catch (err) {
+    console.error(err);
+    if (!res.headersSent) res.status(500).send(htmlPage("Błąd", IS_PRODUCTION ? "Coś poszło nie tak. Spróbuj ponownie za chwilę lub napisz do Joanny." : `Błąd (wersja testowa): ${escapeHtml(err && err.message)}`));
   }
 }

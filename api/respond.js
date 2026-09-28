@@ -1,7 +1,7 @@
 import { Resend } from "resend";
-import { FROM_EMAIL, OWNER_EMAIL, SITE_URL, htmlPage, verifyAndDecode, signPayload, emailHtml, nl2br, sendEmail } from "./_shared.js";
+import { FROM_EMAIL, OWNER_EMAIL, IS_PRODUCTION, escapeHtml, SITE_URL, htmlPage, verifyAndDecode, signPayload, emailHtml, nl2br, sendEmail } from "./_shared.js";
 
-export default async function handler(req, res) {
+async function obsluz(req, res) {
   const { action, data, sig, confirm, dates } = req.query;
 
   if (action !== "accept" && action !== "decline" && action !== "propose") {
@@ -265,5 +265,17 @@ export default async function handler(req, res) {
   } catch (err) {
     console.error(err);
     res.status(500).send(htmlPage("Błąd", "Coś poszło nie tak przy wysyłce potwierdzenia. Spróbuj ponownie za chwilę lub napisz do Joanny."));
+  }
+}
+
+// Błąd spoza bloków try (np. brak INQUIRY_SIGNING_SECRET w ustawieniach
+// Vercela) — zamiast surowego "FUNCTION_INVOCATION_FAILED" czytelna strona;
+// na wersjach podglądowych z dokładną przyczyną, żeby łatwiej ją znaleźć.
+export default async function handler(req, res) {
+  try {
+    await obsluz(req, res);
+  } catch (err) {
+    console.error(err);
+    if (!res.headersSent) res.status(500).send(htmlPage("Błąd", IS_PRODUCTION ? "Coś poszło nie tak. Spróbuj ponownie za chwilę lub napisz do Joanny." : `Błąd (wersja testowa): ${escapeHtml(err && err.message)}`));
   }
 }
