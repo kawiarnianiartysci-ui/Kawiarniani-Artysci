@@ -2596,9 +2596,6 @@ export default function App() {
   // wysłać. Kroki kreatora nadal mają adres "/" (zależą od wyborów trzymanych
   // w pamięci, więc wysłany komuś link i tak nie mógłby ich odtworzyć).
   const isPoppingRef = useRef(false);
-  // Pomija jeden zapis do historii — gdy sami ustawiamy historię ręcznie
-  // (wejście z linku do profilu, patrz niżej).
-  const skipNextPushRef = useRef(false);
   // Dopóki nie ustalimy, co pokazać dla adresu startowego, nic nie zapisujemy.
   const routeResolvedRef = useRef(false);
 
@@ -2635,7 +2632,6 @@ export default function App() {
       const item = findBySlug(isR ? restaurants : workshops, r.slug);
       if (!item) {
         // Nieistniejący albo usunięty profil — przyjazna strona 404.
-        skipNextPushRef.current = true;
         setLanding({ type:"notfound" });
         window.history.replaceState({ mode, path:null, wizardStep:1, submitted:false, profileItem:null, landing:{ type:"notfound" } }, "", window.location.pathname);
         return;
@@ -2649,7 +2645,6 @@ export default function App() {
       // wejściem z linku nie było w historii niczego z naszej strony.
       window.history.replaceState({ mode:m, path:p, wizardStep:1, submitted:false, profileItem:null, landing:null }, "", "/");
       window.history.pushState({ mode:m, path:p, wizardStep:1, submitted:false, profileItem:{ itemId:item.id, type:r.type }, landing:null }, "", profilePath(r.type, item));
-      skipNextPushRef.current = true;
       lastWizardModeRef.current = m;
       setMode(m); setPath(p); setWizardStep(1); setProfileItem({ item, type:r.type });
       return;
@@ -2668,7 +2663,6 @@ export default function App() {
 
   useEffect(() => {
     if (!routeResolvedRef.current) return;
-    if (skipNextPushRef.current) { skipNextPushRef.current = false; return; }
     if (isPoppingRef.current) { isPoppingRef.current = false; return; }
     const loc = window.location;
     const url = profileItem ? profilePath(profileItem.type, profileItem.item)
@@ -2679,7 +2673,12 @@ export default function App() {
     const atRoot = (mode === "client" || mode === "kids") && path === null && wizardStep === 1 && !submitted && !profileItem && !landing;
     if (atRoot && loc.pathname === "/") return;
     const profileState = profileItem ? { itemId: profileItem.item.id, type: profileItem.type } : null;
-    window.history.pushState({ mode, path, wizardStep, submitted, profileItem: profileState, landing }, "", url);
+    const next = { mode, path, wizardStep, submitted, profileItem: profileState, landing };
+    // Ten sam stan i adres co w bieżącym wpisie (np. zaraz po ręcznym
+    // ustawieniu historii przy wejściu z linku) — nie dublujemy wpisu, inaczej
+    // "Wstecz" musiałoby być klikane dwa razy.
+    if (JSON.stringify(window.history.state) === JSON.stringify(next) && loc.pathname + loc.search === url) return;
+    window.history.pushState(next, "", url);
   }, [mode, path, wizardStep, submitted, profileItem, landing]);
 
   // Każda zmiana ścieżki/kroku przewija na górę strony — bez tego np.
