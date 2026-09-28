@@ -3,9 +3,13 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!-- Blok między SEO:START a SEO:END to meta tagi STRONY GŁÓWNEJ. Na
+         podstronach (profile, okazje) funkcja api/page.js podmienia cały ten
+         blok na tytuł/opis/zdjęcie/JSON-LD konkretnej podstrony — nie usuwaj
+         tych dwóch komentarzy-znaczników. -->
+    <!-- SEO:START -->
     <title>Kawiarniani Artyści — Warsztaty + Restauracja w Poznaniu</title>
     <meta name="description" content="Platforma łącząca artystów, restauracje i klientów. Zarezerwuj warsztat kreatywny (malowanie, ebru, improwizacja) + restaurację na urodziny, wieczory panieńskie, integracje firmowe w Poznaniu." />
-    <meta name="keywords" content="warsztaty poznań, restauracja poznań, urodziny poznań, malowanie poznań, ebru poznań, integracja firmowa poznań, wieczór panieński poznań" />
 
     <!-- Open Graph / Social Share -->
     <meta property="og:type" content="website" />
@@ -50,9 +54,11 @@
       }
     }
     </script>
+    <!-- SEO:END -->
   </head>
   <body>
     <div id="root"></div>
+    <!-- NOSCRIPT:START -->
     <noscript>
       <div style="padding: 40px 20px; line-height: 1.6; color: #333; max-width: 800px; margin: 0 auto;">
         <h1 style="font-size: 28px; margin-bottom: 20px; color: #432A16;">Kawiarniani Artyści</h1>
@@ -63,8 +69,10 @@
         <p style="margin: 8px 0;"><a href="mailto:kawiarnianiartysci@gmail.com" style="color: #432A16; text-decoration: underline;">kawiarnianiartysci@gmail.com</a></p>
         <p style="margin: 8px 0;"><a href="https://www.instagram.com/kawiarniani_artysci/" style="color: #432A16; text-decoration: underline;">Instagram: @kawiarniani_artysci</a></p>
         <p style="margin: 8px 0;"><a href="https://www.facebook.com/profile.php?id=61552403980459" style="color: #432A16; text-decoration: underline;">Facebook: Kawiarniani Artyści</a></p>
+        <p style="margin: 20px 0 8px;"><a href="/wieczor-panienski" style="color: #432A16;">Wieczór panieński</a> · <a href="/urodziny" style="color: #432A16;">Urodziny</a> · <a href="/urodziny-dla-dzieci" style="color: #432A16;">Urodziny dla dzieci</a> · <a href="/integracja-firmowa" style="color: #432A16;">Integracja firmowa</a> · <a href="/baby-shower" style="color: #432A16;">Baby shower</a></p>
       </div>
     </noscript>
+    <!-- NOSCRIPT:END -->
     <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>

@@ -1,0 +1,4 @@
+node_modules
+dist
+# generowany przy buildzie przez vite.config.js (szablon strony dla api/page.js)
+api/_szablon.js

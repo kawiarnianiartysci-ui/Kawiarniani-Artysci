@@ -1,4 +1,13 @@
 import { useState, useEffect, useRef } from "react";
+import {
+  CSV_RESTAURANTS_URL, CSV_WORKSHOPS_URL, csvToObjects,
+  restaurantFromRow, workshopFromRow,
+  parseDurationHours, timeToMinutes, dayKeyFromDate,
+} from "./dane.js";
+import {
+  OCCASIONS, SITE_URL, parseRoute, findBySlug, profilePath, occasionPath,
+  pageTitle, occasionWorkshops, occasionPlaces, minWorkshopPrice,
+} from "./seo.js";
 
 // ══════════════════════════════════════════════════════════════
 // 🖼️  ZDJĘCIA — pliki w public/images/, nowe zdjęcia wgrywaj tam i dopisz stałą poniżej
@@ -51,51 +60,10 @@ const COPY = {
 // ══════════════════════════════════════════════════════════════
 // 📊  RESTAURACJE I WARSZTATY — dane wczytywane z arkusza Google Sheets
 // ══════════════════════════════════════════════════════════════
-// Jak dodać nową restaurację/warsztat:
-//  1. Wgraj zdjęcia do public/images/ (np. przez przeglądarkę GitHub).
-//  2. Zduplikuj wiersz w odpowiedniej zakładce arkusza, wpisz dane
-//     i nazwy wgranych plików (bez ścieżki, np. "moje-zdjecie.jpg").
-// Zmiana pojawi się na stronie po odświeżeniu (do kilku minut na
-// odświeżenie publikacji arkusza przez Google).
-const CSV_RESTAURANTS_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQj-im-saKt9v_ANh2m42skFGZrBDRhckh5OjESFVhAk6vPcAg5M8m20xAB3RTAqlRsizOa_9ken2t_/pub?gid=563383430&single=true&output=csv";
-const CSV_WORKSHOPS_URL   = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQj-im-saKt9v_ANh2m42skFGZrBDRhckh5OjESFVhAk6vPcAg5M8m20xAB3RTAqlRsizOa_9ken2t_/pub?gid=273766010&single=true&output=csv";
+// Czytanie arkusza (linki CSV, parser, zamiana wiersza na obiekt) jest w
+// src/dane.js — wspólne z serwerem (api/), który z tych samych danych robi
+// podstrony profili dla Google i podglądy linków dla Facebooka/WhatsAppa.
 
-function parseCSV(text) {
-  const rows = [];
-  let row = [], field = "", inQuotes = false;
-  for (let i = 0; i < text.length; i++) {
-    const c = text[i];
-    if (inQuotes) {
-      if (c === '"') { if (text[i + 1] === '"') { field += '"'; i++; } else inQuotes = false; }
-      else field += c;
-    } else if (c === '"') inQuotes = true;
-    else if (c === ",") { row.push(field); field = ""; }
-    else if (c === "\n" || c === "\r") {
-      if (c === "\r" && text[i + 1] === "\n") i++;
-      row.push(field); field = "";
-      if (row.some(v => v !== "")) rows.push(row);
-      row = [];
-    } else field += c;
-  }
-  if (field !== "" || row.length) { row.push(field); if (row.some(v => v !== "")) rows.push(row); }
-  return rows;
-}
-
-function csvToObjects(text) {
-  const [header, ...body] = parseCSV(text);
-  if (!header) return [];
-  return body.map(r => Object.fromEntries(header.map((h, i) => [h, (r[i] ?? "").trim()])));
-}
-
-const toNum  = v => (v === "" || v == null ? null : Number(v));
-const toBool = v => /^(true|1|tak|prawda)$/i.test((v || "").trim());
-// jak toBool, ale puste pole zostaje "nieznane" zamiast fałszu —
-// potrzebne tam, gdzie samo "puste" i "jawnie nie" muszą się różnić
-const toTriBool = v => {
-  const t = (v || "").trim();
-  return t === "" ? undefined : toBool(t);
-};
-const imgPath = filename => (filename ? `/images/${filename.trim()}` : undefined);
 // Ręczne poprawki kadrowania zdjęcia głównego (WorkshopCard/ProfileModal) dla
 // pojedynczych zdjęć, których domyślne wyśrodkowanie ucina istotną treść
 // (np. wklejony na zdjęciu napis/logo) — dopisywane pojedynczo na życzenie.
@@ -109,111 +77,21 @@ const coverPosition = filename => {
   const key = Object.keys(COVER_POSITION_OVERRIDES).find(k => filename.includes(k));
   return key ? COVER_POSITION_OVERRIDES[key] : "center";
 };
-const imgListPath = list => !list ? [] : list.split(",").map(s => s.trim()).filter(Boolean).map(entry => {
-  const [filename, ...mods] = entry.split("@");
-  if (mods.length === 0) return imgPath(filename);
-  const obj = { src: imgPath(filename) };
-  mods.forEach(m => { const [k, v] = m.split("="); obj[k.trim()] = v?.trim(); });
-  return obj;
-});
-const splitList = text => (text ? text.split(";").filter(Boolean) : []);
-const parseVariants = text => splitList(text).map(part => {
-  const [id, label, detail, price, priceMax] = part.split("|");
-  const v = { id, label, detail, price: price ? Number(price) : null };
-  if (priceMax) v.priceMax = Number(priceMax);
-  return v;
-});
-// Wyciąga liczbę godzin z tekstu typu "2 godz.", "1,5 godz." albo "2-3 godz"
-// (zakres — bierzemy górną granicę, żeby nie umówić warsztatu, który realnie
-// nie zdąży się skończyć przed zamknięciem lokalu). Używane tylko do
-// wyliczenia godziny zamknięcia, nie do wyświetlania (na to zostaje `duration`).
-const parseDurationHours = text => {
-  const nums = (text || "").replace(/,/g, ".").match(/\d+(\.\d+)?/g);
-  return nums ? Math.max(...nums.map(Number)) : 0;
-};
-// "HH:MM" -> minuty od północy, do porównań czasu.
-const timeToMinutes = t => { const [h, m] = t.split(":").map(Number); return h * 60 + (m || 0); };
 
-// Godziny otwarcia lokalu, różne dla każdego dnia tygodnia — jedna kolumna
-// w arkuszu ("hours"), format: "pon=15:00-21:00;wt=15:00-21:00;sr=;czw=...".
-// Pusty zakres po "=" (albo brak dnia w tekście) = lokal zamknięty w ten dzień.
-// Brak kolumny w ogóle (pusty tekst) = brak danych, filtr godzin nieaktywny.
-const DAY_KEYS = ["nd", "pon", "wt", "sr", "czw", "pt", "sob"]; // index = Date.getDay()
-const parseHours = text => {
-  const byDay = {};
-  splitList(text).forEach(part => {
-    const [day, range] = part.split("=");
-    if (!day) return;
-    if (range) {
-      const [open, close] = range.split("-");
-      if (open && close) byDay[day.trim()] = { open: open.trim(), close: close.trim() };
-    } else {
-      byDay[day.trim()] = null; // jawnie zamknięte
-    }
-  });
-  return byDay;
-};
-// "YYYY-MM-DD" -> klucz dnia tygodnia ("pon".."nd"), bez przesunięć strefy
-// czasowej (stąd ręczne rozbicie zamiast new Date(string)).
-const dayKeyFromDate = dateStr => {
-  const [y, m, d] = dateStr.split("-").map(Number);
-  return DAY_KEYS[new Date(y, m - 1, d).getDay()];
-};
-
-function restaurantFromRow(row) {
-  const photos = imgListPath(row.photos);
-  const cover = photos[0] ? (typeof photos[0] === "string" ? photos[0] : photos[0].src) : undefined;
-  return {
-    id: row.id, name: row.name, comingSoon: toBool(row.comingSoon) || undefined,
-    logo: imgPath(row.logo), photo: cover, photos,
-    vibe: row.vibe, location: row.location, description: row.description, fullDescription: row.fullDescription,
-    tagline: row.tagline || undefined,
-    capacity: row.capacity, minPeople: toNum(row.minPeople), maxPeople: toNum(row.maxPeople),
-    address: row.address, website: row.website, instagram: row.instagram,
-    instagramUrl: row.instagramUrl || undefined, facebookUrl: row.facebookUrl || undefined,
-    hasSeparateRoom: toBool(row.hasSeparateRoom) || undefined,
-    variants: parseVariants(row.variants),
-    email: row.email || undefined,
-    requiresInvoice: toBool(row.requiresInvoice) || undefined,
-    hours: parseHours(row.hours),
-    acceptsKids: toBool(row.acceptsKids) || undefined,
-    kidsVariants: parseVariants(row.kidsVariants),
-  };
-}
-
-function workshopFromRow(row) {
-  return {
-    id: row.id, name: row.name, comingSoon: toBool(row.comingSoon) || undefined,
-    logo: imgPath(row.logo), photo: imgPath(row.photo), photos: imgListPath(row.photos),
-    artist: row.artist, bio: row.bio, duration: row.duration, pricePerPerson: toNum(row.pricePerPerson),
-    minPeople: toNum(row.minPeople), maxPeople: toNum(row.maxPeople),
-    description: row.description, includes: splitList(row.includes),
-    website: row.website, instagram: row.instagram,
-    instagramUrl: row.instagramUrl || undefined, facebookUrl: row.facebookUrl || undefined,
-    email: row.email || undefined, gradientBg: row.gradientBg, gradientText: row.gradientText,
-    requiresSeparateRoom: toBool(row.requiresSeparateRoom) || undefined,
-    invoicing: row.invoicing || undefined, requirements: row.requirements || undefined,
-    canInvoice: toTriBool(row.canInvoice),
-    forKids: toBool(row.forKids) || undefined,
-    kidsMinAge: toNum(row.kidsMinAge) ?? undefined,
-    // Warsztat dedykowany wyłącznie dzieciom (np. ElektroLab) — niewidoczny
-    // w zwykłej ścieżce "Planuję event", tylko w trybie "Eventy dla dzieci".
-    // Analogicznie do pustych `variants` u restauracji tylko-dla-dzieci.
-    kidsOnly: toBool(row.kidsOnly) || undefined,
-    // Wyłącznik ścieżki "Mam miejsce" (artysta dojeżdża do klienta) — tylko
-    // artyści z travelsToClient=tak są tam wybieralni, patrz withOwnPlaceTile w App().
-    travelsToClient: toTriBool(row.travelsToClient),
-    travelArea: row.travelArea || undefined,
-  };
-}
+// Podstrony (profile, okazje) przychodzą z serwera z danymi arkusza już
+// doklejonymi do strony (window.__DANE_ARKUSZA__, patrz api/page.js) — wtedy
+// nie pobieramy arkusza drugi raz i strona startuje od razu. Strona główna
+// nadal pobiera arkusz sama, jak dotychczas.
+const EMBEDDED_SHEET = typeof window !== "undefined" ? window.__DANE_ARKUSZA__ : null;
 
 function useSheetData() {
-  const [restaurants, setRestaurants] = useState([]);
-  const [workshops, setWorkshops] = useState([]);
-  const [dataLoading, setDataLoading] = useState(true);
+  const [restaurants, setRestaurants] = useState(() => EMBEDDED_SHEET ? csvToObjects(EMBEDDED_SHEET.r).map(restaurantFromRow) : []);
+  const [workshops, setWorkshops] = useState(() => EMBEDDED_SHEET ? csvToObjects(EMBEDDED_SHEET.w).map(workshopFromRow) : []);
+  const [dataLoading, setDataLoading] = useState(!EMBEDDED_SHEET);
   const [dataError, setDataError] = useState(false);
 
   useEffect(() => {
+    if (EMBEDDED_SHEET) return;
     Promise.all([
       fetch(CSV_RESTAURANTS_URL).then(r => r.text()),
       fetch(CSV_WORKSHOPS_URL).then(r => r.text()),
@@ -392,8 +270,55 @@ const WebsiteIcon = ({ size = 20, color = C.primary }) => (
   </svg>
 );
 
+// ══ Przycisk "Udostępnij" w profilu ══════════════════════════
+// Na telefonie: systemowe menu udostępniania (Instagram, WhatsApp, Messenger,
+// SMS...). Na komputerze: Facebook, WhatsApp i "Kopiuj link". Link to zawsze
+// czysty adres profilu (bez dopisków do statystyk) — ładnie wygląda i działa
+// tak samo po przekazaniu dalej. Każde udostępnienie = zdarzenie GA4 "share".
+// Linki mają data-share, żeby licznik kliknięć w kontakty (contact_click)
+// nie liczył ich jako kontaktu z nami przez Facebooka/WhatsAppa.
+function ShareButtons({ url, title, itemId, itemType }) {
+  const [copied, setCopied] = useState(false);
+  const canNativeShare = typeof navigator !== "undefined" && typeof navigator.share === "function"
+    && typeof window !== "undefined" && window.matchMedia && window.matchMedia("(pointer: coarse)").matches;
+  const log = method => track("share", { method, content_type: itemType, item_id: itemId });
+  const pill = { display:"inline-flex", alignItems:"center", justifyContent:"center", gap:6, minHeight:36, padding:"6px 14px", borderRadius:999, border:`1px solid ${C.border}`, background:"transparent", color:C.primary, fontSize:12, fontWeight:500, textDecoration:"none", cursor:"pointer", fontFamily:"'Montserrat', system-ui, sans-serif" };
+
+  const nativeShare = () => {
+    navigator.share({ title, url })
+      .then(() => log("web_share"))
+      .catch(() => {}); // anulowanie przez użytkownika to nie błąd
+  };
+  const copy = () => {
+    const done = () => { setCopied(true); log("kopiuj_link"); setTimeout(() => setCopied(false), 2200); };
+    if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(url).then(done, () => window.prompt("Skopiuj link:", url));
+    else window.prompt("Skopiuj link:", url);
+  };
+
+  return (
+    <div style={{ display:"flex", gap:8, justifyContent:"center", flexWrap:"wrap", marginTop:14 }}>
+      {canNativeShare ? (
+        <button type="button" onClick={nativeShare} style={pill}>Udostępnij</button>
+      ) : (
+        <>
+          <a data-share href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`} target="_blank" rel="noreferrer" onClick={() => log("facebook")} style={pill}>
+            <FacebookIcon size={14} /> Facebook
+          </a>
+          <a data-share href={`https://wa.me/?text=${encodeURIComponent(`${title} ${url}`)}`} target="_blank" rel="noreferrer" onClick={() => log("whatsapp")} style={pill}>
+            WhatsApp
+          </a>
+          <button type="button" onClick={copy} style={{ ...pill, borderColor: copied ? C.primary : C.border }}>
+            {copied ? "Skopiowano ✓" : "Kopiuj link"}
+          </button>
+        </>
+      )}
+    </div>
+  );
+}
+
 function ProfileModal({ item, type, isSelected, onToggleSelect, selectedVariantId, onVariantSelect, onClose, kidsMode = false }) {
   const isRestaurant = type === "restaurant";
+  const shareUrl = SITE_URL + profilePath(type, item);
 
   const InfoPill = ({ text, href }) => (
     href && href !== "#"
@@ -429,6 +354,7 @@ function ProfileModal({ item, type, isSelected, onToggleSelect, selectedVariantI
           {isRestaurant && item.tagline && (
             <div style={{ fontSize:13, color:C.primary, fontStyle:"italic", marginTop:10 }}>{item.tagline}</div>
           )}
+          <ShareButtons url={shareUrl} title={item.name} itemId={item.id} itemType={type} />
         </div>
 
         {/* Content */}
@@ -555,7 +481,13 @@ function ProfileModal({ item, type, isSelected, onToggleSelect, selectedVariantI
             </div>
           )}
 
-          {/* CTA */}
+          {/* CTA — szkic (comingSoon, otwarty z linku) nie da się wybrać,
+              tak samo jak jego karta na liście. */}
+          {item.comingSoon ? (
+            <div style={{ marginTop:24, textAlign:"center", fontSize:13, color:C.muted, fontStyle:"italic" }}>
+              Ten profil jest w przygotowaniu — wkrótce będzie można go wybrać.
+            </div>
+          ) : (
           <button
             onClick={() => { if (!isSelected) onToggleSelect(); onClose(); }}
             style={{ marginTop: isRestaurant ? 12 : 24, width:"100%", background:C.primary, color:"#FFF", border:"none", borderRadius:999, padding:16, fontSize:14, fontWeight:600, cursor:"pointer" }}>
@@ -563,6 +495,7 @@ function ProfileModal({ item, type, isSelected, onToggleSelect, selectedVariantI
               ? "Dodaj ten pakiet"
               : isRestaurant ? "Wybierz tę restaurację" : "Dodaj ten warsztat"}
           </button>
+          )}
         </div>
       </div>
     </div>
@@ -1042,12 +975,23 @@ function ClientTermsModal({ onClose }) {
   );
 }
 
-function Footer() {
+// `onOccasion` — przejście na podstronę okazji wewnątrz aplikacji (bez
+// przeładowania). Same linki są zwykłymi <a href>, żeby Google widział je
+// jako odnośniki do podstron.
+function Footer({ onOccasion }) {
   const [showPrivacy, setShowPrivacy] = useState(false);
   const [showTerms, setShowTerms] = useState(false);
   return (
     <>
-      <div style={{ textAlign:"center", padding:"20px 16px", fontSize:11, color:C.muted, borderTop:`1px solid ${C.border}` }}>
+      <nav style={{ textAlign:"center", padding:"18px 16px 0", fontSize:12, color:C.muted, borderTop:`1px solid ${C.border}`, lineHeight:2 }}>
+        {OCCASIONS.map((o, i) => (
+          <span key={o.slug}>
+            {i > 0 && " · "}
+            <a href={occasionPath(o)} onClick={onOccasion ? e => { e.preventDefault(); onOccasion(o.slug); } : undefined} style={{ color:C.muted }}>{o.navLabel}</a>
+          </span>
+        ))}
+      </nav>
+      <div style={{ textAlign:"center", padding:"12px 16px 20px", fontSize:11, color:C.muted }}>
         © {new Date().getFullYear()} {COPY.siteName} ·{" "}
         <button onClick={() => setShowPrivacy(true)} style={{ background:"none", border:"none", color:C.muted, textDecoration:"underline", cursor:"pointer", fontSize:11, padding:0 }}>
           Polityka prywatności
@@ -2133,6 +2077,67 @@ function Step4ContactForm({ restaurant, variant, workshop, groupSize, selectedDa
   );
 }
 
+// ══ Podstrona okazji (/wieczor-panienski, /urodziny...) ═══════
+// Tekst z src/seo.js (OCCASIONS) + lista pasujących warsztatów i miejsc.
+// Kliknięcie karty wybiera warsztat/miejsce i przenosi do kreatora (krok 1,
+// wybór już zaznaczony); "Zobacz profil" otwiera profil jak na liście.
+function OccasionPage({ occasion, workshops, restaurants, onPickWorkshop, onPickRestaurant, onProfile, onStart }) {
+  const kids = occasion.kids;
+  const low = minWorkshopPrice(workshops);
+  const sectionTitle = { fontFamily:"'Montserrat', system-ui, sans-serif", fontSize:22, fontWeight:400, color:C.text, textAlign:"center", margin:"36px 0 16px" };
+  return (
+    <div style={{ maxWidth:1160, margin:"0 auto", padding:"36px 16px 40px" }}>
+      <div style={{ maxWidth:720, margin:"0 auto", textAlign:"center" }}>
+        <h1 style={{ fontFamily:"'Montserrat', system-ui, sans-serif", fontSize:30, fontWeight:400, lineHeight:1.25, color:C.text, margin:"0 0 16px" }}>{occasion.h1}</h1>
+        {occasion.paragraphs.map((p, i) => (
+          <p key={i} style={{ fontSize:15, color:C.muted, lineHeight:1.7, margin:"0 0 12px" }}>{p}</p>
+        ))}
+        {low && <p style={{ fontSize:14, color:C.text, margin:"16px 0 20px" }}>Warsztaty od <strong>{low} zł</strong> {kids ? "za dziecko" : "za osobę"}.</p>}
+        <button onClick={onStart} className="hero-cta-btn" style={{ background:C.primary, color:"#FFF", border:"none", borderRadius:999, padding:"14px 32px", fontSize:14, fontWeight:600, cursor:"pointer", minHeight:44, margin:"4px auto 0" }}>
+          Zaplanuj event
+        </button>
+      </div>
+
+      {workshops.length > 0 && (
+        <>
+          <h2 style={sectionTitle}>Warsztaty</h2>
+          <div className="wizard-list">
+            {workshops.map(w => (
+              <WorkshopCard key={w.id} w={w} isSelected={false} kidsMode={kids}
+                onToggle={() => onPickWorkshop(w.id)} onProfile={() => onProfile(w, "workshop")} />
+            ))}
+          </div>
+        </>
+      )}
+
+      {restaurants.length > 0 && (
+        <>
+          <h2 style={sectionTitle}>Miejsca w Poznaniu</h2>
+          <div className="wizard-list">
+            {restaurants.map(r => (
+              <RestaurantCard key={r.id} r={r} isSelected={false} selectedVariantId={null} kidsMode={kids}
+                onToggle={() => onPickRestaurant(r.id)} onVariantSelect={() => {}} onProfile={() => onProfile(r, "restaurant")} />
+            ))}
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
+
+// ══ Strona 404 — nieistniejący adres albo usunięty profil ════
+function NotFoundPage({ onBackToHome }) {
+  return (
+    <div style={{ maxWidth:460, margin:"0 auto", padding:"80px 16px", textAlign:"center" }}>
+      <h1 style={{ fontFamily:"'Montserrat', system-ui, sans-serif", fontSize:28, fontWeight:400, margin:"0 0 12px", color:C.text }}>Nie znaleźliśmy tej strony</h1>
+      <p style={{ color:C.muted, fontSize:14, lineHeight:1.65, margin:"0 0 28px" }}>Ten adres nie istnieje albo profil został usunięty. Zajrzyj na stronę główną — tam są wszystkie warsztaty i miejsca.</p>
+      <button onClick={onBackToHome} style={{ background:C.primary, color:"#FFF", border:"none", borderRadius:999, padding:"14px 28px", fontSize:14, fontWeight:600, cursor:"pointer", minHeight:44 }}>
+        Przejdź na stronę główną
+      </button>
+    </div>
+  );
+}
+
 // ══ Ekran potwierdzenia ══════════════════════════════════════
 
 function ConfirmationScreen({ onBackToHome }) {
@@ -2485,7 +2490,20 @@ export default function App() {
   // Google Formsie), np. https://www.kawiarnianiartysci.pl/?regulamin=partnerzy
   // — otwiera od razu widok Współpraca z rozwiniętym regulaminem.
   const openPartnerTermsOnLoad = new URLSearchParams(window.location.search).get("regulamin") === "partnerzy";
-  const [mode,            setMode]            = useState(openPartnerTermsOnLoad ? "b2b" : "client"); // "client" | "b2b" | "kids"
+  // Adres, z którym ktoś wszedł na stronę (np. z udostępnionego linku do
+  // profilu albo z Google na /wieczor-panienski) — ustalany raz, przy starcie.
+  const initialRouteRef = useRef(null);
+  if (initialRouteRef.current === null) initialRouteRef.current = parseRoute(window.location.pathname);
+  const initialRoute = initialRouteRef.current;
+  const initialOccasion = initialRoute.type === "occasion" ? OCCASIONS.find(o => o.slug === initialRoute.slug) : null;
+  const [mode,            setMode]            = useState(openPartnerTermsOnLoad ? "b2b" : initialOccasion?.kids ? "kids" : "client"); // "client" | "b2b" | "kids"
+  // Podstrona zamiast ekranu powitalnego (gdy path === null):
+  // null = zwykła strona główna | { type:"occasion", slug } | { type:"notfound" }
+  const [landing,         setLanding]         = useState(
+    initialOccasion ? { type:"occasion", slug: initialOccasion.slug }
+    : initialRoute.type === "notfound" ? { type:"notfound" }
+    : null
+  );
   const [path,            setPath]            = useState(null);     // null | "workshop" | "restaurant" | "ownplace" — null = ekran powitalny
   const [wizardStep,      setWizardStep]      = useState(1);         // 1..3
   const [submitted,       setSubmitted]       = useState(false);
@@ -2541,7 +2559,7 @@ export default function App() {
     // GA4: kliknięcia w dane kontaktowe (mail, telefon, social media)
     const onDocClick = e => {
       const a = e.target.closest && e.target.closest("a[href]");
-      if (!a) return;
+      if (!a || a.hasAttribute("data-share")) return; // udostępnianie liczy się osobno jako "share"
       const href = a.getAttribute("href") || "";
       const h = href.toLowerCase();
       let method = null;
@@ -2571,13 +2589,26 @@ export default function App() {
   // Każde przejście "do przodu" (wybór ścieżki, kolejny krok kreatora, tryb
   // Współpraca, wysłanie zapytania) dopisuje wpis do historii; przycisk
   // wstecz przegląda przez te wpisy zamiast opuszczać stronę od razu.
+  //
+  // Od 2026-09 wpisy mają też własne ADRESY: otwarty profil to
+  // /warsztaty/<slug> albo /miejsca/<slug>, podstrona okazji to np.
+  // /wieczor-panienski — dzięki temu adres z paska można skopiować i komuś
+  // wysłać. Kroki kreatora nadal mają adres "/" (zależą od wyborów trzymanych
+  // w pamięci, więc wysłany komuś link i tak nie mógłby ich odtworzyć).
   const isPoppingRef = useRef(false);
+  // Pomija jeden zapis do historii — gdy sami ustawiamy historię ręcznie
+  // (wejście z linku do profilu, patrz niżej).
+  const skipNextPushRef = useRef(false);
+  // Dopóki nie ustalimy, co pokazać dla adresu startowego, nic nie zapisujemy.
+  const routeResolvedRef = useRef(false);
+
   useEffect(() => {
     const onPopState = e => {
       isPoppingRef.current = true;
       const s = e.state;
       if (s) {
         setMode(s.mode); setPath(s.path); setWizardStep(s.wizardStep); setSubmitted(s.submitted);
+        setLanding(s.landing ?? null);
         if (s.profileItem) {
           const list = s.profileItem.type === "restaurant" ? restaurants : workshops;
           const found = list.find(x => x.id === s.profileItem.itemId);
@@ -2586,27 +2617,77 @@ export default function App() {
           setProfileItem(null);
         }
       } else {
-        setMode(m => (m === "kids" ? "kids" : "client")); setPath(null); setWizardStep(1); setSubmitted(false); setProfileItem(null);
+        setMode(m => (m === "kids" ? "kids" : "client")); setPath(null); setWizardStep(1); setSubmitted(false); setProfileItem(null); setLanding(null);
       }
     };
     window.addEventListener("popstate", onPopState);
     return () => window.removeEventListener("popstate", onPopState);
   }, [restaurants, workshops]);
 
+  // Wejście na stronę z konkretnego adresu — raz, gdy dane z arkusza są już
+  // wczytane (bez nich nie wiadomo, czy profil o danym slugu istnieje).
   useEffect(() => {
+    if (routeResolvedRef.current || dataLoading) return;
+    routeResolvedRef.current = true;
+    const r = initialRoute;
+    if (r.type === "workshop" || r.type === "restaurant") {
+      const isR = r.type === "restaurant";
+      const item = findBySlug(isR ? restaurants : workshops, r.slug);
+      if (!item) {
+        // Nieistniejący albo usunięty profil — przyjazna strona 404.
+        skipNextPushRef.current = true;
+        setLanding({ type:"notfound" });
+        window.history.replaceState({ mode, path:null, wizardStep:1, submitted:false, profileItem:null, landing:{ type:"notfound" } }, "", window.location.pathname);
+        return;
+      }
+      // Warsztat tylko dla dzieci / lokal tylko z pakietami dziecięcymi →
+      // profil otwiera się w trybie "Eventy dla dzieci".
+      const m = (isR ? (item.variants.length === 0 && item.kidsVariants.length > 0) : item.kidsOnly) ? "kids" : "client";
+      const p = isR ? "restaurant" : "workshop";
+      // Pod profilem leży lista z kroku 1 kreatora — zamknięcie profilu (albo
+      // "Wstecz") wraca do tej listy, zamiast wyrzucać ze strony, bo przed
+      // wejściem z linku nie było w historii niczego z naszej strony.
+      window.history.replaceState({ mode:m, path:p, wizardStep:1, submitted:false, profileItem:null, landing:null }, "", "/");
+      window.history.pushState({ mode:m, path:p, wizardStep:1, submitted:false, profileItem:{ itemId:item.id, type:r.type }, landing:null }, "", profilePath(r.type, item));
+      skipNextPushRef.current = true;
+      lastWizardModeRef.current = m;
+      setMode(m); setPath(p); setWizardStep(1); setProfileItem({ item, type:r.type });
+      return;
+    }
+    // Strona główna / okazja / 404 — zapisujemy stan bieżącego wpisu, żeby
+    // "Wstecz" z kolejnych kroków mogło tu wrócić.
+    window.history.replaceState({ mode, path:null, wizardStep:1, submitted:false, profileItem:null, landing }, "", window.location.pathname + window.location.search);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [dataLoading, restaurants, workshops]);
+
+  // Tytuł karty przeglądarki zgodny z tym, co widać (ustawiany PRZED zapisem
+  // do historii poniżej, żeby GA4 zapisał odsłonę z właściwym tytułem).
+  useEffect(() => {
+    document.title = pageTitle({ profileItem, landing: path === null ? landing : null });
+  }, [profileItem, landing, path]);
+
+  useEffect(() => {
+    if (!routeResolvedRef.current) return;
+    if (skipNextPushRef.current) { skipNextPushRef.current = false; return; }
     if (isPoppingRef.current) { isPoppingRef.current = false; return; }
-    const atRoot = (mode === "client" || mode === "kids") && path === null && wizardStep === 1 && !submitted && !profileItem;
-    if (atRoot) return;
+    const loc = window.location;
+    const url = profileItem ? profilePath(profileItem.type, profileItem.item)
+      : mode === "b2b" ? (loc.pathname === "/" ? "/" + loc.search : "/")
+      : path === null && landing?.type === "occasion" ? "/" + landing.slug
+      : path === null && landing?.type === "notfound" ? loc.pathname
+      : "/";
+    const atRoot = (mode === "client" || mode === "kids") && path === null && wizardStep === 1 && !submitted && !profileItem && !landing;
+    if (atRoot && loc.pathname === "/") return;
     const profileState = profileItem ? { itemId: profileItem.item.id, type: profileItem.type } : null;
-    window.history.pushState({ mode, path, wizardStep, submitted, profileItem: profileState }, "");
-  }, [mode, path, wizardStep, submitted, profileItem]);
+    window.history.pushState({ mode, path, wizardStep, submitted, profileItem: profileState, landing }, "", url);
+  }, [mode, path, wizardStep, submitted, profileItem, landing]);
 
   // Każda zmiana ścieżki/kroku przewija na górę strony — bez tego np.
   // kliknięcie kafelka na dole ekranu powitalnego zostawiało gościa
   // w tym samym miejscu przewinięcia, w środku nowej strony.
   useEffect(() => {
     window.scrollTo(0, 0);
-  }, [path, wizardStep]);
+  }, [path, wizardStep, landing]);
 
   // Przełącznik ścieżki dostępny też na górze kroku 1 (nie tylko na
   // stronie głównej) — pozwala zmienić zdanie, co wybieramy najpierw,
@@ -2634,6 +2715,19 @@ export default function App() {
     setKidsCount(null); setAdultsCount(null);
     setPlaceInfo({ address:"", businessName:"", placeType:"", hasSeparateRoom:"", area:"", hasTables:"", hasWater:"", hasPower:"", notes:"" });
     setRequesterType("private"); setInvoiceRequired(false); setPlaceInfoTouched(false);
+    setLanding(null);
+  };
+
+  // Przejście na podstronę okazji z wnętrza aplikacji (linki w stopce) —
+  // tryb kreatora dopasowany do okazji (urodziny dla dzieci = "kids").
+  const openOccasion = slug => {
+    const o = OCCASIONS.find(x => x.slug === slug);
+    if (!o) return;
+    const m = o.kids ? "kids" : "client";
+    resetToHome();
+    lastWizardModeRef.current = m;
+    setMode(m);
+    setLanding({ type:"occasion", slug });
   };
 
   // Przełącznik trybu kreatora (client/kids) w nagłówku — porównanie z samym
@@ -2644,6 +2738,7 @@ export default function App() {
   const goWizardMode = m => {
     if (lastWizardModeRef.current !== m) resetToHome();
     lastWizardModeRef.current = m;
+    setLanding(null); // przycisk trybu w nagłówku zawsze prowadzi na jego stronę główną
     setMode(m);
   };
   // `lastWizardModeRef` musi zostać zsynchronizowany z `mode` nawet gdy coś
@@ -2822,6 +2917,28 @@ export default function App() {
     ? placeInfo.address.trim() !== "" && (requesterType !== "business" || placeInfo.businessName.trim() !== "")
     : (path === "restaurant" ? !!selectedW : !!selectedR);
 
+  // Podstrona zamiast ekranu powitalnego (okazja albo 404) — patrz `landing`.
+  const landingOccasion = landing?.type === "occasion" ? OCCASIONS.find(o => o.slug === landing.slug) : null;
+  const landingView = path !== null ? null
+    : landingOccasion ? (
+      <OccasionPage
+        occasion={landingOccasion}
+        workshops={occasionWorkshops(landingOccasion, workshops)}
+        restaurants={landingOccasion.kids ? occasionPlaces(landingOccasion, restaurants).map(toKidsRestaurantView) : occasionPlaces(landingOccasion, restaurants)}
+        onPickWorkshop={id => { setSelectedW(id); setPath("workshop"); setWizardStep(1); }}
+        onPickRestaurant={id => {
+          const r = restaurants.find(x => x.id === id);
+          setSelectedR(id);
+          setSelectedVariant((mode === "kids" ? r?.kidsVariants?.[0] : r?.variants?.[0])?.id ?? null);
+          setPath("restaurant"); setWizardStep(1);
+        }}
+        onProfile={(item, type) => setProfileItem({ item: (type === "restaurant" ? restaurants : workshops).find(x => x.id === item.id) || item, type })}
+        onStart={() => { setPath("workshop"); setWizardStep(1); }}
+      />
+    )
+    : landing?.type === "notfound" ? <NotFoundPage onBackToHome={resetToHome} />
+    : null;
+
   return (
     <div style={{ fontFamily:"'Montserrat', system-ui, sans-serif", background:C.bg, minHeight:"100vh", color:C.text }}>
 
@@ -2861,6 +2978,7 @@ export default function App() {
         <>
           {path === null ? (
             <>
+              {landingView || (
               <KidsHomeScreen
                 restaurants={restaurants} workshops={workshops}
                 onStart={p => { setPath(p); setWizardStep(1); }}
@@ -2869,7 +2987,8 @@ export default function App() {
                 selectedDate={selectedDate} setSelectedDate={setSelectedDate}
                 selectedTime={selectedTime} setSelectedTime={setSelectedTime}
               />
-              <Footer />
+              )}
+              <Footer onOccasion={openOccasion} />
             </>
           ) : submitted ? (
             <>
@@ -3005,13 +3124,15 @@ export default function App() {
         <>
           {path === null ? (
             <>
+              {landingView || (
               <HomeScreen restaurants={restaurants} workshops={workshops} onStart={p => { setPath(p); setWizardStep(1); }}
                 groupSize={groupSize} setGroupSize={setGroupSize}
                 selectedDate={selectedDate} setSelectedDate={setSelectedDate}
                 selectedTime={selectedTime} setSelectedTime={setSelectedTime}
                 onContactClick={() => setIsContactModalOpen(true)}
               />
-              <Footer />
+              )}
+              <Footer onOccasion={openOccasion} />
             </>
           ) : submitted ? (
             <>
