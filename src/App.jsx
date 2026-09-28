@@ -1916,13 +1916,15 @@ function Step4ContactForm({ restaurant, variant, workshop, groupSize, selectedDa
         clientName: form.name,
         clientEmail: form.email,
         clientPhone: form.phone,
+        // Tylko id wybranych pozycji — adresy email partnerów i ich wymagania
+        // serwer (api/inquiry.js) bierze sam z arkusza, nie z przeglądarki.
+        // Nazwy zostają wyłącznie jako podpowiedź dla Joanny, gdyby danego
+        // id nie było w arkuszu.
+        restaurantId: restaurant?.id || "",
+        workshopId: workshop?.id || "",
         restaurantName: restaurant?.name || "",
-        restaurantEmail: restaurant?.email || "",
         artistName: workshop?.artist || "",
         workshopName: workshop?.name || "",
-        artistEmail: workshop?.email || "",
-        artistInvoicing: workshop?.invoicing || "",
-        artistRequirements: workshop?.requirements || "",
         groupSize: kidsMode ? kidsCount : groupSize,
         date: selectedTime ? `${selectedDate}, ${selectedTime}` : selectedDate,
         message: form.message,

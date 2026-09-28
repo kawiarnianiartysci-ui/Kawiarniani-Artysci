@@ -1,5 +1,5 @@
 import { Resend } from "resend";
-import { FROM_EMAIL, OWNER_EMAIL, SITE_URL, htmlPage, verifyAndDecode, signPayload, emailHtml, nl2br } from "./_shared.js";
+import { FROM_EMAIL, OWNER_EMAIL, SITE_URL, htmlPage, verifyAndDecode, signPayload, emailHtml, nl2br, sendEmail } from "./_shared.js";
 
 export default async function handler(req, res) {
   const { action, data, sig, confirm, dates } = req.query;
@@ -73,7 +73,7 @@ export default async function handler(req, res) {
 
       // Klient: zawsze, jeśli mamy jego adres.
       if (clientEmail) {
-        sends.push(resend.emails.send({
+        sends.push(sendEmail(resend,{
           from: FROM_EMAIL,
           to: clientEmail,
           subject: `Nowa propozycja terminu — ${workshopName || ""}`,
@@ -95,7 +95,7 @@ export default async function handler(req, res) {
       // Restauracja: tylko w ścieżce klasycznej — ten sam mail pełni też rolę
       // informacji "pierwotny termin odpada, nie trzymajcie stolika w zawieszeniu".
       if (isClassic) {
-        sends.push(resend.emails.send({
+        sends.push(sendEmail(resend,{
           from: FROM_EMAIL,
           to: restaurantEmail,
           subject: `Artysta proponuje inny termin — ${workshopName || ""}`,
@@ -117,7 +117,7 @@ export default async function handler(req, res) {
       // Artysta: osobne potwierdzenie — on zna już swoje daty, potrzebuje
       // informacji, że sprawa poszła dalej i jest teraz po jego stronie.
       if (artistEmail) {
-        sends.push(resend.emails.send({
+        sends.push(sendEmail(resend,{
           from: FROM_EMAIL,
           to: artistEmail,
           subject: `Propozycja terminów przekazana — ${workshopName || ""}`,
@@ -136,7 +136,7 @@ export default async function handler(req, res) {
         }));
       }
 
-      sends.push(resend.emails.send({
+      sends.push(sendEmail(resend,{
         from: FROM_EMAIL,
         to: OWNER_EMAIL,
         subject: `Artysta proponuje inny termin: ${restaurantName || ""} + ${workshopName || ""}`,
@@ -213,7 +213,7 @@ export default async function handler(req, res) {
           </p>
         `;
       }
-      sends.push(resend.emails.send({
+      sends.push(sendEmail(resend,{
         from: FROM_EMAIL,
         to: restaurantEmail,
         subject: accepted
@@ -236,7 +236,7 @@ export default async function handler(req, res) {
     const isClassic = !!restaurantName;
 
     if (clientEmail) {
-      sends.push(resend.emails.send({
+      sends.push(sendEmail(resend,{
         from: FROM_EMAIL,
         to: clientEmail,
         subject: accepted ? "Twój termin został potwierdzony!" : "Aktualizacja Twojego zapytania",
@@ -248,7 +248,7 @@ export default async function handler(req, res) {
       }));
     }
 
-    sends.push(resend.emails.send({
+    sends.push(sendEmail(resend,{
       from: FROM_EMAIL,
       to: OWNER_EMAIL,
       subject: `${accepted ? "Zaakceptowano" : "Odrzucono"}: ${restaurantName || (isClassic ? "" : "bez restauracji (mam miejsce)")} + ${workshopName || ""}`,

@@ -1,5 +1,5 @@
 import { Resend } from "resend";
-import { FROM_EMAIL, OWNER_EMAIL, htmlPage, verifyAndDecode, emailHtml } from "./_shared.js";
+import { FROM_EMAIL, OWNER_EMAIL, htmlPage, verifyAndDecode, emailHtml, sendEmail } from "./_shared.js";
 
 // Restauracja może potrzebować kilku dni na dogadanie szczegółów z klientem,
 // więc ten link żyje wyraźnie dłużej niż typowy link akceptacji/odrzucenia —
@@ -62,7 +62,7 @@ export default async function handler(req, res) {
     if (confirmed) {
       // Artysta — może bezpiecznie zablokować termin, bez ryzyka odwołania.
       if (artistEmail) {
-        sends.push(resend.emails.send({
+        sends.push(sendEmail(resend,{
           from: FROM_EMAIL,
           to: artistEmail,
           subject: `Termin ostatecznie potwierdzony — ${workshopName || ""}`,
@@ -76,7 +76,7 @@ export default async function handler(req, res) {
       }
 
       if (clientEmail) {
-        sends.push(resend.emails.send({
+        sends.push(sendEmail(resend,{
           from: FROM_EMAIL,
           to: clientEmail,
           subject: "Twoja rezerwacja jest potwierdzona!",
@@ -96,7 +96,7 @@ export default async function handler(req, res) {
         }));
       }
 
-      sends.push(resend.emails.send({
+      sends.push(sendEmail(resend,{
         from: FROM_EMAIL,
         to: OWNER_EMAIL,
         subject: `Potwierdzone ostatecznie: ${restaurantName || ""} + ${workshopName || ""}`,
@@ -106,7 +106,7 @@ export default async function handler(req, res) {
       // Artysta — najważniejsza wiadomość w tym kroku: bez niej zostaje
       // z nieaktualną rezerwacją w kalendarzu, więc idzie jako pierwsza.
       if (artistEmail) {
-        sends.push(resend.emails.send({
+        sends.push(sendEmail(resend,{
           from: FROM_EMAIL,
           to: artistEmail,
           subject: `To zapytanie jednak nie doszło do skutku — ${workshopName || ""}`,
@@ -119,7 +119,7 @@ export default async function handler(req, res) {
         }));
       }
 
-      sends.push(resend.emails.send({
+      sends.push(sendEmail(resend,{
         from: FROM_EMAIL,
         to: OWNER_EMAIL,
         subject: `Nie doszło do skutku: ${restaurantName || ""} + ${workshopName || ""}`,

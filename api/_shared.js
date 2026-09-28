@@ -2,7 +2,23 @@ import crypto from "crypto";
 
 export const FROM_EMAIL = process.env.RESEND_FROM_EMAIL || "zapytania@kawiarnianiartysci.pl";
 export const OWNER_EMAIL = process.env.OWNER_EMAIL || "kawiarnianiartysci@gmail.com";
-export const SITE_URL = process.env.SITE_URL || "https://www.kawiarnianiartysci.pl";
+
+// ══ Tryb testowy ═══════════════════════════════════════════════
+// Vercel ustawia VERCEL_ENV = "production" tylko na żywej stronie
+// (kawiarnianiartysci.pl). Wszędzie indziej (wersje podglądowe z innych
+// gałęzi, uruchomienie lokalne) działamy w trybie testowym: KAŻDY mail idzie
+// wyłącznie do Joanny, z dopiskiem [TEST] i informacją, do kogo poszedłby
+// naprawdę — dzięki temu można bezpiecznie przeklikać cały proces zapytania
+// bez spamowania artystów, restauracji i klientów.
+export const IS_PRODUCTION = process.env.VERCEL_ENV === "production";
+
+// Linki w mailach (akceptuj/odrzuć/potwierdź) na wersji podglądowej prowadzą
+// z powrotem do TEJ wersji podglądowej, a nie do żywej strony — inaczej
+// kliknięcie w mailu testowym uruchomiłoby prawdziwą wysyłkę na produkcji.
+const previewHost = process.env.VERCEL_BRANCH_URL || process.env.VERCEL_URL;
+export const SITE_URL = IS_PRODUCTION || !previewHost
+  ? (process.env.SITE_URL || "https://www.kawiarnianiartysci.pl")
+  : `https://${previewHost}`;
 
 function secret() {
   const s = process.env.INQUIRY_SIGNING_SECRET;
@@ -10,8 +26,10 @@ function secret() {
   return s;
 }
 
+// Każdy podpisany link zapamiętuje, czy powstał w trybie testowym — żywa
+// strona odrzuca linki testowe (drugie zabezpieczenie obok SITE_URL powyżej).
 export function signPayload(payload) {
-  const data = Buffer.from(JSON.stringify(payload)).toString("base64url");
+  const data = Buffer.from(JSON.stringify({ ...payload, test: IS_PRODUCTION ? undefined : true })).toString("base64url");
   const sig = crypto.createHmac("sha256", secret()).update(data).digest("hex");
   return { data, sig };
 }
@@ -23,9 +41,38 @@ export function verifyAndDecode(data, sig) {
   const b = Buffer.from(String(sig));
   if (a.length !== b.length || !crypto.timingSafeEqual(a, b)) return null;
   try {
-    return JSON.parse(Buffer.from(data, "base64url").toString("utf-8"));
+    const payload = JSON.parse(Buffer.from(data, "base64url").toString("utf-8"));
+    if (IS_PRODUCTION && payload && payload.test) return null;
+    return payload;
   } catch {
     return null;
+  }
+}
+
+// Jedyne miejsce, przez które wychodzą maile — w trybie testowym przekierowuje
+// je do Joanny (patrz IS_PRODUCTION wyżej). Błąd pojedynczego maila (np.
+// literówka w adresie partnera w arkuszu) jest logowany, ale nie wywraca
+// całej wysyłki — pozostałe maile, w tym kopia do Joanny, i tak wychodzą.
+// Zwraca true, gdy mail faktycznie został przyjęty do wysyłki.
+export async function sendEmail(resend, { to, subject: rawSubject, html, ...rest }) {
+  // Temat maila to zwykły tekst, nie HTML — nazwy trzymane "bezpiecznie dla
+  // HTML" (np. "Bar &amp; Restaurant") zamieniamy z powrotem na zwykłe znaki.
+  const subject = String(rawSubject).replace(/&(amp|lt|gt|quot|#39);/g, (_, e) => ({ amp:"&", lt:"<", gt:">", quot:'"', "#39":"'" }[e]));
+  const msg = IS_PRODUCTION
+    ? { to, subject, html, ...rest }
+    : {
+        ...rest,
+        to: OWNER_EMAIL,
+        subject: `[TEST → ${to}] ${subject}`,
+        html: html.replace(/<body[^>]*>/, bodyTag => `${bodyTag}<p style="background:#FFF3CD;padding:10px 14px;border-radius:8px;font-size:13px;">🧪 Mail testowy z wersji podglądowej. Na żywej stronie trafiłby do: <strong>${escapeHtml(to)}</strong></p>`),
+      };
+  try {
+    const result = await resend.emails.send(msg);
+    if (!result || result.error) { console.error("Resend:", msg.to, result && result.error); return false; }
+    return true;
+  } catch (err) {
+    console.error("Resend:", msg.to, err);
+    return false;
   }
 }
 
