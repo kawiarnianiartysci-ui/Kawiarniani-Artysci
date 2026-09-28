@@ -56,7 +56,7 @@ export const OCCASIONS = [
     description: "Urodziny dziecka w Poznaniu z warsztatem kreatywnym w miejscu przyjaznym dzieciom. Wybierz warsztat i salę, podaj liczbę dzieci i dorosłych, wyślij zapytanie.",
     paragraphs: [
       "Urodziny, na których dzieci nie tylko jedzą tort, ale też coś razem tworzą. Artysta prowadzi warsztat dopasowany do wieku dzieci, a dorośli mogą spokojnie usiąść obok przy kawie.",
-      "Na tej stronie znajdziesz warsztaty przygotowane dla dzieci i miejsca w Poznaniu, które przyjmują dziecięce urodziny. Przy każdym warsztacie widać, od jakiego wieku jest przeznaczony.",
+      "Na tej stronie znajdziesz warsztaty przygotowane dla dzieci i miejsca w Poznaniu, które przyjmują dziecięce urodziny. Szczegóły każdego warsztatu, w tym wiek dzieci, sprawdzisz w jego profilu.",
       "Podaj liczbę dzieci i dorosłych, wybierz warsztat i miejsce (albo zaproś artystę do siebie), a my przekażemy zapytanie i wrócimy z odpowiedzią.",
     ],
   },
