@@ -6,7 +6,7 @@ Booking platform connecting cafés/restaurants with creative-workshop artists (p
 
 ## Tech stack
 
-- **Frontend:** React 18 + Vite, no router/state library — a single main component tree in [`src/App.jsx`](src/App.jsx) (~2,300 lines; see [CONTRIBUTING.md](CONTRIBUTING.md) for why it's one file and how it's organized).
+- **Frontend:** React 18 + Vite, no router/state library — a single main component tree in [`src/App.jsx`](src/App.jsx) (~3,300 lines; see [CONTRIBUTING.md](CONTRIBUTING.md) for why it's one file and how it's organized).
 - **Backend:** Vercel serverless functions in [`api/`](api/) (no separate server/database) — handle the booking-inquiry email flow via [Resend](https://resend.com).
 - **Data:** restaurants/workshops are **not** in the codebase — they're fetched at runtime from a Google Sheet published as CSV, so the site owner can add/edit listings without a code change. See [CONTRIBUTING.md](CONTRIBUTING.md#data-model--google-sheets-cms).
 - **Hosting:** Vercel, auto-deploys on every push to `main`. Domain DNS is on Hostinger, pointed at Vercel.
@@ -34,8 +34,14 @@ The frontend works locally with **no environment variables** — it only needs t
 ## Project structure
 
 ```
-src/App.jsx        single-file React app — UI, wizard flow, CSV parsing, all in one place
-api/                Vercel serverless functions (inquiry email chain)
+src/App.jsx        single-file React app — UI, wizard flow, history/URLs
+src/dane.js        Sheet CSV parsing, shared by the app and api/
+src/seo.js         public URLs, page titles/descriptions, occasion page texts
+vercel.json        rewrites: every non-static path → api/page.js, /sitemap.xml → api/sitemap.js
+api/                Vercel serverless functions (inquiry email chain + SEO pages)
+  page.js           per-page meta tags/JSON-LD/HTML for profiles, occasion pages, 404
+  sitemap.js        /sitemap.xml generated from the Sheet
+  _sheet.js         server-side Sheet fetch (5-min cache)
   _shared.js        HMAC payload signing/verification, shared HTML email templates
   inquiry.js        POST — client submits the booking form → emails artist/restaurant/owner
   respond.js        GET  — artist clicks accept/decline/propose-other-dates link
@@ -63,19 +69,16 @@ Structured data and UX enhancements to support search ranking:
 - **Noscript fallback**: robot-readable content block for users/bots without JavaScript
 - See [`project_seo_improvements_2026_09_21.md`](https://github.com/kawiarnianiartysci-ui/Kawiarniani-Artysci/blob/main/.claude/projects/memory/project_seo_improvements_2026_09_21.md) in memory for full details.
 
-### React SPA vs. prerendering
+### Per-page URLs and server-side meta tags (2026-09)
 
-The site is a React SPA with no SSR/prerendering, but **Google can read it fine**. The platform doesn't need static generation (SSG) right now:
-- Google's renderer can execute JS and index dynamic content without issues
-- If search performance degrades later, prerendering can be added to `vite.config.js` (e.g., via `@vitejs/plugin-ssr-preload` or exporting pages statically before build)
-- For now, focus is on **backlinks** (by far the highest-impact SEO lever)
+The homepage is still a plain React SPA, but every workshop/venue now has its own URL (`/warsztaty/<slug>`, `/miejsca/<slug>`), and there are 5 occasion landing pages (`/wieczor-panienski`, `/urodziny`, `/urodziny-dla-dzieci`, `/integracja-firmowa`, `/baby-shower`). A serverless function (`api/page.js`) serves those URLs with their own title, description, canonical, Open Graph image and JSON-LD, plus plain-HTML content — because Facebook/WhatsApp/Messenger/LinkedIn link previews and most AI crawlers don't run JavaScript. `/sitemap.xml` is generated from the Sheet (`api/sitemap.js`). Details and gotchas: [CONTRIBUTING.md → Public URLs](CONTRIBUTING.md#public-urls-share-previews--seo-2026-09).
 
 ### What affects ranking most
 
 1. **Backlinks** (70% of ranking weight) — high-impact, in progress as of 2026-08-28
 2. **Metadata & structure** (10%) — done ✓ (enhanced 2026-09-21)
 3. **Performance/UX** (10%) — React app is fast enough; video optimization 2026-09-21
-4. **Prerendering/crawlability** (10%) — working, no change needed; noscript fallback added 2026-09-21
+4. **Prerendering/crawlability** (10%) — per-page server-rendered meta + content for profiles/occasion pages since 2026-09
 
 ### Monitoring
 

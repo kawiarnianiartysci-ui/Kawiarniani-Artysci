@@ -13,7 +13,7 @@ Restaurants and workshops are **not hardcoded** — `App.jsx` fetches two CSVs a
 - `CSV_RESTAURANTS_URL` — tab **„restauracje"**
 - `CSV_WORKSHOPS_URL` — tab **„warsztaty"**
 
-Both constants live near the top of `App.jsx`. This is why "add a restaurant" or "change a price" is almost always a **Sheet edit, not a code change** — check there first before touching `App.jsx` for anything that looks like content rather than behavior.
+Both constants (plus the CSV parser and `restaurantFromRow`/`workshopFromRow`) live in [`src/dane.js`](src/dane.js) since 2026-09 — shared by the browser app and the serverless functions in `api/`, so both always read the Sheet identically. This is why "add a restaurant" or "change a price" is almost always a **Sheet edit, not a code change** — check there first before touching `App.jsx` for anything that looks like content rather than behavior.
 
 ### Column reference (restauracje)
 `id,email,comingSoon,name,tagline,logo,photos,vibe,location,description,fullDescription,capacity,minPeople,maxPeople,address,website,instagram,instagramUrl,facebookUrl,hours,gradientBg,gradientText,variants,hasSeparateRoom,requiresInvoice,acceptsKids,kidsVariants`
@@ -23,6 +23,7 @@ Both constants live near the top of `App.jsx`. This is why "add a restaurant" or
 
 Notes:
 - **Column headers are matched by exact name**, case-sensitive (`csvToObjects` maps CSV headers straight to object keys) — order in the sheet doesn't matter, a typo'd header silently parses as `undefined` with no error. If a field "isn't working," check the exact header spelling first via a raw `curl` of the published CSV URL before assuming a code bug.
+- `slug` (optional, both tabs, added 2026-09): the ending of the item's public profile URL (`/warsztaty/<slug>`, `/miejsca/<slug>`). Blank → auto-generated from `id` via `slugify()` in `src/dane.js` (lowercase, Polish chars stripped, anything else → `-`). Whatever is typed is also run through `slugify`, so a capital letter or space can't break a URL. **Changing a slug later breaks links already shared** — old id-based URLs redirect (301) to the slug, but an old *slug* does not.
 - `gradientBg`/`gradientText` are dead — still present as columns, unused in code. Don't bother filling them for new rows.
 - Booleans (`comingSoon`, `hasSeparateRoom`, `requiresInvoice`, etc.) accept `TRUE`/`FALSE`/`1`/`tak`/`prawda` (Google Sheets sometimes auto-localizes to Polish). `canInvoice`/`travelsToClient` are **tri-state** (`toTriBool`) — blank means "unknown, don't exclude," only an explicit `FALSE`/`nie` triggers filtering. Everything else collapses blank and false together.
 - `photo`/`logo`: a bare filename living in `public/images/` (no path, no leading slash — the parser prepends `/images/`).
@@ -64,6 +65,26 @@ Compatibility between a chosen restaurant and workshop (separate room requiremen
 
 `POST /api/inquiry` (client submits) → emails the artist (with signed accept/decline/propose-other-dates links), the restaurant (informational, skipped silently if it has no `email` column value), and the owner (copy of everything). `GET /api/respond` (artist clicks a link) → for accept, fires a second signed link to the restaurant; `GET /api/confirm` (restaurant clicks its own link) → finalizes and notifies everyone. All three share one HMAC payload scheme in `api/_shared.js` (`signPayload`/`verifyAndDecode`) so state travels entirely inside signed URLs — there's no database. Kids-event fields ride inside the same payload, additively (empty when not a kids booking).
 
+Hardening added 2026-09 (don't regress):
+- **Partner emails come from the Sheet, never from the browser.** The client sends only `restaurantId`/`workshopId`; `api/inquiry.js` looks the rows up server-side (`api/_sheet.js`, 5-min in-memory cache). Before this, anyone could POST arbitrary `artistEmail`/`restaurantEmail` and send branded mail to any address. Rows with `comingSoon = TRUE` get no partner mail. If the Sheet fetch fails the owner copy still goes out, with a warning block.
+- **All client-typed text is HTML-escaped** (`txt`/`longTxt` in `inquiry.js`, `escapeHtml`/`nl2br` in `contact.js`) before it lands in any email.
+- **The owner copy must succeed** or the client gets an error (and can retry); partner mails are best-effort. Every send goes through `sendEmail()` in `_shared.js`.
+- **Test mode:** when `VERCEL_ENV !== "production"` (preview deployments), `sendEmail()` redirects *every* mail to `OWNER_EMAIL` with subject `[TEST → original recipient]`, email links point back to the preview host, and production rejects payloads signed in test mode (`test: true`). Preview deployments need their own env vars (Vercel → Settings → Environment Variables → tick **Preview**); the preview `INQUIRY_SIGNING_SECRET` is deliberately a different value than production's. Only branches that contain this code are safe to point at real partner data — an older branch's preview would send real mail.
+
+## Public URLs, share previews & SEO (2026-09)
+
+Every item has its own shareable URL, and a handful of occasion landing pages exist for search:
+
+- `/warsztaty/<slug>`, `/miejsca/<slug>` — open the site with that profile's `ProfileModal` on top of wizard step 1 (kids mode for `kidsOnly` workshops / kids-only restaurants).
+- `/wieczor-panienski`, `/urodziny`, `/urodziny-dla-dzieci` (kids mode), `/integracja-firmowa`, `/baby-shower` — `OccasionPage`. Texts live in `OCCASIONS` in [`src/seo.js`](src/seo.js); listings are computed from the Sheet (adults vs. kids only — there is intentionally no per-occasion tag column).
+- Anything else → `NotFoundPage` with a real HTTP 404.
+
+**How it works (option "A" from the 2026-09-28 audit):** `vercel.json` rewrites every non-static path to `api/page.js` (static files, `/`, `/assets/*`, `/images/*` are served first). The function takes the built `index.html` — written to `api/_szablon.js` by a small plugin in `vite.config.js` on every build (git-ignored) — replaces the block between `<!-- SEO:START -->`/`<!-- SEO:END -->` with per-page `<title>`, description, canonical, Open Graph/Twitter tags and JSON-LD, drops the `<!-- NOSCRIPT -->` block, puts plain-HTML page content inside `#root` (for crawlers/AI bots that don't run JS; React replaces it on boot), and embeds the Sheet CSV as `window.__DANE_ARKUSZA__` so the app skips its own fetch. CDN-cached `s-maxage=300`, so Sheet edits show within ~5 min. `/sitemap.xml` is `api/sitemap.js` (active rows only). **Don't remove the marker comments in `index.html`.**
+
+Client side, the manual history mechanism was extended rather than replaced with a router: history entries now carry a URL and a `landing` field. Two ordering gotchas already hit (don't reintroduce): (1) the "resolve the initial URL" effect must be declared **after** the pushState effect, otherwise the first render pushes a stray root entry and Back from a deep-linked profile lands on the homepage; (2) the pushState effect skips when state+URL equal the current entry, otherwise deep links need Back twice.
+
+Share button (`ShareButtons` in `ProfileModal`): Web Share API on touch devices, otherwise Facebook / WhatsApp / copy-link; fires GA4 `share` (`method`, `content_type`, `item_id`). Share links carry `data-share` so the global `contact_click` tracker ignores them. Links are clean (no UTM) on purpose.
+
 ## Design conventions
 
 Settled through many iteration rounds — apply by default to new UI rather than re-deriving a style:
@@ -76,7 +97,7 @@ Settled through many iteration rounds — apply by default to new UI rather than
 
 ## Deploy workflow
 
-Push to `main` → Vercel auto-builds and deploys, typically live within 1-2 minutes. There's currently no branch/PR process — every change (from both the site owner and AI-assisted sessions) has gone straight to `main` on a real, actively-booked-through production site. If you're joining as an external developer, discuss with Joanna whether to keep that or move to a PR-based workflow before making structural changes — it's a deliberate choice so far, not an oversight, but worth revisiting once more than one person is touching the code regularly.
+Push to `main` → Vercel auto-builds and deploys, typically live within 1-2 minutes. Since 2026-09 larger changes go to a separate branch first: Vercel builds a protected Preview deployment for it, the site owner creates a `_vercel_share` link (deployment → Share) so it can be tested, and it's merged to `main` only after her OK. Emails on previews run in test mode (see Email backend). Before that there was no branch/PR process — every change (from both the site owner and AI-assisted sessions) has gone straight to `main` on a real, actively-booked-through production site. If you're joining as an external developer, discuss with Joanna whether to keep that or move to a PR-based workflow before making structural changes — it's a deliberate choice so far, not an oversight, but worth revisiting once more than one person is touching the code regularly.
 
 **Verifying a deploy went out clean, with no local Node/npm available:** capture the live JS bundle filename (`/assets/index-*.js`, visible in the served HTML's `<script src>`) *before* pushing — a build can go live within 5-10s, fast enough that the very first post-push check can already be reading the new bundle, making a naive "wait for the hash to change" poll hang forever waiting for a change that already happened. Prefer fetching the served bundle directly and grepping it for a string unique to the new code over comparing hashes. A raw `curl` to this domain can get blocked by Vercel's bot-challenge (`Vercel Security Checkpoint`, misleadingly looks like the deploy hasn't landed) — a real browser fetch doesn't trip it.
 

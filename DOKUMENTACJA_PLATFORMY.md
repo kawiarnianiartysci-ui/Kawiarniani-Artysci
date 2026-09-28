@@ -87,8 +87,8 @@ C:\Users\cybjo\OneDrive\Pulpit\BIZNES\ważne informacje dla powstania wyszukiwar
 
 | Plik | Zawartość | Aktualizacja |
 |---|---|---|
-| **README.md** | Opis, tech stack, getting started, **SEO status** | 2026-08-28 ✅ |
-| **CONTRIBUTING.md** | Conventions, data model, Google Sheets, gotchas | 2026-08-22 |
+| **README.md** | Opis, tech stack, getting started, **SEO status** | 2026-09-28 ✅ |
+| **CONTRIBUTING.md** | Conventions, data model, Google Sheets, gotchas, adresy podstron i SEO | 2026-09-28 |
 | **docs/superpowers/** | Spec dla kids mode feature | 2026-08-07 |
 
 👉 **Dostęp dla dewelopera:** Otwiera repo → czyta README → rozumie architekturę
@@ -106,7 +106,7 @@ C:\Users\cybjo\OneDrive\Pulpit\BIZNES\ważne informacje dla powstania wyszukiwar
 
 **Konfiguracja w kodzie:**
 ```javascript
-// src/App.jsx — linie 60-61
+// src/dane.js (wspólne dla strony i serwera)
 const CSV_RESTAURANTS_URL = "https://docs.google.com/spreadsheets/d/...";
 const CSV_WORKSHOPS_URL = "https://docs.google.com/spreadsheets/d/...";
 ```
@@ -122,6 +122,10 @@ const CSV_WORKSHOPS_URL = "https://docs.google.com/spreadsheets/d/...";
 | **inquiry** | `api/inquiry.js` | POST: klient wysyła formularz | `RESEND_API_KEY`, `RESEND_FROM_EMAIL`, `OWNER_EMAIL`, `SITE_URL` |
 | **respond** | `api/respond.js` | GET: artysta klika accept/decline | `INQUIRY_SIGNING_SECRET` |
 | **confirm** | `api/confirm.js` | GET: restauracja klika confirm | `INQUIRY_SIGNING_SECRET` |
+| **page** | `api/page.js` | Podstrony profili (/warsztaty/..., /miejsca/...), okazji i 404 — tytuł, opis, zdjęcie dla Google/Facebooka | — (czyta arkusz) |
+| **sitemap** | `api/sitemap.js` | /sitemap.xml z aktywnych wpisów arkusza | — |
+
+**Wersje testowe (Preview):** każdy mail idzie tylko do Joanny z dopiskiem [TEST]. Zmienne dla Preview są ustawione osobno — `INQUIRY_SIGNING_SECRET` ma na Preview INNĄ wartość niż na produkcji (celowo).
 
 **Email sender:** `zapytania@kawiarnianiartysci.pl` (Resend)
 
