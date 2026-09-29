@@ -1093,7 +1093,8 @@ for (let h = 10; h <= 18; h++) {
 
 // Sekunda, od której zaczyna się (i zapętla) wideo w tle — pomija powolny
 // początek klipu, żeby szybciej było widać ludzi przy malowaniu.
-const HERO_VIDEO_START = 5;
+// hero.mp4 (2026-09-29) jest już przycięty przez Joannę w Canvie — zaczynamy od 0.
+const HERO_VIDEO_START = 0;
 
 // Dekoracyjna ikonka zegara przy polu Godzina — czysto ozdobna,
 // `pointerEvents:"none"` żeby nie blokować kliknięcia w pole pod spodem.
