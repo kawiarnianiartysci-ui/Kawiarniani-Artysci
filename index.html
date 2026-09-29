@@ -60,11 +60,10 @@
          aplikację), żeby tekst nie "przeskakiwał" przy wczytywaniu. -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <!-- media="print" + onload: arkusz czcionki pobiera się od razu, ale nie
-         wstrzymuje pierwszego wyświetlenia strony (tekst pokazuje się od razu
-         czcionką zastępczą i podmienia na Montserrat, gdy ta dojdzie). -->
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&display=swap" media="print" onload="this.media='all'" />
-    <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&display=swap" /></noscript>
+    <!-- Zwykłe (blokujące) wczytanie czcionki — celowo. Wersja "w tle"
+         (media=print + onload, 2026-09-29) nie przyspieszyła pierwszego
+         wyświetlenia, a tekst przeskakiwał przy podmianie czcionki (CLS 0,37). -->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&display=swap" />
   </head>
   <body>
     <div id="root"></div>
