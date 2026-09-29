@@ -118,7 +118,7 @@ function workshopBody(w) {
   return `<main style="${S.main}">${header()}
 <h1 style="${S.h1}">${esc(w.name)}</h1>
 ${w.artist ? `<p style="${S.muted}">${esc(w.artist)}</p>` : ""}
-${w.photo ? `<img style="${S.img}" src="${esc(w.photo)}" alt="${esc(w.name)}">` : ""}
+${w.photo ? `<img loading="lazy" style="${S.img}" src="${esc(w.photo)}" alt="${esc(w.name)}">` : ""}
 ${paragraphs(w.description)}${w.bio && w.bio !== w.description ? paragraphs(w.bio) : ""}
 ${includes ? `<p style="${S.muted}">W cenie:</p><ul style="${S.list}">${includes}</ul>` : ""}
 ${w.pricePerPerson ? `<p><strong>${esc(w.pricePerPerson)} zł</strong> / os.${w.duration ? ` · ${esc(w.duration)}` : ""}</p>` : ""}
@@ -132,7 +132,7 @@ function restaurantBody(r) {
 <h1 style="${S.h1}">${esc(r.name)}</h1>
 <p style="${S.muted}">${esc([r.vibe, r.location].filter(Boolean).join(" · "))}</p>
 ${r.tagline ? `<p><em>${esc(r.tagline)}</em></p>` : ""}
-${r.photo ? `<img style="${S.img}" src="${esc(r.photo)}" alt="${esc(r.name)}">` : ""}
+${r.photo ? `<img loading="lazy" style="${S.img}" src="${esc(r.photo)}" alt="${esc(r.name)}">` : ""}
 ${paragraphs(r.fullDescription || r.description)}
 ${r.address ? `<p style="${S.muted}">${esc(cleanAddress(r.address))}</p>` : ""}
 ${variants ? `<p style="${S.muted}">Pakiety:</p><ul style="${S.list}">${variants}</ul>` : ""}

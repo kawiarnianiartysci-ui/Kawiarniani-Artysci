@@ -2551,7 +2551,21 @@ export default function App() {
   if (initialRouteRef.current === null) initialRouteRef.current = parseRoute(window.location.pathname);
   const initialRoute = initialRouteRef.current;
   const initialOccasion = initialRoute.type === "occasion" ? OCCASIONS.find(o => o.slug === initialRoute.slug) : null;
-  const [mode,            setMode]            = useState(openPartnerTermsOnLoad ? "b2b" : initialOccasion?.kids ? "kids" : "client"); // "client" | "b2b" | "kids"
+  // Wejście z linku do profilu: gdy dane arkusza są już w stronie (podstrony
+  // je dostają), od pierwszego rysowania pokazujemy listę + profil, a nie
+  // stronę główną — inaczej przeglądarka zdążyłaby zacząć pobierać ciężki
+  // film z nagłówka strony głównej (kilkanaście MB), zanim otworzy się profil.
+  const isProfileRoute = initialRoute.type === "workshop" || initialRoute.type === "restaurant";
+  const initialProfileRef = useRef(undefined);
+  if (initialProfileRef.current === undefined) {
+    const it = isProfileRoute && !dataLoading ? findBySlug(initialRoute.type === "restaurant" ? restaurants : workshops, initialRoute.slug) : null;
+    initialProfileRef.current = it ? { item: it, type: initialRoute.type } : null;
+  }
+  const initialProfile = initialProfileRef.current;
+  const initialProfileKids = !!initialProfile && (initialProfile.type === "restaurant"
+    ? (initialProfile.item.variants.length === 0 && initialProfile.item.kidsVariants.length > 0)
+    : initialProfile.item.kidsOnly);
+  const [mode,            setMode]            = useState(openPartnerTermsOnLoad ? "b2b" : (initialOccasion?.kids || initialProfileKids) ? "kids" : "client"); // "client" | "b2b" | "kids"
   // Podstrona zamiast ekranu powitalnego (gdy path === null):
   // null = zwykła strona główna | { type:"occasion", slug } | { type:"notfound" }
   const [landing,         setLanding]         = useState(
@@ -2559,7 +2573,7 @@ export default function App() {
     : initialRoute.type === "notfound" ? { type:"notfound" }
     : null
   );
-  const [path,            setPath]            = useState(null);     // null | "workshop" | "restaurant" | "ownplace" — null = ekran powitalny
+  const [path,            setPath]            = useState(isProfileRoute ? (initialRoute.type === "restaurant" ? "restaurant" : "workshop") : null);     // null | "workshop" | "restaurant" | "ownplace" — null = ekran powitalny
   const [wizardStep,      setWizardStep]      = useState(1);         // 1..3
   const [submitted,       setSubmitted]       = useState(false);
   // GA4: lejek kreatora — zdarzenie przy każdym wejściu na krok
@@ -2592,7 +2606,7 @@ export default function App() {
   const [placeInfoTouched, setPlaceInfoTouched] = useState(false);
   // Tryb "Mam miejsce" — pole "Wymagana faktura VAT" (nie / tak)
   const [invoiceRequired, setInvoiceRequired] = useState(false);
-  const [profileItem,     setProfileItem]     = useState(null);
+  const [profileItem,     setProfileItem]     = useState(initialProfile);
   const [selectedDate,    setSelectedDate]    = useState("");
   const [selectedTime,    setSelectedTime]    = useState("");
   const [isContactModalOpen, setIsContactModalOpen] = useState(false);
@@ -2715,6 +2729,7 @@ export default function App() {
       const item = findBySlug(isR ? restaurants : workshops, r.slug);
       if (!item) {
         // Nieistniejący albo usunięty profil — przyjazna strona 404.
+        setPath(null);
         setLanding({ type:"notfound" });
         window.history.replaceState({ mode, path:null, wizardStep:1, submitted:false, profileItem:null, landing:{ type:"notfound" } }, "", window.location.pathname);
         return;
