@@ -1564,7 +1564,7 @@ function HomeScreen({ restaurants, workshops, onStart, groupSize, setGroupSize, 
   return (
     <div>
       {/* 1. Hero — wideo + nazwa + podtytuł + CTA */}
-      <div style={{ position:"relative", width:"100%", height:"clamp(340px, 46vw, 460px)", overflow:"hidden", isolation:"isolate" }}>
+      <div style={{ position:"relative", width:"100%", height:"clamp(340px, 46vw, 460px)", overflow:"hidden", isolation:"isolate", clipPath:"inset(0)" }}>
         <video ref={videoRef} className="hero-video" autoPlay muted playsInline preload="metadata" poster={HERO_PHOTO}
           onLoadedMetadata={seekToStart} onEnded={handleEnded}
           style={{ position:"absolute", inset:0, width:"100%", height:"100%", objectFit:"cover", objectPosition:"center 68%" }}>
