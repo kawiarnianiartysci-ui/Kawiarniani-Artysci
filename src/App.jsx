@@ -184,7 +184,10 @@ const globalCSS = `
     .wizard-nav-spacer { display:block; height:76px; }
   }
   @media (min-width: 641px) {
-    .hero-video { transform: scale(1.15); transform-origin: 70% 68%; }
+    /* Powiększenie filmu o 15% (punkt zaczepienia 70% / 68%) przez rozmiar i
+       przesunięcie, a NIE przez transform: scale — przy scale przeglądarka rysuje
+       film na osobnej warstwie i zostawiała cienką linię pod nagłówkiem. */
+    .hero-video { width: 115% !important; height: 115% !important; left: -10.5% !important; top: -10.2% !important; }
     /* Pływający pasek nawigacji kreatora — pojawia się tylko, gdy JS
        (IntersectionObserver w WizardStickyBar) wykryje, że oryginalny
        pasek na górze wyszedł poza widok po scrollu. Spacer rezerwuje
