@@ -83,7 +83,7 @@ Every item has its own shareable URL, and a handful of occasion landing pages ex
 
 Client side, the manual history mechanism was extended rather than replaced with a router: history entries now carry a URL and a `landing` field. Two ordering gotchas already hit (don't reintroduce): (1) the "resolve the initial URL" effect must be declared **after** the pushState effect, otherwise the first render pushes a stray root entry and Back from a deep-linked profile lands on the homepage; (2) the pushState effect skips when state+URL equal the current entry, otherwise deep links need Back twice.
 
-Share button (`ShareButtons` in `ProfileModal`): Web Share API on touch devices, otherwise Facebook / WhatsApp / copy-link; fires GA4 `share` (`method`, `content_type`, `item_id`). Share links carry `data-share` so the global `contact_click` tracker ignores them. Links are clean (no UTM) on purpose.
+Share row (`ShareButtons`, bottom of `ProfileModal`, small outline icons): Facebook, Instagram, LinkedIn, copy-link, plus a system-share icon on touch devices (covers WhatsApp/Messenger/SMS). Instagram has no web share URL — on touch it opens the system share sheet, on desktop it copies the link with a hint. Fires GA4 `share` (`method`, `content_type`, `item_id`). Share links carry `data-share` so the global `contact_click` tracker ignores them. Links are clean (no UTM) on purpose.
 
 ## Design conventions
 

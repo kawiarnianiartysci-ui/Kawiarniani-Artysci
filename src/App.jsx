@@ -270,48 +270,82 @@ const WebsiteIcon = ({ size = 20, color = C.primary }) => (
   </svg>
 );
 
-// ══ Przycisk "Udostępnij" w profilu ══════════════════════════
-// Na telefonie: systemowe menu udostępniania (Instagram, WhatsApp, Messenger,
-// SMS...). Na komputerze: Facebook, WhatsApp i "Kopiuj link". Link to zawsze
-// czysty adres profilu (bez dopisków do statystyk) — ładnie wygląda i działa
-// tak samo po przekazaniu dalej. Każde udostępnienie = zdarzenie GA4 "share".
-// Linki mają data-share, żeby licznik kliknięć w kontakty (contact_click)
-// nie liczył ich jako kontaktu z nami przez Facebooka/WhatsAppa.
+const LinkedInIcon = ({ size = 20, color = C.primary }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <rect x="3" y="3" width="18" height="18" rx="3" stroke={color} strokeWidth="1.8" />
+    <path d="M8 10.5V16.5" stroke={color} strokeWidth="1.8" strokeLinecap="round" />
+    <circle cx="8" cy="7.6" r="1.1" fill={color} />
+    <path d="M11.5 16.5V10.5M11.5 13c0-1.6 1-2.6 2.4-2.6 1.4 0 2.1.9 2.1 2.5v3.6" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+  </svg>
+);
+
+const LinkIcon = ({ size = 20, color = C.primary }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M10 14a4 4 0 0 0 5.66 0l3-3a4 4 0 0 0-5.66-5.66l-1.2 1.2" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+    <path d="M14 10a4 4 0 0 0-5.66 0l-3 3a4 4 0 0 0 5.66 5.66l1.2-1.2" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+  </svg>
+);
+
+// Ikona systemowego "Udostępnij" (kwadrat ze strzałką w górę, jak na telefonach)
+const ShareIcon = ({ size = 20, color = C.primary }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M12 3v12M8 7l4-4 4 4" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+    <path d="M7 10H6a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-7a2 2 0 0 0-2-2h-1" stroke={color} strokeWidth="1.8" strokeLinecap="round" />
+  </svg>
+);
+
+// ══ Udostępnianie profilu — małe ikonki na dole profilu ═══════
+// Wzorem dużych serwisów rezerwacyjnych: dyskretny rząd małych ikon, nie
+// rząd dużych przycisków. Facebook, Instagram, LinkedIn i "Kopiuj link";
+// na telefonie dodatkowo ikona systemowego menu udostępniania (tam są też
+// WhatsApp, Messenger, SMS...).
+// Instagram nie pozwala stronom udostępniać linku (ani z komputera, ani
+// "wprost" z telefonu) — ikonka Instagrama na telefonie otwiera systemowe
+// menu (Instagram w nim jest), a na komputerze kopiuje link z podpowiedzią.
+// Link to zawsze czysty adres profilu (bez dopisków do statystyk).
+// Każde udostępnienie = zdarzenie GA4 "share". Linki mają data-share, żeby
+// licznik kliknięć w kontakty (contact_click) ich nie liczył.
 function ShareButtons({ url, title, itemId, itemType }) {
-  const [copied, setCopied] = useState(false);
+  const [note, setNote] = useState("");
   const canNativeShare = typeof navigator !== "undefined" && typeof navigator.share === "function"
     && typeof window !== "undefined" && window.matchMedia && window.matchMedia("(pointer: coarse)").matches;
   const log = method => track("share", { method, content_type: itemType, item_id: itemId });
-  const pill = { display:"inline-flex", alignItems:"center", justifyContent:"center", gap:6, minHeight:36, padding:"6px 14px", borderRadius:999, border:`1px solid ${C.border}`, background:"transparent", color:C.primary, fontSize:12, fontWeight:500, textDecoration:"none", cursor:"pointer", fontFamily:"'Montserrat', system-ui, sans-serif" };
+  const circle = { display:"inline-flex", alignItems:"center", justifyContent:"center", width:34, height:34, borderRadius:"50%", border:`1px solid ${C.border}`, background:"transparent", cursor:"pointer", padding:0, textDecoration:"none" };
+  const showNote = text => { setNote(text); setTimeout(() => setNote(""), 3500); };
 
-  const nativeShare = () => {
-    navigator.share({ title, url })
-      .then(() => log("web_share"))
-      .catch(() => {}); // anulowanie przez użytkownika to nie błąd
+  const nativeShare = method => {
+    navigator.share({ title, url }).then(() => log(method)).catch(() => {}); // anulowanie to nie błąd
   };
-  const copy = () => {
-    const done = () => { setCopied(true); log("kopiuj_link"); setTimeout(() => setCopied(false), 2200); };
+  const copy = (method, message) => {
+    const done = () => { log(method); showNote(message); };
     if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(url).then(done, () => window.prompt("Skopiuj link:", url));
     else window.prompt("Skopiuj link:", url);
   };
+  const iconColor = C.muted;
 
   return (
-    <div style={{ display:"flex", gap:8, justifyContent:"center", flexWrap:"wrap", marginTop:14 }}>
-      {canNativeShare ? (
-        <button type="button" onClick={nativeShare} style={pill}>Udostępnij</button>
-      ) : (
-        <>
-          <a data-share href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`} target="_blank" rel="noreferrer" onClick={() => log("facebook")} style={pill}>
-            <FacebookIcon size={14} /> Facebook
-          </a>
-          <a data-share href={`https://wa.me/?text=${encodeURIComponent(`${title} ${url}`)}`} target="_blank" rel="noreferrer" onClick={() => log("whatsapp")} style={pill}>
-            WhatsApp
-          </a>
-          <button type="button" onClick={copy} style={{ ...pill, borderColor: copied ? C.primary : C.border }}>
-            {copied ? "Skopiowano ✓" : "Kopiuj link"}
+    <div style={{ marginTop:26, paddingTop:18, borderTop:`1px solid ${C.border}`, textAlign:"center" }}>
+      <div style={{ fontSize:11, color:C.muted, letterSpacing:"0.08em", marginBottom:10 }}>Udostępnij profil</div>
+      <div style={{ display:"flex", gap:10, justifyContent:"center", flexWrap:"wrap" }}>
+        <a data-share href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`} target="_blank" rel="noreferrer" onClick={() => log("facebook")} aria-label="Udostępnij na Facebooku" title="Facebook" style={circle}>
+          <FacebookIcon size={15} color={iconColor} />
+        </a>
+        <button type="button" onClick={() => canNativeShare ? nativeShare("instagram") : copy("instagram", "Link skopiowany — wklej go w relacji albo wiadomości na Instagramie.")} aria-label="Udostępnij na Instagramie" title="Instagram" style={circle}>
+          <InstagramIcon size={15} color={iconColor} />
+        </button>
+        <a data-share href={`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(url)}`} target="_blank" rel="noreferrer" onClick={() => log("linkedin")} aria-label="Udostępnij na LinkedInie" title="LinkedIn" style={circle}>
+          <LinkedInIcon size={15} color={iconColor} />
+        </a>
+        <button type="button" onClick={() => copy("kopiuj_link", "Link skopiowany.")} aria-label="Kopiuj link" title="Kopiuj link" style={circle}>
+          <LinkIcon size={15} color={iconColor} />
+        </button>
+        {canNativeShare && (
+          <button type="button" onClick={() => nativeShare("web_share")} aria-label="Więcej opcji udostępniania" title="Więcej" style={circle}>
+            <ShareIcon size={15} color={iconColor} />
           </button>
-        </>
-      )}
+        )}
+      </div>
+      <div aria-live="polite" style={{ minHeight:18, marginTop:8, fontSize:11, color:C.primary }}>{note}</div>
     </div>
   );
 }
@@ -354,7 +388,6 @@ function ProfileModal({ item, type, isSelected, onToggleSelect, selectedVariantI
           {isRestaurant && item.tagline && (
             <div style={{ fontSize:13, color:C.primary, fontStyle:"italic", marginTop:10 }}>{item.tagline}</div>
           )}
-          <ShareButtons url={shareUrl} title={item.name} itemId={item.id} itemType={type} />
         </div>
 
         {/* Content */}
@@ -496,6 +529,9 @@ function ProfileModal({ item, type, isSelected, onToggleSelect, selectedVariantI
               : isRestaurant ? "Wybierz tę restaurację" : "Dodaj ten warsztat"}
           </button>
           )}
+
+          {/* Udostępnianie — na samym dole profilu, małe ikonki */}
+          <ShareButtons url={shareUrl} title={item.name} itemId={item.id} itemType={type} />
         </div>
       </div>
     </div>
