@@ -1564,7 +1564,7 @@ function HomeScreen({ restaurants, workshops, onStart, groupSize, setGroupSize, 
   return (
     <div>
       {/* 1. Hero — wideo + nazwa + podtytuł + CTA */}
-      <div style={{ position:"relative", width:"100%", height:"clamp(340px, 46vw, 460px)", overflow:"hidden" }}>
+      <div style={{ position:"relative", width:"100%", height:"clamp(340px, 46vw, 460px)", overflow:"hidden", isolation:"isolate" }}>
         <video ref={videoRef} className="hero-video" autoPlay muted playsInline preload="metadata" poster={HERO_PHOTO}
           onLoadedMetadata={seekToStart} onEnded={handleEnded}
           style={{ position:"absolute", inset:0, width:"100%", height:"100%", objectFit:"cover", objectPosition:"center 68%" }}>
@@ -1574,7 +1574,11 @@ function HomeScreen({ restaurants, workshops, onStart, groupSize, setGroupSize, 
         {/* delikatna faktura papieru/tektury */}
         <div style={{ position:"absolute", inset:0, opacity:0.12, mixBlendMode:"multiply", backgroundImage:"url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E\")" }} />
         {/* przejście: przezroczyste u góry → kolor tła strony u dołu (delikatniejsze) */}
-        <div style={{ position:"absolute", inset:0, background:`linear-gradient(180deg, rgba(237,235,230,0) 0%, rgba(237,235,230,0.05) 50%, rgba(237,235,230,0.35) 70%, rgba(237,235,230,0.75) 85%, ${C.bg} 97%)` }} />
+        <div style={{ position:"absolute", inset:0, background:`linear-gradient(180deg, rgba(237,235,230,0) 0%, rgba(237,235,230,0.05) 45%, rgba(237,235,230,0.3) 62%, rgba(237,235,230,0.62) 76%, rgba(237,235,230,0.88) 88%, ${C.bg} 96%)` }} />
+        {/* Pełny pasek koloru tła na samym dole — zakrywa cienką, ostrą linię,
+            którą przeglądarka potrafi zostawić na krawędzi powiększonego wideo
+            (transform: scale), żeby film płynnie przechodził w tło strony. */}
+        <div style={{ position:"absolute", left:0, right:0, bottom:0, height:10, background:C.bg }} />
       </div>
 
       <div style={{ maxWidth:1160, margin:"0 auto", padding:"0 16px 56px" }}>
