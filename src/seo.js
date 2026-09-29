@@ -29,9 +29,7 @@ export const OCCASIONS = [
     h1: "Wieczór panieński w Poznaniu — przy sztuce, kawie albo winie",
     description: "Kreatywny wieczór panieński w Poznaniu: warsztaty artystyczne dla Ciebie i przyjaciółek w klimatycznej kawiarni lub restauracji. Wybierz warsztat i miejsce, wyślij zapytanie.",
     paragraphs: [
-      "Wieczór panieński nie musi oznaczać głośnego klubu. Możecie spotkać się przy stole w kameralnej poznańskiej kawiarni albo restauracji, a artystka lub artysta poprowadzi Was przez warsztat — malowanie, ebru, mozaikę, świece, zapachy i wiele innych.",
-      "Każda z Was wychodzi z czymś, co zrobiła własnymi rękami — pamiątką z tego dnia. A pomiędzy jest czas na rozmowę, śmiech i coś dobrego do jedzenia i picia.",
-      "Jak to działa? Wybierasz warsztat i miejsce (albo zapraszasz artystę do siebie), podajesz termin i liczbę osób, a my przekazujemy zapytanie artyście i lokalowi i wracamy z odpowiedzią.",
+      "Jeśli szukacie spokojniejszego sposobu na spędzenie wieczoru panieńskiego i chcecie spróbować czegoś zupełnie nowego lub wręcz przeciwnie, sięgnąć po coś, co już znacie i lubicie, możecie po prostu zaprosić artystę prowadzącego warsztaty do Waszej ulubionej restauracji albo innej wybranej przestrzeni. To niezwykle wygodne logistycznie rozwiązanie, bo w jednym miejscu łączycie pyszne jedzenie i kolację z wyjątkową atrakcją.",
     ],
   },
   {
@@ -42,9 +40,7 @@ export const OCCASIONS = [
     h1: "Urodziny w Poznaniu — z warsztatem artystycznym przy stole",
     description: "Pomysł na urodziny w Poznaniu: warsztat artystyczny dla Ciebie i gości w kawiarni lub restauracji. Malowanie, ebru, ceramika, zapachy i więcej — wybierz i wyślij zapytanie.",
     paragraphs: [
-      "Szukasz pomysłu na urodziny, które goście zapamiętają na dłużej niż jeden wieczór? Zamiast samej kolacji — kolacja i wspólny warsztat artystyczny, prowadzony przez artystę przy Waszym stole.",
-      "Nie trzeba umieć malować ani mieć „zdolności manualnych”. Warsztaty są przygotowane tak, żeby każdy dobrze się bawił i wyszedł z własną pracą.",
-      "Wybierz warsztat i miejsce w Poznaniu (albo zaproś artystę do siebie), podaj termin i liczbę gości — resztę ustalimy razem z artystą i lokalem.",
+      "Jeśli szukacie pomysłu na urodziny, które Wasze grono zapamięta na dłużej niż jeden wieczór, i chcecie spróbować czegoś nowego lub spędzić czas przy czymś, co znacie i lubicie, możecie po prostu zaprosić artystę prowadzącego warsztaty do Waszej ulubionej restauracji albo innej wybranej przestrzeni. To bardzo wygodne logistycznie rozwiązanie, bo w jednym miejscu łączycie pyszne jedzenie i wspólne świętowanie z wyjątkową atrakcją.",
     ],
   },
   {
@@ -55,9 +51,7 @@ export const OCCASIONS = [
     h1: "Urodziny dla dzieci w Poznaniu — z warsztatem kreatywnym",
     description: "Urodziny dziecka w Poznaniu z warsztatem kreatywnym w miejscu przyjaznym dzieciom. Wybierz warsztat i salę, podaj liczbę dzieci i dorosłych, wyślij zapytanie.",
     paragraphs: [
-      "Urodziny, na których dzieci nie tylko jedzą tort, ale też coś razem tworzą. Artysta prowadzi warsztat dopasowany do wieku dzieci, a dorośli mogą spokojnie usiąść obok przy kawie.",
-      "Na tej stronie znajdziesz warsztaty przygotowane dla dzieci i miejsca w Poznaniu, które przyjmują dziecięce urodziny. Szczegóły każdego warsztatu, w tym wiek dzieci, sprawdzisz w jego profilu.",
-      "Podaj liczbę dzieci i dorosłych, wybierz warsztat i miejsce (albo zaproś artystę do siebie), a my przekażemy zapytanie i wrócimy z odpowiedzią.",
+      "Jeśli szukacie pomysłu na urodziny dla swojego dziecka, nasza platforma jest świetnym wyborem. Możecie zaprosić artystę prowadzącego kreatywne warsztaty do wybranej restauracji albo do własnej przestrzeni. Warsztaty da się łatwo dopasować do wieku dzieci, dzięki czemu rozwijają wyobraźnię, angażują i dają maluchom mnóstwo radości z tworzenia. Całość jest bardzo wygodna logistycznie, bo kwestie jedzenia i tortu dogadujecie bezpośrednio z elastyczną restauracją, a Wy w jednym miejscu macie zorganizowany poczęstunek i wartościową zabawę.",
     ],
   },
   {
@@ -68,9 +62,7 @@ export const OCCASIONS = [
     h1: "Integracja firmowa w Poznaniu — warsztat kreatywny dla zespołu",
     description: "Kameralna integracja firmowa w Poznaniu: warsztat artystyczny dla zespołu w kawiarni lub restauracji, albo u Was w firmie. Wybierz warsztat i wyślij zapytanie.",
     paragraphs: [
-      "Integracja nie musi oznaczać wyjazdu ani wielkiej imprezy. Wystarczy wspólne popołudnie lub wieczór przy stole, w którym zespół razem coś tworzy — z artystą, który wszystko prowadzi.",
-      "Wspólny warsztat to dobra okazja, żeby porozmawiać poza tematami z pracy i zobaczyć się nawzajem z innej strony. Każdy wychodzi z własną pracą.",
-      "Możecie wybrać kawiarnię lub restaurację z listy albo zaprosić artystę do siebie. Jeśli potrzebujecie faktury, napiszcie o tym w uwagach do zapytania.",
+      "Jeśli szukacie nowego sposobu na integrację firmową, nasza platforma jest świetnym wyborem. To wyjątkowo wygodne rozwiązanie organizacyjne, bo jeśli macie własną przestrzeń, możecie zaprosić artystę z warsztatami bezpośrednio do siebie do biura albo do wybranej restauracji. Cały zespół może na chwilę odejść od codziennych obowiązków i wcielić się w artystów, co generuje mnóstwo śmiechu i pozwala zobaczyć się z zupełnie innej strony. Dodatkowo każdy uczestnik wychodzi z własnoręcznie zrobioną pamiątką, dzięki czemu miłe wspomnienia z tego wyjścia zostają z Wami na dużo dłużej.",
     ],
   },
   {
@@ -81,9 +73,7 @@ export const OCCASIONS = [
     h1: "Baby shower w Poznaniu — przy kawie i wspólnym tworzeniu",
     description: "Baby shower w Poznaniu z warsztatem artystycznym w kameralnej kawiarni lub restauracji. Wybierz warsztat i miejsce, podaj termin i liczbę gości, wyślij zapytanie.",
     paragraphs: [
-      "Baby shower to spotkanie w bliskim gronie — i właśnie w takim klimacie najlepiej sprawdza się wspólny warsztat przy stole, w spokojnej poznańskiej kawiarni albo restauracji.",
-      "Artystka lub artysta przygotowuje wszystko, czego potrzeba, a Wy możecie skupić się na byciu razem. Na koniec zostaje pamiątka zrobiona własnymi rękami.",
-      "Wybierz warsztat i miejsce (albo zaproś artystę do siebie), podaj termin i liczbę gości — przekażemy zapytanie i wrócimy z odpowiedzią.",
+      "Jeśli szukacie nowego sposobu na spędzenie i zorganizowanie baby shower, nasza platforma jest świetnym wyborem. Jeśli nie chcecie wymyślać konkursów ani tradycyjnych gier, warsztaty w kameralnym gronie sprawdzą się idealnie. W naszej ofercie znajdziecie różnorodne zajęcia, z których na pewno wybierzecie coś, co przypadnie przyszłej mamie do gustu. Artystę możecie zaprosić do ulubionej restauracji, kawiarni albo własnej przestrzeni. W ten sposób skupiacie się na byciu ze sobą i niespiesznym świętowaniu, a każda z uczestniczek wychodzi ze spotkania z miłą, własnoręcznie zrobioną pamiątką.",
     ],
   },
 ];
