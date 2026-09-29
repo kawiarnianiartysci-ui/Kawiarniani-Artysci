@@ -127,6 +127,17 @@ export function workshopTitle(w) {
   const who = w.artist && w.artist.trim() && !w.name.toLowerCase().includes(w.artist.trim().toLowerCase()) ? ` — ${w.artist.trim()}` : "";
   return `${w.name.trim()}${who} | Warsztaty w Poznaniu · ${BRAND}`;
 }
+// Krótsze tytuły do podglądów linków w social mediach (tam nazwa strony
+// wyświetla się osobno, nad tytułem) — np. "Ebru — malowanie na wodzie ·
+// Ayşe Peciak — Marbled Minds". Pełne tytuły powyżej zostają dla Google.
+export function workshopShareTitle(w) {
+  const artist = String(w.artist || "").trim();
+  const name = String(w.name || "").trim();
+  return artist && !name.toLowerCase().includes(artist.toLowerCase()) ? `${name} · ${artist}` : name;
+}
+export function restaurantShareTitle(r) {
+  return `${String(r.name || "").trim()}, Poznań`;
+}
 export function restaurantTitle(r) {
   return `${r.name.trim()}, Poznań — eventy z warsztatami | ${BRAND}`;
 }

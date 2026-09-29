@@ -78,6 +78,25 @@ const coverPosition = filename => {
   return key ? COVER_POSITION_OVERRIDES[key] : "center";
 };
 
+// Zmniejszone zdjęcia (Vercel Image Optimization, adres /_vercel/image):
+// przeglądarka dostaje wersję w rozmiarze, w jakim zdjęcie naprawdę widać
+// na ekranie (i w lżejszym formacie WebP), zamiast oryginału, który często
+// waży kilka MB — to najbardziej przyspiesza stronę na telefonach.
+// `width` = szerokość na ekranie w pikselach ×2 (ekrany telefonów są gęste),
+// zaokrąglana w górę do jednego z rozmiarów dozwolonych w vercel.json.
+// Gdyby optymalizacja kiedyś nie zadziałała (np. limit darmowego planu
+// Vercela), onError podmienia obrazek na oryginał — zdjęcie pokaże się zawsze.
+// Nowe zdjęcia z arkusza działają tak samo, bez żadnych zmian w kodzie.
+const IMG_WIDTHS = [256, 640, 1080]; // takie same jak "images.sizes" w vercel.json
+const optimizedImg = (src, width) => {
+  if (!src || typeof window === "undefined" || /^(localhost|127\.0\.0\.1)$/.test(window.location.hostname)) return { src };
+  const w = IMG_WIDTHS.find(x => x >= width) || IMG_WIDTHS[IMG_WIDTHS.length - 1];
+  return {
+    src: `/_vercel/image?url=${encodeURIComponent(src)}&w=${w}&q=75`,
+    onError: e => { if (e.currentTarget.src.includes("/_vercel/image")) e.currentTarget.src = src; },
+  };
+};
+
 // Podstrony (profile, okazje) przychodzą z serwera z danymi arkusza już
 // doklejonymi do strony (window.__DANE_ARKUSZA__, patrz api/page.js) — wtedy
 // nie pobieramy arkusza drugi raz i strona startuje od razu. Strona główna
@@ -208,7 +227,7 @@ function PhotoGallery({ photos }) {
         <div style={{ display:"grid", gridTemplateColumns:"repeat(2, 1fr)", gap:8 }}>
           {photos.map((p, i) => (
             <div key={i} onClick={() => setExpandedIdx(i)} className="gallery-thumb" style={{ borderRadius:10, overflow:"hidden", cursor:"pointer", aspectRatio:"4 / 3", background:C.tagBg }}>
-              <img src={getSrc(p)} alt={`Galeria zdjęcia ${i + 1}`} loading="lazy" style={{ width:"100%", height:"100%", objectFit:getFit(p), objectPosition:getPosition(p), display:"block" }} />
+              <img {...optimizedImg(getSrc(p), 640)} alt={`Galeria zdjęcia ${i + 1}`} loading="lazy" style={{ width:"100%", height:"100%", objectFit:getFit(p), objectPosition:getPosition(p), display:"block" }} />
             </div>
           ))}
         </div>
@@ -219,11 +238,11 @@ function PhotoGallery({ photos }) {
   return (
     <div style={{ marginBottom:22 }}>
       <div onClick={() => setExpandedIdx(null)} style={{ borderRadius:12, overflow:"hidden", cursor:"zoom-out", marginBottom:8, background:"#111", display:"flex", justifyContent:"center", alignItems:"center" }}>
-        <img src={getSrc(photos[expandedIdx])} alt={`Rozwinięte zdjęcie ${expandedIdx + 1}`} loading="lazy" style={{ width:"100%", maxHeight:280, objectFit:"contain", display:"block" }} />
+        <img {...optimizedImg(getSrc(photos[expandedIdx]), 1080)} alt={`Rozwinięte zdjęcie ${expandedIdx + 1}`} loading="lazy" style={{ width:"100%", maxHeight:280, objectFit:"contain", display:"block" }} />
       </div>
       <div style={{ display:"flex", gap:8, overflowX:"auto", paddingBottom:4 }}>
         {photos.map((p, i) => (
-          <img key={i} src={getSrc(p)} onClick={() => setExpandedIdx(i)} alt={`Podgląd zdjęcia ${i + 1}`} loading="lazy"
+          <img key={i} {...optimizedImg(getSrc(p), 256)} onClick={() => setExpandedIdx(i)} alt={`Podgląd zdjęcia ${i + 1}`} loading="lazy"
             style={{ width:64, height:48, objectFit:getFit(p), objectPosition:getPosition(p), borderRadius:6, cursor:"pointer", flexShrink:0, border: i === expandedIdx ? `2px solid ${C.primary}` : "2px solid transparent", opacity: i === expandedIdx ? 1 : 0.7 }} />
         ))}
       </div>
@@ -374,11 +393,11 @@ function ProfileModal({ item, type, isSelected, onToggleSelect, selectedVariantI
 
           {item.logo ? (
             <div style={{ width:72, height:72, margin:"0 auto 14px" }}>
-              <img src={item.logo} alt={item.name} loading="lazy" style={{ width:"100%", height:"100%", objectFit:"contain" }} />
+              <img {...optimizedImg(item.logo, 256)} alt={item.name} loading="lazy" style={{ width:"100%", height:"100%", objectFit:"contain" }} />
             </div>
           ) : item.photo ? (
             <div style={{ width:72, height:72, margin:"0 auto 14px", borderRadius:14, overflow:"hidden" }}>
-              <img src={item.photo} alt={item.name} loading="lazy" style={{ width:"100%", height:"100%", objectFit:"cover" }} />
+              <img {...optimizedImg(item.photo, 256)} alt={item.name} loading="lazy" style={{ width:"100%", height:"100%", objectFit:"cover" }} />
             </div>
           ) : null}
           <div style={{ fontFamily:"'Montserrat', system-ui, sans-serif", fontSize:28, fontWeight:400, color:C.text, marginBottom:4 }}>{item.name}</div>
@@ -398,7 +417,7 @@ function ProfileModal({ item, type, isSelected, onToggleSelect, selectedVariantI
             <PhotoGallery photos={item.photos} />
           ) : item.photo ? (
             <div style={{ borderRadius:10, overflow:"hidden", marginBottom:20 }}>
-              <img src={item.photo} alt={item.name} loading="lazy" style={{ width:"100%", height:180, objectFit:"cover", objectPosition: coverPosition(item.photo), display:"block" }} />
+              <img {...optimizedImg(item.photo, 1080)} alt={item.name} loading="lazy" style={{ width:"100%", height:180, objectFit:"cover", objectPosition: coverPosition(item.photo), display:"block" }} />
             </div>
           ) : (
             <div style={{ marginBottom:20 }}>
@@ -550,11 +569,11 @@ function RestaurantCard({ r, isSelected, selectedVariantId, onToggle, onVariantS
 
       {r.photo ? (
         <div style={{ height:140, overflow:"hidden", position:"relative" }}>
-          <img src={r.photo} alt={r.name} loading="lazy" style={{ width:"100%", height:"100%", objectFit:"cover", objectPosition: r.photo.includes("magazyn-gallery-1") ? "center 12%" : r.photo.includes("zuk-gallery-0") ? "center 85%" : "center", display:"block" }} />
+          <img {...optimizedImg(r.photo, 640)} alt={r.name} loading="lazy" style={{ width:"100%", height:"100%", objectFit:"cover", objectPosition: r.photo.includes("magazyn-gallery-1") ? "center 12%" : r.photo.includes("zuk-gallery-0") ? "center 85%" : "center", display:"block" }} />
         </div>
       ) : r.logo ? (
         <div style={{ height:140, overflow:"hidden", position:"relative", background:"#FFFFFF", display:"flex", alignItems:"center", justifyContent:"center" }}>
-          <img src={r.logo} alt={r.name} loading="lazy" style={{ width:110, height:110, objectFit:"contain", display:"block" }} />
+          <img {...optimizedImg(r.logo, 256)} alt={r.name} loading="lazy" style={{ width:110, height:110, objectFit:"contain", display:"block" }} />
         </div>
       ) : null}
 
@@ -633,11 +652,11 @@ function WorkshopCard({ w, isSelected, onToggle, onProfile, kidsMode = false, ow
     <div className={soon ? "" : "card-h"} style={{ background: isSelected ? C.selectedBg : soon ? "#F5F4F1" : C.card, border:`2px solid ${isSelected ? C.primary : "transparent"}`, borderRadius:14, overflow:"hidden", boxShadow: isSelected ? "0 4px 16px rgba(67,42,22,0.14)" : soon ? "none" : "0 1px 5px rgba(0,0,0,0.07)", position:"relative", opacity: soon ? 0.78 : 1, display:"flex", flexDirection:"column", width:"100%" }}>
       {w.photo ? (
         <div style={{ height:140, overflow:"hidden", position:"relative" }}>
-          <img src={w.photo} alt={w.name} loading="lazy" style={{ width:"100%", height:"100%", objectFit:"cover", objectPosition: coverPosition(w.photo), display:"block" }} />
+          <img {...optimizedImg(w.photo, 640)} alt={w.name} loading="lazy" style={{ width:"100%", height:"100%", objectFit:"cover", objectPosition: coverPosition(w.photo), display:"block" }} />
         </div>
       ) : w.logo ? (
         <div style={{ height:140, overflow:"hidden", position:"relative", background:"#ECE4D7", display:"flex", alignItems:"center", justifyContent:"center" }}>
-          <img src={w.logo} alt={w.name} loading="lazy" style={{ width:110, height:110, objectFit:"contain", display:"block" }} />
+          <img {...optimizedImg(w.logo, 256)} alt={w.name} loading="lazy" style={{ width:110, height:110, objectFit:"contain", display:"block" }} />
         </div>
       ) : null}
 
@@ -1421,7 +1440,7 @@ function AboutUsSection() {
         ))}
       </div>
 
-      <img src={LOGO_IMG} alt={COPY.siteName} loading="lazy" style={{ width:75, height:75, objectFit:"contain", display:"block", margin:"32px auto 0" }} />
+      <img {...optimizedImg(LOGO_IMG, 256)} alt={COPY.siteName} loading="lazy" style={{ width:75, height:75, objectFit:"contain", display:"block", margin:"32px auto 0" }} />
     </div>
     </>
   );
@@ -1512,14 +1531,14 @@ function PartnerLogosBar({ restaurants, workshops }) {
           <div className="partner-logos-viewport">
             <div className="partner-logos-track" style={{ animationDuration:`${partnerLogos.length * 3}s` }}>
               {trackLogos.map((p, i) => (
-                <img key={`${p.id}-${i}`} src={p.logo} alt={p.name} loading="lazy" style={{ height:40, objectFit:"contain", opacity:0.75, flexShrink:0 }} />
+                <img key={`${p.id}-${i}`} {...optimizedImg(p.logo, 256)} alt={p.name} loading="lazy" style={{ height:40, objectFit:"contain", opacity:0.75, flexShrink:0 }} />
               ))}
             </div>
           </div>
         ) : (
           <div style={{ display:"flex", gap:18, justifyContent:"center", flexWrap:"wrap", alignItems:"center" }}>
             {partnerLogos.map(p => (
-              <img key={p.id} src={p.logo} alt={p.name} loading="lazy" style={{ height:40, objectFit:"contain", opacity:0.75 }} />
+              <img key={p.id} {...optimizedImg(p.logo, 256)} alt={p.name} loading="lazy" style={{ height:40, objectFit:"contain", opacity:0.75 }} />
             ))}
           </div>
         )
@@ -1628,7 +1647,7 @@ function KidsHomeScreen({ restaurants, workshops, onStart, kidsCount, setKidsCou
       {/* Baner nad tytułem — analogicznie do HERO_PHOTO/hero.mov w HomeScreen,
           tylko że tu zdjęcie zamiast wideo (na razie brak nagrania z warsztatów dziecięcych). */}
       <div style={{ position:"relative", width:"100%", height:"clamp(260px, 42vw, 440px)", overflow:"hidden", background:C.selectedBg }}>
-        <img src={HERO_PHOTO_DZIECI} alt="Warsztat malarski dla dzieci" style={{ position:"absolute", inset:0, width:"100%", height:"100%", objectFit:"cover", objectPosition:"center 68%", display:"block" }} />
+        <img {...optimizedImg(HERO_PHOTO_DZIECI, 1080)} alt="Warsztat malarski dla dzieci" style={{ position:"absolute", inset:0, width:"100%", height:"100%", objectFit:"cover", objectPosition:"center 68%", display:"block" }} />
         <div style={{ position:"absolute", inset:0, background:`linear-gradient(180deg, rgba(247,238,221,0) 0%, rgba(247,238,221,0.05) 50%, rgba(247,238,221,0.35) 70%, rgba(247,238,221,0.75) 85%, ${C.bg} 97%)` }} />
       </div>
 
@@ -2612,10 +2631,9 @@ export default function App() {
     return () => document.removeEventListener("click", onDocClick);
   }, []);
 
+  // Czcionka Montserrat ładuje się już w index.html (wcześniej = mniej
+  // "skakania" tekstu przy wczytywaniu strony); tu zostają tylko style.
   useEffect(() => {
-    const link = document.createElement("link");
-    link.href = "https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&display=swap";
-    link.rel = "stylesheet"; document.head.appendChild(link);
     const style = document.createElement("style");
     style.textContent = globalCSS; document.head.appendChild(style);
   }, []);
@@ -2984,7 +3002,7 @@ export default function App() {
       <header style={{ background:C.card, padding:"14px 28px", display:"flex", justifyContent:"space-between", alignItems:"center", flexWrap:"wrap", gap:12, borderBottom:`1px solid ${C.border}` }}>
         <div onClick={() => { setMode("client"); resetToHome(); }} style={{ display:"flex", alignItems:"center", gap:12, flex:"1 1 0", marginLeft:"clamp(4px, 3vw, 44px)", cursor:"pointer" }}>
           <div style={{ width:70, height:70, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
-            <img src={LOGO_IMG} alt={COPY.siteName} style={{ width:70, height:70, objectFit:"contain" }} />
+            <img {...optimizedImg(LOGO_IMG, 256)} alt={COPY.siteName} style={{ width:70, height:70, objectFit:"contain" }} />
           </div>
           <div>
             <div style={{ fontFamily:"'Pan Pizza', cursive", fontSize:36, fontWeight:400, color:C.primary, letterSpacing:"0.01em" }}>{COPY.siteName}</div>

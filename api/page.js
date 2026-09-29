@@ -20,6 +20,7 @@ import {
   SITE_URL, BRAND, HOME_TITLE, OCCASIONS, parseRoute, findBySlug, profilePath, occasionPath,
   occasionWorkshops, occasionPlaces, minWorkshopPrice, shorten,
   workshopTitle, restaurantTitle, workshopDescription, restaurantDescription,
+  workshopShareTitle, restaurantShareTitle,
 } from "../src/seo.js";
 
 const DEFAULT_IMAGE = "/images/hero-photo.jpg";
@@ -161,10 +162,19 @@ ${navOccasions()}</main>`;
 }
 
 // ══ Składanie strony ═════════════════════════════════════════
-function headBlock({ title, description, path, image, noindex, jsonLd }) {
+function headBlock({ title, socialTitle, description, path, image, noindex, jsonLd }) {
+  // W podglądach linków (Facebook, WhatsApp, LinkedIn) nazwa strony i tak
+  // wyświetla się nad tytułem — tam krótszy tytuł, pełny zostaje dla Google.
+  const shareTitle = socialTitle || title;
   const url = path ? SITE_URL + path : null;
   const img = abs(image || DEFAULT_IMAGE);
   return [
+    // Treść w zwykłym HTML-u (#seo-tresc) jest dla robotów i osób bez
+    // JavaScriptu. W zwykłej przeglądarce chowamy ją od razu, żeby strona nie
+    // "przeskakiwała", gdy aplikacja podmienia ją na pełny widok. Gdyby
+    // aplikacja z jakiegoś powodu nie wystartowała w ciągu 8 s, treść wraca.
+    `<script>document.documentElement.className+=" js";setTimeout(function(){var s=document.getElementById("seo-tresc");if(s)s.style.display="block"},8000)</script>`,
+    `<style>.js #seo-tresc{display:none}</style>`,
     `<title>${esc(title)}</title>`,
     `<meta name="description" content="${esc(description)}" />`,
     noindex ? `<meta name="robots" content="noindex" />` : "",
@@ -173,11 +183,11 @@ function headBlock({ title, description, path, image, noindex, jsonLd }) {
     `<meta property="og:site_name" content="${BRAND}" />`,
     `<meta property="og:locale" content="pl_PL" />`,
     url ? `<meta property="og:url" content="${esc(url)}" />` : "",
-    `<meta property="og:title" content="${esc(title)}" />`,
+    `<meta property="og:title" content="${esc(shareTitle)}" />`,
     `<meta property="og:description" content="${esc(description)}" />`,
     `<meta property="og:image" content="${esc(img)}" />`,
     `<meta name="twitter:card" content="summary_large_image" />`,
-    `<meta name="twitter:title" content="${esc(title)}" />`,
+    `<meta name="twitter:title" content="${esc(shareTitle)}" />`,
     `<meta name="twitter:description" content="${esc(description)}" />`,
     `<meta name="twitter:image" content="${esc(img)}" />`,
     ...(jsonLd || []).map(ld => `<script type="application/ld+json">${jsonForScript(ld)}</script>`),
@@ -198,6 +208,7 @@ function buildPage(route, data) {
       return {
         status: 200,
         title: isW ? workshopTitle(item) : restaurantTitle(item),
+        socialTitle: isW ? workshopShareTitle(item) : restaurantShareTitle(item),
         description: isW ? workshopDescription(item) : restaurantDescription(item),
         path,
         image: item.photo || item.logo,
@@ -218,7 +229,7 @@ function buildPage(route, data) {
     const ps = occasionPlaces(o, restaurants);
     const path = occasionPath(o);
     return {
-      status: 200, title: o.title, description: o.description, path,
+      status: 200, title: o.title, socialTitle: o.h1, description: o.description, path,
       image: o.kids ? "/images/hero-photo-dzieci.jpg" : DEFAULT_IMAGE,
       jsonLd: [occasionLd(o, ws, path), breadcrumb([{ name: BRAND, path: "/" }, { name: o.navLabel, path }])],
       body: occasionBody(o, ws, ps),
@@ -285,7 +296,7 @@ export default async function handler(req, res) {
   const html = template
     .replace(/<!-- SEO:START -->[\s\S]*?<!-- SEO:END -->/, () => headBlock(page))
     .replace(/<!-- NOSCRIPT:START -->[\s\S]*?<!-- NOSCRIPT:END -->/, () => "")
-    .replace('<div id="root"></div>', () => `<div id="root">${page.body}</div>${dataScript}`);
+    .replace('<div id="root"></div>', () => `<div id="root"><div id="seo-tresc">${page.body}</div></div>${dataScript}`);
 
   res.setHeader("Content-Type", "text/html; charset=utf-8");
   res.setHeader("Cache-Control", page.status === 200
