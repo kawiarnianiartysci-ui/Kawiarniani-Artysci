@@ -1583,6 +1583,11 @@ function HomeScreen({ restaurants, workshops, onStart, groupSize, setGroupSize, 
             (transform: scale), żeby film płynnie przechodził w tło strony. */}
         <div style={{ position:"absolute", left:0, right:0, bottom:0, height:10, background:C.bg }} />
       </div>
+      {/* Wąski pasek koloru tła NA krawędzi nagłówka (wchodzi 4 px w film i
+          8 px pod niego, bez wpływu na układ strony). Przeglądarka rysuje wideo
+          na osobnej warstwie i zostawiała pod nim cienką ciemną linię, której
+          nie zakrywały elementy wewnątrz nagłówka — dopiero ten pasek nad nim. */}
+      <div aria-hidden="true" style={{ position:"relative", zIndex:1, height:12, marginTop:-4, marginBottom:-8, background:C.bg }} />
 
       <div style={{ maxWidth:1160, margin:"0 auto", padding:"0 16px 56px" }}>
         <div className="hero-copy-wrap" style={{ textAlign:"center", maxWidth:760, marginLeft:"auto", marginRight:"auto" }}>
