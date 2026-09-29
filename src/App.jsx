@@ -1567,7 +1567,8 @@ function HomeScreen({ restaurants, workshops, onStart, groupSize, setGroupSize, 
         <video ref={videoRef} className="hero-video" autoPlay muted playsInline preload="metadata" poster={HERO_PHOTO}
           onLoadedMetadata={seekToStart} onEnded={handleEnded}
           style={{ position:"absolute", inset:0, width:"100%", height:"100%", objectFit:"cover", objectPosition:"center 68%" }}>
-          <source src="/videos/hero.mov" />
+          {/* hero.mp4 (3,2 MB, eksport z Canvy 2026-09-29) zamiast hero.mov (12,9 MB) — ten sam film, lżejszy plik */}
+          <source src="/videos/hero.mp4" type="video/mp4" />
         </video>
         {/* delikatna faktura papieru/tektury */}
         <div style={{ position:"absolute", inset:0, opacity:0.12, mixBlendMode:"multiply", backgroundImage:"url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E\")" }} />
