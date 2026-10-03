@@ -236,6 +236,7 @@ const globalCSS = `
   @media (max-width: 640px) {
     .header-blog-link { order:-1; width:100%; text-align:right; padding:0 !important; margin:0 !important; font-size:13px !important; }
     .blog-body { font-size:15.5px; }
+    .blog-title { font-size:26px !important; }
   }
   .partner-logos-viewport { overflow: hidden; width: 100%; -webkit-mask-image: linear-gradient(90deg, transparent, #000 6%, #000 94%, transparent); mask-image: linear-gradient(90deg, transparent, #000 6%, #000 94%, transparent); }
   .partner-logos-track { display: flex; align-items: center; gap: 18px; width: max-content; animation-name: partner-logos-scroll; animation-timing-function: linear; animation-iteration-count: infinite; }
@@ -2278,7 +2279,7 @@ function BlogPostPage({ post, workshops, onOccasion, onStart, onPickWorkshop, on
     <div style={{ maxWidth:1160, margin:"0 auto", padding:"36px 16px 40px" }}>
       <article style={{ maxWidth:680, margin:"0 auto" }}>
         <a href={BLOG_PATH} style={{ fontSize:13, color:C.muted }}>Blog</a>
-        <h1 style={{ fontFamily:"'Montserrat', system-ui, sans-serif", fontSize:32, fontWeight:400, lineHeight:1.25, color:C.text, margin:"10px 0 12px" }}>{post.title}</h1>
+        <h1 className="blog-title" style={{ fontFamily:"'Montserrat', system-ui, sans-serif", fontSize:32, fontWeight:400, lineHeight:1.25, color:C.text, margin:"10px 0 12px" }}>{post.title}</h1>
         <div style={{ fontSize:13, color:C.muted, marginBottom:28 }}>{formatPostDate(post.date)} · Joanna · {COPY.siteName} · {post.readMin} min czytania</div>
         <div className="blog-body" dangerouslySetInnerHTML={{ __html: post.html }} />
       </article>
