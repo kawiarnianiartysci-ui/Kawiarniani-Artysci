@@ -2283,7 +2283,7 @@ function BlogPostPage({ post, workshops, onOccasion, onStart, onPickWorkshop, on
         <div style={{ fontSize:13, color:C.muted, marginBottom:28 }}>{formatPostDate(post.date)} · Joanna · {COPY.siteName} · {post.readMin} min czytania</div>
         <div className="blog-body" dangerouslySetInnerHTML={{ __html: post.html }} />
       </article>
-      <div style={{ maxWidth:680, margin:"40px auto 0", background:C.selectedBg, border:`1px solid ${C.border}`, borderRadius:16, padding:"24px 22px", textAlign:"center" }}>
+      <div style={{ maxWidth:680, margin:"40px auto 0", textAlign:"center" }}>
         <h2 style={{ fontSize:20, fontWeight:400, margin:"0 0 8px", color:C.text }}>Zaplanuj taki event</h2>
         <p style={{ fontSize:14, color:C.muted, margin:"0 0 16px", lineHeight:1.6 }}>
           {o ? "Zobacz warsztaty i miejsca w Poznaniu, wybierz termin i wyślij zapytanie." : "Wybierz warsztat i miejsce w Poznaniu, a potem wyślij zapytanie."}
