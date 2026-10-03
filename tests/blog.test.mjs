@@ -3,6 +3,8 @@
 import assert from "node:assert/strict";
 import fs from "node:fs";
 import { parseDoc, parseDocText, cleanHref, decodeEntities } from "../api/_blogDoc.js";
+import { blogPostFromRow } from "../src/dane.js";
+import { parseRoute, formatPostDate, blogImgPath, pageTitle, BLOG_TITLE } from "../src/seo.js";
 
 let failed = 0;
 const test = (name, fn) => {
@@ -62,6 +64,29 @@ test("cleanHref: odrzuca javascript:, skraca adres strony", () => {
 test("parseDocText (eksport txt dla listy wpisów)", () => {
   const t = parseDocText("﻿[Notatka]\nŚwiąteczna integracja\nKrótko.\nTo jest pierwszy prawdziwy akapit wpisu o integracji.\n* punkt\n");
   assert.deepEqual(t, { title: "Świąteczna integracja", intro: "To jest pierwszy prawdziwy akapit wpisu o integracji.", words: 13 });
+});
+
+test("wiersz arkusza Blog", () => {
+  assert.deepEqual(blogPostFromRow({
+    link: "https://docs.google.com/document/d/1_OOqss8aB0Sv_QiT-4F4F2r96jNednYY1M0f5LIBw1E/edit?usp=sharing",
+    data: "6.10.2026", adres: "Świąteczna Integracja", okazja: "integracja-firmowa", opublikowany: "TAK",
+  }), { docId: "1_OOqss8aB0Sv_QiT-4F4F2r96jNednYY1M0f5LIBw1E", date: "2026-10-06", slug: "swiateczna-integracja", occasion: "integracja-firmowa", published: true });
+  assert.equal(blogPostFromRow({ link: "https://docs.google.com/document/d/e/2PACX-abc/pub", data: "2026-10-06" }).docId, null);
+  assert.equal(blogPostFromRow({ link: "x", data: "2026-1-5", opublikowany: "nie" }).date, "2026-01-05");
+  assert.equal(blogPostFromRow({ link: "x", opublikowany: "nie" }).published, false);
+});
+test("adresy bloga", () => {
+  assert.deepEqual(parseRoute("/blog"), { type: "blogList" });
+  assert.deepEqual(parseRoute("/Blog/"), { type: "blogList" });
+  assert.deepEqual(parseRoute("/blog/Świąteczna-X"), { type: "blogPost", slug: "swiateczna-x" });
+  assert.deepEqual(parseRoute("/blog/a/b"), { type: "notfound" });
+});
+test("pomocnicze: data, adres zdjęcia, tytuł karty", () => {
+  assert.equal(formatPostDate("2026-10-06"), "6 października 2026");
+  assert.equal(formatPostDate(""), "");
+  assert.equal(blogImgPath("wpis", 0, 640, "webp"), "/blog-img/wpis/0-640.webp");
+  assert.equal(pageTitle({ landing: { type: "blog", title: "X" } }), "X");
+  assert.equal(pageTitle({ landing: { type: "blog" } }), BLOG_TITLE);
 });
 
 if (failed) { console.error(`\n${failed} test(ów) nie przeszło — przerywam build.`); process.exit(1); }
