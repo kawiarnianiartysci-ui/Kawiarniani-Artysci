@@ -3,7 +3,7 @@
 **Date:** 2026-10-03
 **Feature:** Blog at `/blog` with posts written by Joanna in Google Docs
 **Status:** Design approved by Joanna (2026-10-03)
-**First post:** Christmas team-building (integracja firmowa przed świętami) — Claude drafts it in Google Docs, Joanna edits and adds photos.
+**First posts:** (1) Christmas team-building (integracja firmowa przed świętami), early October 2026 — booking season; (2) baby shower ideas ~2 weeks later; then one post a month. Claude drafts in Google Docs, Joanna edits and adds photos.
 
 ---
 
@@ -16,7 +16,7 @@ Roughly one post a month to (1) rank for informational queries ("pomysł na baby
 ## Authoring workflow (Joanna)
 
 1. Write the post in a Google Doc. First heading = title, first paragraph = intro, photos pasted inline where they should appear.
-2. Share the doc as "anyone with the link can view" (exact sharing/publishing step finalised after the image spike below).
+2. Share the doc: Udostępnij → Każdy, kto ma link → Wyświetlający.
 3. Add a row to the new **"Blog"** tab of the existing Sheet.
 4. Preview at `/blog/<adres>?podglad` while `opublikowany` = nie; flip to `tak` to publish. Later edits in the doc appear on the site within minutes.
 
@@ -45,7 +45,9 @@ The server fetches the doc's HTML on request, sanitises it, caches it in memory 
 
 **Spike before building anything else:** create a test doc with pasted images, fetch it via the candidate URL forms (`/export?format=html` on a link-shared doc vs. "Publish to web" `/pub`), and check whether the image URLs (`*.googleusercontent.com`) are stable over time / across fetches and load without auth. Outcome decides the sharing step in the workflow. **If image URLs are not stable, fall back to "snapshot" mode:** Claude copies text + images into the repo on Joanna's "gotowe" (images to `public/images/blog/`), and the doc stays the editing source.
 
-Images are served through Vercel Image Optimization (add a `remotePatterns` entry for the Google image host in `vercel.json`), so phone-size photos are resized to 640/1080 WebP automatically; `onError` falls back to the original URL as elsewhere.
+Images are served through Vercel Image Optimization (see spike result below for how), so phone-size photos are resized to 640/1080 WebP automatically; `onError` falls back to the original URL as elsewhere.
+
+**Spike result (2026-10-03):** `https://docs.google.com/document/d/<id>/export?format=html` on a doc shared "anyone with the link can view" returns 200 anonymously; an unshared doc returns 401. Images are **embedded as base64 `data:` URIs** inside the export (no googleusercontent URLs), so image stability is a non-issue and live fetch stays. Headings arrive as `h1`/`h2` with class-based styling, links wrapped in `google.com/url?q=…`, images carry inline width/height styles. Consequences: Joanna's sharing step = "Udostępnij → Każdy, kto ma link → Wyświetlający" (no "Publish to web"); the server extracts the base64 images and serves them from its own endpoint (e.g. `/api/blog-img?adres=<adres>&n=<index>`, long CDN cache) instead of inlining megabytes into the page, and resizes through Vercel Image Optimization if that works for a function-served local path (verify during implementation; otherwise serve the original with caching). The `remotePatterns` entry for Google image hosts is not needed.
 
 ### Sanitisation
 
