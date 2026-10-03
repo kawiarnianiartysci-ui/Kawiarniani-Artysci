@@ -9,6 +9,7 @@
   },
   "rewrites": [
     { "source": "/sitemap.xml", "destination": "/api/sitemap" },
+    { "source": "/blog-img/:adres/:file", "destination": "/api/blog-img?adres=:adres&file=:file" },
     { "source": "/((?!api/|_vercel/).*)", "destination": "/api/page?p=/$1" }
   ]
 }
