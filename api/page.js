@@ -216,7 +216,7 @@ function blogPostBody(post, o, ws) {
 <article>
 <h1 style="${S.h1}">${esc(post.title)}</h1>
 <p style="${S.muted}">${esc(formatPostDate(post.date))} · Joanna · ${BRAND} · ${post.readMin} min czytania</p>
-${post.html.replace(/<img /g, '<img style="width:100%;height:auto;border-radius:14px;" ')}
+${post.html.replace(/<img /g, '<img style="max-width:100%;height:auto;max-height:75vh;border-radius:14px;display:block;margin:0 auto;" ')}
 </article>
 <p><a style="${S.link}" href="${o ? occasionPath(o) : "/"}">Zaplanuj taki event${o ? `: ${esc(o.navLabel)}` : ""}</a></p>
 ${wItems ? `<ul style="${S.list}">${wItems}</ul>` : ""}

@@ -42,7 +42,7 @@ test("brak śmieci: komentarze, skrypty, style, klasy, h1, puste akapity", () =>
 test("zdjęcia: wyciągnięte z base64, zdjęcie z nagłówka trafia PRZED nagłówek", () => {
   assert.equal(doc.images.length, 2);
   assert.deepEqual(doc.images[0], { mime: "image/png", data: "iVBORw0KGgo=" });
-  const img0 = doc.html.indexOf('<img src="/blog-img/test/0-1080.webp" alt="Świąteczna integracja – test — zdjęcie 1" loading="lazy">');
+  const img0 = doc.html.indexOf('<img src="/blog-img/test/0-1080.webp" alt="Świąteczna integracja – test — zdjęcie 1" fetchpriority="high">');
   assert.ok(img0 >= 0, doc.html);
   assert.ok(img0 < doc.html.indexOf("<h2>Dlaczego warsztat?</h2>"));
 });

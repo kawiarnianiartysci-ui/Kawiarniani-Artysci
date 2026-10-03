@@ -150,7 +150,8 @@ export function parseDoc(html, { imgSrc }) {
       else if (/^https:\/\//i.test(src)) images.push({ url: src });
       else continue;
       const i = images.length - 1;
-      const tag = `<img src="${escAttr(imgSrc(i))}" alt="__ALT${i}__" loading="lazy">`;
+      // Pierwsze zdjęcie (główne, zwykle tuż pod wstępem) ładuje się od razu, reszta przy przewijaniu.
+      const tag = `<img src="${escAttr(imgSrc(i))}" alt="__ALT${i}__" ${i === 0 ? 'fetchpriority="high"' : 'loading="lazy"'}>`;
       if (!block) out.push(`<p>${tag}</p>`);
       else if (block.heading) block.before.push(tag);
       else block.parts.push(tag);

@@ -230,7 +230,7 @@ const globalCSS = `
   .blog-body ul, .blog-body ol { margin:0 0 18px; padding-left:22px; }
   .blog-body li { margin:0 0 8px; }
   .blog-body a { color:${C.primary}; text-decoration:underline; text-underline-offset:2px; }
-  .blog-body img { display:block; width:100%; height:auto; border-radius:14px; margin:8px 0 18px; }
+  .blog-body img { display:block; width:auto; max-width:100%; height:auto; max-height:75vh; border-radius:14px; margin:8px auto 18px; }
   .blog-body strong { font-weight:600; }
   .header-blog-link:hover { text-decoration:underline !important; }
   @media (max-width: 640px) {
