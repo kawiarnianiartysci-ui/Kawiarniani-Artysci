@@ -12,4 +12,4 @@
 4. **Podejrzyj:** `https://www.kawiarnianiartysci.pl/blog/<adres>?podglad` — tak będzie wyglądał wpis (Google go jeszcze nie widzi).
 5. **Opublikuj:** zmień `nie` na `tak`. Po kilku minutach wpis jest na liście bloga, na stronie okazji i w mapie strony.
 
-Poprawki: po prostu edytuj dokument — strona pokaże zmiany po ok. 10 minutach (zdjęcia do 24 godzin).
+Poprawki: po prostu edytuj dokument — strona pokaże zmiany (tekst i podmienione zdjęcia) po kilku minutach, najpóźniej ok. 10.
