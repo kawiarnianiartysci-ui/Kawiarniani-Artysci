@@ -42,6 +42,17 @@ Notes:
 - Every `<img>` in the app has `loading="lazy"` except the always-visible header logo — keep this on any new image you add, it materially affects load time on profile modals with several photos.
 - **Filename gotcha**: manual GitHub-web-UI uploads have repeatedly landed under a mismatched filename (a stray double extension like `photo.jpg.jpg`, or the wrong extension entirely, e.g. uploading a `.jpg` when the Sheet still says `.png`) — the old, heavy file silently keeps being the one actually served, since the Sheet/code still points at the original exact name. `git diff --stat` between two upload commits shows this clearly: a genuine same-name overwrite reads as `Bin XXXXXX -> Bin YYYYYY`; a new filename appearing *alongside* an unchanged old one is the mismatch. Fix by renaming to the exact filename the Sheet/code expects (no Sheet edit needed) or, if the extension itself is wrong, editing the one Sheet cell.
 - Clean, URL-safe filenames only (kebab-case, no spaces, no Polish diacritics) — raw phone-export names (`WhatsApp Image ...jpeg`, `IMG-2026...jpg`) get renamed on upload.
+- **Automatic resizing (since 2026-09-29):** every content `<img>` goes through `optimizedImg(src, width)` in `App.jsx`, which points it at Vercel Image Optimization (`/_vercel/image?url=…&w=…&q=75`, WebP). Allowed widths must match `images.sizes` in `vercel.json` (256/640/1080). An `onError` handler falls back to the original file, so if optimization ever fails (e.g. Hobby-plan limit) images still show. Keep using `optimizedImg` for any new image; source files should still follow the size guidance above. `og:image` in `api/page.js` deliberately stays the original file.
+
+## Performance notes (2026-09-29)
+
+PageSpeed mobile after this round: profile page 56 → **88** (LCP 12.4 s → 3.1 s, CLS 0.34 → 0), homepage **68** (was unmeasurable before), SEO 100 on both. What mattered, and what not to undo:
+- **Hero video** is `public/videos/hero.mp4` (3.2 MB, 1280×720, 6.4 s, trimmed by Joanna in Canva → `HERO_VIDEO_START = 0`). The old `hero.mov` (12.9 MB) is still in the repo only as a backup and is not referenced.
+- **Deep link to a profile must not render the homepage first.** `App()` computes `initialProfile` from the embedded Sheet data on the very first render (path + profile set in `useState` initialisers); otherwise the homepage hero video starts downloading (~13 MB) before the modal opens.
+- **Plain-HTML SEO content** from `api/page.js` sits in `#seo-tresc` and is hidden for JS users (`.js #seo-tresc{display:none}`, 8 s fallback) — showing it and then swapping to the React view caused big layout shift. Its `<img>` tags are `loading="lazy"` so hidden images don't download.
+- **Google Fonts stylesheet stays a normal, render-blocking `<link>` in `index.html`.** Loading it async (`media="print" onload`) was tried and reverted: no FCP gain, CLS jumped to 0.37 from the font swap.
+- **Thin dark line under the hero video** is a Chrome video-layer artifact (the video paints past `overflow:hidden`/`clip-path`). The only fix that worked: a 12px `C.bg` strip placed *after* the hero container (`zIndex:1`, `marginTop:-4`, `marginBottom:-8`). The video enlargement also uses width/height 115% + offsets instead of `transform: scale`.
+- Remaining, deliberately left: homepage CLS ~0.11 (source not yet pinned down — likely the partner-logo bar or the "Wczytywanie…" → content swap) and homepage LCP ~6.8 s (the hero video on throttled 4G; replacing it with a photo on phones would be a design decision for the owner).
 
 ## Booking flow architecture
 
@@ -100,6 +111,10 @@ Settled through many iteration rounds — apply by default to new UI rather than
 Push to `main` → Vercel auto-builds and deploys, typically live within 1-2 minutes. Since 2026-09 larger changes go to a separate branch first: Vercel builds a protected Preview deployment for it, the site owner creates a `_vercel_share` link (deployment → Share) so it can be tested, and it's merged to `main` only after her OK. Emails on previews run in test mode (see Email backend). Before that there was no branch/PR process — every change (from both the site owner and AI-assisted sessions) has gone straight to `main` on a real, actively-booked-through production site. If you're joining as an external developer, discuss with Joanna whether to keep that or move to a PR-based workflow before making structural changes — it's a deliberate choice so far, not an oversight, but worth revisiting once more than one person is touching the code regularly.
 
 **Verifying a deploy went out clean, with no local Node/npm available:** capture the live JS bundle filename (`/assets/index-*.js`, visible in the served HTML's `<script src>`) *before* pushing — a build can go live within 5-10s, fast enough that the very first post-push check can already be reading the new bundle, making a naive "wait for the hash to change" poll hang forever waiting for a change that already happened. Prefer fetching the served bundle directly and grepping it for a string unique to the new code over comparing hashes. A raw `curl` to this domain can get blocked by Vercel's bot-challenge (`Vercel Security Checkpoint`, misleadingly looks like the deploy hasn't landed) — a real browser fetch doesn't trip it.
+
+## Status (2026-09-29)
+
+Live and extended since launch: shareable profile URLs with per-page meta/JSON-LD, 5 occasion landing pages, share buttons, auto-generated sitemap, hardened inquiry emails with a preview test mode, and the performance round above. All 25 Sheet rows have a hand-picked `slug`. Joanna still needs to resubmit `sitemap.xml` in Google Search Console if she hasn't yet.
 
 ## Status (2026-08-22)
 

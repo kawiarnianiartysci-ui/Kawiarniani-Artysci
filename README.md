@@ -69,6 +69,10 @@ Structured data and UX enhancements to support search ranking:
 - **Noscript fallback**: robot-readable content block for users/bots without JavaScript
 - See [`project_seo_improvements_2026_09_21.md`](https://github.com/kawiarnianiartysci-ui/Kawiarniani-Artysci/blob/main/.claude/projects/memory/project_seo_improvements_2026_09_21.md) in memory for full details.
 
+### Performance (2026-09-29)
+
+PageSpeed mobile: profile pages **88** (SEO 100, CLS 0), homepage **68** (SEO 100). Images are resized on the fly by Vercel Image Optimization, the hero video is a 3.2 MB MP4. What changed and what not to undo: [CONTRIBUTING.md → Performance notes](CONTRIBUTING.md#performance-notes-2026-09-29).
+
 ### Per-page URLs and server-side meta tags (2026-09)
 
 The homepage is still a plain React SPA, but every workshop/venue now has its own URL (`/warsztaty/<slug>`, `/miejsca/<slug>`), and there are 5 occasion landing pages (`/wieczor-panienski`, `/urodziny`, `/urodziny-dla-dzieci`, `/integracja-firmowa`, `/baby-shower`). A serverless function (`api/page.js`) serves those URLs with their own title, description, canonical, Open Graph image and JSON-LD, plus plain-HTML content — because Facebook/WhatsApp/Messenger/LinkedIn link previews and most AI crawlers don't run JavaScript. `/sitemap.xml` is generated from the Sheet (`api/sitemap.js`). Details and gotchas: [CONTRIBUTING.md → Public URLs](CONTRIBUTING.md#public-urls-share-previews--seo-2026-09).
