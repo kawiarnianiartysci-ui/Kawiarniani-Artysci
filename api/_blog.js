@@ -6,14 +6,14 @@
 //  - lista wpisów (/blog, linki na stronach okazji) — wersja tekstowa
 //    dokumentu (kilka KB): tytuł, wstęp, czas czytania,
 //  - sam wpis (/blog/<adres>) — wersja HTML ze zdjęciami (api/_blogDoc.js).
-// Pamięć podręczna ~10 min; gdy Google chwilowo nie odpowiada, pokazujemy
+// Pamięć podręczna ~3 min; gdy Google chwilowo nie odpowiada, pokazujemy
 // ostatnią dobrą wersję wpisu.
 import { CSV_BLOG_URL, csvToObjects, blogPostFromRow } from "../src/dane.js";
 import { shorten, blogImgPath } from "../src/seo.js";
-import { parseDoc, parseDocText } from "./_blogDoc.js";
+import { parseDoc, parseDocText, imgHash } from "./_blogDoc.js";
 
 const INDEX_MS = 5 * 60 * 1000;
-const DOC_MS = 10 * 60 * 1000;
+const DOC_MS = 3 * 60 * 1000;
 let indexCache = null;          // { at, rows }
 const docCache = new Map();     // "docId|adres" → { at, value }  (HTML)
 const textCache = new Map();    // "docId|adres" → { at, value }  (txt)
@@ -56,7 +56,7 @@ const meta = (row, doc) => ({
 });
 
 export async function getPost(row) {
-  const r = await cachedDoc(docCache, row, "html", html => parseDoc(html, { imgSrc: i => blogImgPath(row.slug, i, 1080, "webp") }));
+  const r = await cachedDoc(docCache, row, "html", html => parseDoc(html, { imgSrc: (i, img) => blogImgPath(row.slug, i, 1080, "webp", imgHash(img)) }));
   if (r.error) return { error: r.error };
   const d = r.value;
   return {
@@ -64,7 +64,7 @@ export async function getPost(row) {
       ...meta(row, d),
       description: shorten(d.intro, 160),
       html: d.html, images: d.images, faq: d.faq,
-      ogImage: d.images.length ? blogImgPath(row.slug, 0, 1200, "jpg") : null,
+      ogImage: d.images.length ? blogImgPath(row.slug, 0, 1200, "jpg", imgHash(d.images[0])) : null,
     },
   };
 }

@@ -86,8 +86,8 @@ export const profilePath = (type, item) => `/${type === "restaurant" ? "miejsca"
 // ══ Blog ═════════════════════════════════════════════════════
 export const BLOG_PATH = "/blog";
 export const blogPath = slug => `/blog/${slug}`;
-// Zdjęcia wpisów: /blog-img/<adres>/<nr>-<szerokość>.<webp|jpg> (api/blog-img.js)
-export const blogImgPath = (slug, n, width, ext) => `/blog-img/${slug}/${n}-${width}.${ext}`;
+// Zdjęcia wpisów: /blog-img/<adres>/<nr>-<szerokość>[-<odcisk>].<webp|jpg> (api/blog-img.js)
+export const blogImgPath = (slug, n, width, ext, hash) => `/blog-img/${slug}/${n}-${width}${hash ? `-${hash}` : ""}.${ext}`;
 export const BLOG_TITLE = `Blog — pomysły na eventy z warsztatami w Poznaniu | ${BRAND}`;
 export const BLOG_DESCRIPTION = "Pomysły na integrację firmową, baby shower, wieczór panieński i urodziny z warsztatami artystycznymi w Poznaniu: porady, ceny i sprawdzone miejsca.";
 export const blogPostTitle = title => `${title} | Blog · ${BRAND}`;

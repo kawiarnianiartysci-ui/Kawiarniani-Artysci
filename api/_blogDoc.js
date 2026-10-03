@@ -151,7 +151,7 @@ export function parseDoc(html, { imgSrc }) {
       else continue;
       const i = images.length - 1;
       // Pierwsze zdjęcie (główne, zwykle tuż pod wstępem) ładuje się od razu, reszta przy przewijaniu.
-      const tag = `<img src="${escAttr(imgSrc(i))}" alt="__ALT${i}__" ${i === 0 ? 'fetchpriority="high"' : 'loading="lazy"'}>`;
+      const tag = `<img src="${escAttr(imgSrc(i, images[i]))}" alt="__ALT${i}__" ${i === 0 ? 'fetchpriority="high"' : 'loading="lazy"'}>`;
       if (!block) out.push(`<p>${tag}</p>`);
       else if (block.heading) block.before.push(tag);
       else block.parts.push(tag);
@@ -175,4 +175,14 @@ export function parseDocText(txt) {
   const title = content[0] || "";
   const intro = content.slice(1).find(l => !/^\* /.test(l) && wordCount(l) >= 6) || "";
   return { title, intro, words: wordCount(content.join(" ")) };
+}
+
+// Krótki "odcisk" zdjęcia (FNV-1a z danych base64) — trafia do adresu zdjęcia,
+// więc nowa wersja zdjęcia w dokumencie = nowy adres, a starą wersję
+// przeglądarki i Vercel mogą trzymać w pamięci bez końca.
+export function imgHash(img) {
+  const s = img.data || img.url || "";
+  let h = 0x811c9dc5;
+  for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 0x01000193); }
+  return (h >>> 0).toString(36);
 }

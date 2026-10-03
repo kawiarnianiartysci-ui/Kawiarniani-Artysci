@@ -2,7 +2,7 @@
 // Nieudany test zatrzymuje wdrożenie, więc zepsuty parser nie trafi na stronę.
 import assert from "node:assert/strict";
 import fs from "node:fs";
-import { parseDoc, parseDocText, cleanHref, decodeEntities } from "../api/_blogDoc.js";
+import { parseDoc, parseDocText, cleanHref, decodeEntities, imgHash } from "../api/_blogDoc.js";
 import { blogPostFromRow } from "../src/dane.js";
 import { parseRoute, formatPostDate, blogImgPath, pageTitle, BLOG_TITLE } from "../src/seo.js";
 
@@ -85,8 +85,19 @@ test("pomocnicze: data, adres zdjęcia, tytuł karty", () => {
   assert.equal(formatPostDate("2026-10-06"), "6 października 2026");
   assert.equal(formatPostDate(""), "");
   assert.equal(blogImgPath("wpis", 0, 640, "webp"), "/blog-img/wpis/0-640.webp");
+  assert.equal(blogImgPath("wpis", 2, 1080, "webp", "abc12"), "/blog-img/wpis/2-1080-abc12.webp");
   assert.equal(pageTitle({ landing: { type: "blog", title: "X" } }), "X");
   assert.equal(pageTitle({ landing: { type: "blog" } }), BLOG_TITLE);
+});
+
+test("odcisk zdjęcia: stały dla tych samych danych, inny dla innych", () => {
+  assert.equal(imgHash({ data: "iVBORw0KGgo=" }), imgHash({ data: "iVBORw0KGgo=" }));
+  assert.notEqual(imgHash({ data: "iVBORw0KGgo=" }), imgHash({ data: "iVBORw0KGgp=" }));
+  assert.match(imgHash({ data: "x" }), /^[a-z0-9]+$/);
+});
+test("parser przekazuje zdjęcie do imgSrc (do odcisku w adresie)", () => {
+  const d = parseDoc(fixture, { imgSrc: (i, img) => `/x/${i}-${img.mime}` });
+  assert.ok(d.html.includes('src="/x/0-image/png"'), d.html);
 });
 
 if (failed) { console.error(`\n${failed} test(ów) nie przeszło — przerywam build.`); process.exit(1); }
