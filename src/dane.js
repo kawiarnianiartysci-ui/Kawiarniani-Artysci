@@ -15,6 +15,9 @@
 // odświeżenie publikacji arkusza przez Google).
 export const CSV_RESTAURANTS_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQj-im-saKt9v_ANh2m42skFGZrBDRhckh5OjESFVhAk6vPcAg5M8m20xAB3RTAqlRsizOa_9ken2t_/pub?gid=563383430&single=true&output=csv";
 export const CSV_WORKSHOPS_URL   = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQj-im-saKt9v_ANh2m42skFGZrBDRhckh5OjESFVhAk6vPcAg5M8m20xAB3RTAqlRsizOa_9ken2t_/pub?gid=273766010&single=true&output=csv";
+// Zakładka "Blog": jeden wiersz = jeden wpis (link do Dokumentu Google, data,
+// adres, okazja, opublikowany). Szczegóły: api/_blog.js.
+export const CSV_BLOG_URL        = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQj-im-saKt9v_ANh2m42skFGZrBDRhckh5OjESFVhAk6vPcAg5M8m20xAB3RTAqlRsizOa_9ken2t_/pub?gid=831694658&single=true&output=csv";
 
 export function parseCSV(text) {
   const rows = [];
