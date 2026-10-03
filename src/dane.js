@@ -15,6 +15,9 @@
 // odświeżenie publikacji arkusza przez Google).
 export const CSV_RESTAURANTS_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQj-im-saKt9v_ANh2m42skFGZrBDRhckh5OjESFVhAk6vPcAg5M8m20xAB3RTAqlRsizOa_9ken2t_/pub?gid=563383430&single=true&output=csv";
 export const CSV_WORKSHOPS_URL   = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQj-im-saKt9v_ANh2m42skFGZrBDRhckh5OjESFVhAk6vPcAg5M8m20xAB3RTAqlRsizOa_9ken2t_/pub?gid=273766010&single=true&output=csv";
+// Zakładka "Blog": jeden wiersz = jeden wpis (link do Dokumentu Google, data,
+// adres, okazja, opublikowany). Szczegóły: api/_blog.js.
+export const CSV_BLOG_URL        = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQj-im-saKt9v_ANh2m42skFGZrBDRhckh5OjESFVhAk6vPcAg5M8m20xAB3RTAqlRsizOa_9ken2t_/pub?gid=831694658&single=true&output=csv";
 
 export function parseCSV(text) {
   const rows = [];
@@ -163,5 +166,29 @@ export function workshopFromRow(row) {
     // artyści z travelsToClient=tak są tam wybieralni, patrz withOwnPlaceTile w App().
     travelsToClient: toTriBool(row.travelsToClient),
     travelArea: row.travelArea || undefined,
+  };
+}
+
+// ══ Blog ═════════════════════════════════════════════════════
+// Data z arkusza: "2026-10-06" albo polski format komórki daty "6.10.2026".
+export const isoDate = v => {
+  const s = String(v || "").trim();
+  let m = s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/);
+  if (m) return `${m[1]}-${m[2].padStart(2, "0")}-${m[3].padStart(2, "0")}`;
+  m = s.match(/^(\d{1,2})[./](\d{1,2})[./](\d{4})$/);
+  if (m) return `${m[3]}-${m[2].padStart(2, "0")}-${m[1].padStart(2, "0")}`;
+  return "";
+};
+
+// Link "Opublikuj w internecie" (/document/d/e/2PACX…) nie zadziała — trzeba
+// zwykłego linku do dokumentu (Udostępnij → Każdy, kto ma link).
+export function blogPostFromRow(row) {
+  const m = String(row.link || "").match(/\/document\/d\/([A-Za-z0-9_-]{20,})/);
+  return {
+    docId: m ? m[1] : null,
+    date: isoDate(row.data),
+    slug: slugify(row.adres),
+    occasion: slugify(row.okazja),
+    published: toBool(row.opublikowany),
   };
 }

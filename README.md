@@ -77,6 +77,10 @@ PageSpeed mobile: profile pages **88** (SEO 100, CLS 0), homepage **68** (SEO 10
 
 The homepage is still a plain React SPA, but every workshop/venue now has its own URL (`/warsztaty/<slug>`, `/miejsca/<slug>`), and there are 5 occasion landing pages (`/wieczor-panienski`, `/urodziny`, `/urodziny-dla-dzieci`, `/integracja-firmowa`, `/baby-shower`). A serverless function (`api/page.js`) serves those URLs with their own title, description, canonical, Open Graph image and JSON-LD, plus plain-HTML content — because Facebook/WhatsApp/Messenger/LinkedIn link previews and most AI crawlers don't run JavaScript. `/sitemap.xml` is generated from the Sheet (`api/sitemap.js`). Details and gotchas: [CONTRIBUTING.md → Public URLs](CONTRIBUTING.md#public-urls-share-previews--seo-2026-09).
 
+### Blog (2026-10)
+
+`/blog` with posts written in Google Docs and listed in the Sheet's **Blog** tab — Joanna's how-to: [INSTRUKCJA_BLOG.md](INSTRUKCJA_BLOG.md), technical notes: [CONTRIBUTING.md → Blog](CONTRIBUTING.md#blog-2026-10).
+
 ### What affects ranking most
 
 1. **Backlinks** (70% of ranking weight) — high-impact, in progress as of 2026-08-28

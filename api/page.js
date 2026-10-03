@@ -21,7 +21,9 @@ import {
   occasionWorkshops, occasionPlaces, minWorkshopPrice, shorten,
   workshopTitle, restaurantTitle, workshopDescription, restaurantDescription,
   workshopShareTitle, restaurantShareTitle,
+  BLOG_PATH, blogPath, BLOG_TITLE, BLOG_DESCRIPTION, blogPostTitle, formatPostDate,
 } from "../src/seo.js";
+import { getBlogIndex, getPost, listPosts, pagePost } from "./_blog.js";
 
 const DEFAULT_IMAGE = "/images/hero-photo.jpg";
 const DAY_NAMES = { pon:"Monday", wt:"Tuesday", sr:"Wednesday", czw:"Thursday", pt:"Friday", sob:"Saturday", nd:"Sunday" };
@@ -95,6 +97,42 @@ function occasionLd(o, ws, path) {
   };
 }
 
+function blogLd(posts) {
+  return {
+    "@context": "https://schema.org",
+    "@type": "Blog",
+    name: `Blog · ${BRAND}`,
+    url: SITE_URL + BLOG_PATH,
+    publisher: brandOrg,
+    blogPost: posts.map(p => ({ "@type": "BlogPosting", headline: p.title, url: SITE_URL + blogPath(p.slug), ...(p.date ? { datePublished: p.date } : {}) })),
+  };
+}
+
+function blogPostingLd(post, path) {
+  return {
+    "@context": "https://schema.org",
+    "@type": "BlogPosting",
+    headline: post.title,
+    description: post.description,
+    url: SITE_URL + path,
+    mainEntityOfPage: SITE_URL + path,
+    inLanguage: "pl-PL",
+    ...(post.ogImage ? { image: abs(post.ogImage) } : {}),
+    ...(post.date ? { datePublished: post.date } : {}),
+    author: { "@type": "Person", name: "Joanna", url: SITE_URL },
+    publisher: brandOrg,
+  };
+}
+
+// Sekcja "Najczęstsze pytania" z dokumentu (pytania jako nagłówki).
+function faqLd(faq) {
+  return {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    mainEntity: faq.map(f => ({ "@type": "Question", name: f.q, acceptedAnswer: { "@type": "Answer", text: f.a } })),
+  };
+}
+
 // ══ Treść w zwykłym HTML-u ═══════════════════════════════════
 // Widoczna dla robotów i przez ułamek sekundy, zanim wystartuje aplikacja
 // (potem aplikacja ją podmienia na pełny widok) — stąd prosty, spokojny wygląd
@@ -108,8 +146,9 @@ const S = {
   list: "list-style:none;padding:0;margin:0 0 20px;",
   link: "color:#432A16;",
   nav: "margin-top:32px;padding-top:16px;border-top:1px solid #DDD9D2;font-size:13px;",
+  article: "font-family:Montserrat,system-ui,sans-serif;max-width:720px;margin:0 auto;padding:32px 16px;color:#1A1A1A;line-height:1.7;",
 };
-const navOccasions = () => `<nav style="${S.nav}">${OCCASIONS.map(o => `<a style="${S.link}" href="${occasionPath(o)}">${esc(o.navLabel)}</a>`).join(" · ")} · <a style="${S.link}" href="/">Strona główna</a></nav>`;
+const navOccasions = () => `<nav style="${S.nav}"><a style="${S.link}" href="${BLOG_PATH}">Blog</a> · ${OCCASIONS.map(o => `<a style="${S.link}" href="${occasionPath(o)}">${esc(o.navLabel)}</a>`).join(" · ")} · <a style="${S.link}" href="/">Strona główna</a></nav>`;
 const header = () => `<a style="${S.brand}" href="/">${BRAND}</a>`;
 const paragraphs = text => String(text || "").split(/\n+/).map(t => t.trim()).filter(Boolean).map(t => `<p>${esc(t)}</p>`).join("");
 
@@ -140,7 +179,7 @@ ${variants ? `<p style="${S.muted}">Pakiety:</p><ul style="${S.list}">${variants
 ${navOccasions()}</main>`;
 }
 
-function occasionBody(o, ws, ps) {
+function occasionBody(o, ws, ps, posts = []) {
   const low = minWorkshopPrice(ws);
   const wItems = ws.map(w => `<li><a style="${S.link}" href="${profilePath("workshop", w)}">${esc(w.name)}</a>${w.artist ? ` — ${esc(w.artist)}` : ""}${w.pricePerPerson ? ` · ${esc(w.pricePerPerson)} zł/${o.kids ? "dziecko" : "os."}` : ""}</li>`).join("");
   const pItems = ps.map(r => `<li><a style="${S.link}" href="${profilePath("restaurant", r)}">${esc(r.name)}</a>${r.vibe ? ` — ${esc(r.vibe)}` : ""}</li>`).join("");
@@ -150,6 +189,7 @@ ${o.paragraphs.map(p => `<p>${esc(p)}</p>`).join("")}
 ${low ? `<p>Warsztaty od <strong>${low} zł</strong> za ${o.kids ? "dziecko" : "osobę"}.</p>` : ""}
 ${wItems ? `<h2 style="font-size:20px;font-weight:400;">Warsztaty</h2><ul style="${S.list}">${wItems}</ul>` : ""}
 ${pItems ? `<h2 style="font-size:20px;font-weight:400;">Miejsca w Poznaniu</h2><ul style="${S.list}">${pItems}</ul>` : ""}
+${posts.length ? `<h2 style="font-size:20px;font-weight:400;">Przeczytaj na blogu</h2><ul style="${S.list}">${posts.map(p => `<li><a style="${S.link}" href="${blogPath(p.slug)}">${esc(p.title)}</a></li>`).join("")}</ul>` : ""}
 ${navOccasions()}</main>`;
 }
 
@@ -161,8 +201,38 @@ function notFoundBody() {
 ${navOccasions()}</main>`;
 }
 
+function blogListBody(posts) {
+  const items = (posts || []).map(p => `<li style="margin:0 0 22px;"><a style="${S.link}" href="${blogPath(p.slug)}"><strong>${esc(p.title)}</strong></a><br><span style="${S.muted}">${esc(formatPostDate(p.date))}</span><br>${esc(p.intro)}</li>`).join("");
+  return `<main style="${S.main}">${header()}
+<h1 style="${S.h1}">Blog</h1>
+<p>Pomysły na eventy z warsztatami artystycznymi w Poznaniu — porady, ceny i sprawdzone miejsca.</p>
+${posts === null ? "<p>Wpisy chwilowo niedostępne — zajrzyj za kilka minut.</p>" : items ? `<ul style="${S.list}">${items}</ul>` : "<p>Pierwszy wpis już wkrótce.</p>"}
+${navOccasions()}</main>`;
+}
+
+function blogPostBody(post, o, ws) {
+  const wItems = ws.map(w => `<li><a style="${S.link}" href="${profilePath("workshop", w)}">${esc(w.name)}</a>${w.pricePerPerson ? ` · ${esc(w.pricePerPerson)} zł/os.` : ""}</li>`).join("");
+  return `<main style="${S.article}">${header()}
+<article>
+<h1 style="${S.h1}">${esc(post.title)}</h1>
+<p style="${S.muted}">${esc(formatPostDate(post.date))} · Joanna · ${BRAND} · ${post.readMin} min czytania</p>
+${post.html.replace(/<img /g, '<img style="max-width:100%;height:auto;max-height:75vh;border-radius:14px;display:block;margin:0 auto;" ')}
+</article>
+<p><a style="${S.link}" href="${o ? occasionPath(o) : "/"}">Zaplanuj taki event${o ? `: ${esc(o.navLabel)}` : ""}</a></p>
+${wItems ? `<ul style="${S.list}">${wItems}</ul>` : ""}
+<p><a style="${S.link}" href="${BLOG_PATH}">Wszystkie wpisy na blogu</a></p>
+${navOccasions()}</main>`;
+}
+
+function blogUnavailableBody() {
+  return `<main style="${S.main}">${header()}
+<h1 style="${S.h1}">Wpis chwilowo niedostępny</h1>
+<p>Spróbuj za kilka minut albo <a style="${S.link}" href="${BLOG_PATH}">zobacz wszystkie wpisy</a>.</p>
+${navOccasions()}</main>`;
+}
+
 // ══ Składanie strony ═════════════════════════════════════════
-function headBlock({ title, socialTitle, description, path, image, noindex, jsonLd }) {
+function headBlock({ title, socialTitle, description, path, image, noindex, jsonLd, ogType = "website" }) {
   // W podglądach linków (Facebook, WhatsApp, LinkedIn) nazwa strony i tak
   // wyświetla się nad tytułem — tam krótszy tytuł, pełny zostaje dla Google.
   const shareTitle = socialTitle || title;
@@ -179,7 +249,7 @@ function headBlock({ title, socialTitle, description, path, image, noindex, json
     `<meta name="description" content="${esc(description)}" />`,
     noindex ? `<meta name="robots" content="noindex" />` : "",
     url ? `<link rel="canonical" href="${esc(url)}" />` : "",
-    `<meta property="og:type" content="website" />`,
+    `<meta property="og:type" content="${ogType}" />`,
     `<meta property="og:site_name" content="${BRAND}" />`,
     `<meta property="og:locale" content="pl_PL" />`,
     url ? `<meta property="og:url" content="${esc(url)}" />` : "",
@@ -194,7 +264,7 @@ function headBlock({ title, socialTitle, description, path, image, noindex, json
   ].filter(Boolean).join("\n    ");
 }
 
-function buildPage(route, data) {
+function buildPage(route, data, related = []) {
   const restaurants = data ? data.restaurants : [];
   const workshops = data ? data.workshops : [];
 
@@ -232,7 +302,7 @@ function buildPage(route, data) {
       status: 200, title: o.title, socialTitle: o.h1, description: o.description, path,
       image: o.kids ? "/images/hero-photo-dzieci.jpg" : DEFAULT_IMAGE,
       jsonLd: [occasionLd(o, ws, path), breadcrumb([{ name: BRAND, path: "/" }, { name: o.navLabel, path }])],
-      body: occasionBody(o, ws, ps),
+      body: occasionBody(o, ws, ps, related),
     };
   }
 
@@ -242,6 +312,51 @@ function buildPage(route, data) {
     description: "Ten adres nie istnieje. Zobacz warsztaty artystyczne i miejsca na eventy w Poznaniu.",
     noindex: true,
     body: notFoundBody(),
+  };
+}
+
+async function buildBlogPage(route, data, preview) {
+  if (route.type === "blogList") {
+    let posts = null;
+    try { posts = await listPosts(); } catch (err) { console.error("Blog:", err); }
+    return {
+      page: {
+        status: 200, title: BLOG_TITLE, socialTitle: `Blog · ${BRAND}`, description: BLOG_DESCRIPTION, path: BLOG_PATH,
+        jsonLd: [blogLd(posts || []), breadcrumb([{ name: BRAND, path: "/" }, { name: "Blog", path: BLOG_PATH }])],
+        body: blogListBody(posts),
+      },
+      blogData: { list: posts },
+    };
+  }
+  let rows = null;
+  try { rows = await getBlogIndex(); } catch (err) { console.error("Blog:", err); }
+  const row = rows ? rows.find(r => r.slug === route.slug) : null;
+  // Nieopublikowany wpis widać tylko pod linkiem z ?podglad (i bez Google).
+  if (rows && (!row || (!row.published && !preview))) return { page: buildPage({ type: "notfound" }, data), blogData: null };
+  const result = row ? await getPost(row) : { error: "unavailable" };
+  if (result.error === "missing") return { page: buildPage({ type: "notfound" }, data), blogData: null };
+  if (!result.post) {
+    return {
+      page: { status: 503, title: `Wpis chwilowo niedostępny | ${BRAND}`, description: BLOG_DESCRIPTION, noindex: true, body: blogUnavailableBody() },
+      blogData: { unavailable: true },
+    };
+  }
+  const post = result.post;
+  const path = blogPath(post.slug);
+  const o = OCCASIONS.find(x => x.slug === post.occasion) || null;
+  const ws = o ? occasionWorkshops(o, data ? data.workshops : []).slice(0, 3) : [];
+  return {
+    page: {
+      status: 200, title: blogPostTitle(post.title), socialTitle: post.title, description: post.description, path,
+      image: post.ogImage, ogType: "article", noindex: !post.published,
+      jsonLd: [
+        blogPostingLd(post, path),
+        breadcrumb([{ name: BRAND, path: "/" }, { name: "Blog", path: BLOG_PATH }, { name: post.title, path }]),
+        ...(post.faq.length ? [faqLd(post.faq)] : []),
+      ],
+      body: blogPostBody(post, o, ws),
+    },
+    blogData: { post: pagePost(post) },
   };
 }
 
@@ -277,7 +392,24 @@ export default async function handler(req, res) {
     return;
   }
 
-  const page = route.type === "home" ? null : buildPage(route, data);
+  const preview = req.query.podglad !== undefined;
+  let page = null;
+  let blogData = null;
+  if (route.type === "blogList" || route.type === "blogPost") {
+    ({ page, blogData } = await buildBlogPage(route, data, preview));
+  } else if (route.type !== "home") {
+    let related = [];
+    if (route.type === "occasion") {
+      // Cała lista do strony (aplikacja filtruje ją sama także po przejściu
+      // na inną okazję), na serwerze tylko wpisy tej okazji.
+      try {
+        const all = await listPosts();
+        blogData = { list: all };
+        related = all.filter(p => p.occasion === route.slug);
+      } catch (err) { console.error("Blog:", err); }
+    }
+    page = buildPage(route, data, related);
+  }
   if (!page) {
     res.redirect(301, "/");
     return;
@@ -288,9 +420,9 @@ export default async function handler(req, res) {
     return;
   }
 
-  const dataScript = data
+  const dataScript = (data
     ? `<script>window.__DANE_ARKUSZA__=${jsonForScript({ r: data.restText, w: data.workText })};</script>`
-    : "";
+    : "") + (blogData ? `<script>window.__BLOG__=${jsonForScript(blogData)};</script>` : "");
   // Zamiany przez funkcję (nie zwykły tekst), żeby znak "$" w danych z
   // arkusza nie był potraktowany jako specjalny wzorzec podstawienia.
   const html = template
@@ -299,8 +431,8 @@ export default async function handler(req, res) {
     .replace('<div id="root"></div>', () => `<div id="root"><div id="seo-tresc">${page.body}</div></div>${dataScript}`);
 
   res.setHeader("Content-Type", "text/html; charset=utf-8");
-  res.setHeader("Cache-Control", page.status === 200
-    ? "public, max-age=0, s-maxage=300, stale-while-revalidate=86400"
+  res.setHeader("Cache-Control", preview ? "no-store"
+    : page.status === 200 ? "public, max-age=0, s-maxage=300, stale-while-revalidate=86400"
     : "public, max-age=0, s-maxage=60");
   res.status(page.status).send(html);
 }

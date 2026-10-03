@@ -7,6 +7,7 @@ import {
 import {
   OCCASIONS, SITE_URL, parseRoute, findBySlug, profilePath, occasionPath,
   pageTitle, occasionWorkshops, occasionPlaces, minWorkshopPrice,
+  BLOG_PATH, blogPath, BLOG_TITLE, blogPostTitle, formatPostDate,
 } from "./seo.js";
 
 // ══════════════════════════════════════════════════════════════
@@ -102,6 +103,22 @@ const optimizedImg = (src, width) => {
 // nie pobieramy arkusza drugi raz i strona startuje od razu. Strona główna
 // nadal pobiera arkusz sama, jak dotychczas.
 const EMBEDDED_SHEET = typeof window !== "undefined" ? window.__DANE_ARKUSZA__ : null;
+
+// Wpis/lista bloga doklejone przez serwer (api/page.js) — strony bloga zawsze
+// przychodzą z serwera, aplikacja tylko je wyświetla.
+const EMBEDDED_BLOG = typeof window !== "undefined" ? window.__BLOG__ || null : null;
+
+// Lista wpisów dla podstron okazji ("Przeczytaj na blogu"). Gdy strona nie
+// przyszła z listą (wejście na okazję z wnętrza aplikacji) — pobieramy ją.
+function useBlogList() {
+  const [list, setList] = useState(() => EMBEDDED_BLOG?.list || null);
+  useEffect(() => {
+    if (list) return;
+    fetch("/api/blog").then(r => (r.ok ? r.json() : [])).then(setList).catch(() => setList([]));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+  return list || [];
+}
 
 function useSheetData() {
   const [restaurants, setRestaurants] = useState(() => EMBEDDED_SHEET ? csvToObjects(EMBEDDED_SHEET.r).map(restaurantFromRow) : []);
@@ -201,6 +218,25 @@ const globalCSS = `
     .mode-switcher { flex-wrap: nowrap !important; padding: 3px !important; }
     .mode-switcher-btn { padding: 7px 10px !important; font-size: 12px !important; }
     .mode-switcher-divider { margin: 8px 1px !important; }
+  }
+  .blog-grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(300px, 1fr)); gap:20px; max-width:1040px; margin:0 auto; }
+  .blog-tile { transition: box-shadow 0.15s; }
+  .blog-tile:hover { box-shadow: 0 6px 20px rgba(0,0,0,0.08); }
+  .blog-body { font-size:16px; line-height:1.75; color:${C.text}; }
+  .blog-body p { margin:0 0 18px; }
+  .blog-body h2 { font-size:24px; font-weight:500; line-height:1.3; margin:36px 0 14px; }
+  .blog-body h3 { font-size:19px; font-weight:600; line-height:1.35; margin:28px 0 10px; }
+  .blog-body h4 { font-size:16px; font-weight:600; margin:22px 0 8px; }
+  .blog-body ul, .blog-body ol { margin:0 0 18px; padding-left:22px; }
+  .blog-body li { margin:0 0 8px; }
+  .blog-body a { color:${C.primary}; text-decoration:underline; text-underline-offset:2px; }
+  .blog-body img { display:block; width:auto; max-width:100%; height:auto; max-height:75vh; border-radius:14px; margin:8px auto 18px; }
+  .blog-body strong { font-weight:600; }
+  .header-blog-link:hover { text-decoration:underline !important; }
+  @media (max-width: 640px) {
+    .header-blog-link { order:-1; width:100%; text-align:right; padding:0 !important; margin:0 !important; font-size:13px !important; }
+    .blog-body { font-size:15.5px; }
+    .blog-title { font-size:26px !important; }
   }
   .partner-logos-viewport { overflow: hidden; width: 100%; -webkit-mask-image: linear-gradient(90deg, transparent, #000 6%, #000 94%, transparent); mask-image: linear-gradient(90deg, transparent, #000 6%, #000 94%, transparent); }
   .partner-logos-track { display: flex; align-items: center; gap: 18px; width: max-content; animation-name: partner-logos-scroll; animation-timing-function: linear; animation-iteration-count: infinite; }
@@ -1042,6 +1078,7 @@ function Footer({ onOccasion }) {
   return (
     <>
       <nav style={{ textAlign:"center", padding:"18px 16px 0", fontSize:12, color:C.muted, borderTop:`1px solid ${C.border}`, lineHeight:2 }}>
+        <a href={BLOG_PATH} style={{ color:C.muted }}>Blog</a>{" · "}
         {OCCASIONS.map((o, i) => (
           <span key={o.slug}>
             {i > 0 && " · "}
@@ -2151,6 +2188,7 @@ function Step4ContactForm({ restaurant, variant, workshop, groupSize, selectedDa
 // Kliknięcie karty wybiera warsztat/miejsce i przenosi do kreatora (krok 1,
 // wybór już zaznaczony); "Zobacz profil" otwiera profil jak na liście.
 function OccasionPage({ occasion, workshops, restaurants, onPickWorkshop, onPickRestaurant, onProfile, onStart }) {
+  const posts = useBlogList().filter(p => p.occasion === occasion.slug);
   const kids = occasion.kids;
   const low = minWorkshopPrice(workshops);
   const sectionTitle = { fontFamily:"'Montserrat', system-ui, sans-serif", fontSize:22, fontWeight:400, color:C.text, textAlign:"center", margin:"36px 0 16px" };
@@ -2186,6 +2224,81 @@ function OccasionPage({ occasion, workshops, restaurants, onPickWorkshop, onPick
             {restaurants.map(r => (
               <RestaurantCard key={r.id} r={r} isSelected={false} selectedVariantId={null} kidsMode={kids}
                 onToggle={() => onPickRestaurant(r.id)} onVariantSelect={() => {}} onProfile={() => onProfile(r, "restaurant")} />
+            ))}
+          </div>
+        </>
+      )}
+
+      {posts.length > 0 && (
+        <div style={{ maxWidth:720, margin:"36px auto 0", textAlign:"center" }}>
+          <h2 style={sectionTitle}>Przeczytaj na blogu</h2>
+          {posts.map(p => (
+            <p key={p.slug} style={{ margin:"0 0 8px", fontSize:15 }}><a href={blogPath(p.slug)} style={{ color:C.primary }}>{p.title}</a></p>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ══ Blog — lista i wpis (treść przychodzi z serwera, patrz api/_blog.js) ══
+function BlogTile({ p }) {
+  const [imgOk, setImgOk] = useState(true);
+  return (
+    <a href={blogPath(p.slug)} className="blog-tile" style={{ display:"block", background:C.card, border:`1px solid ${C.border}`, borderRadius:16, overflow:"hidden", textDecoration:"none", color:C.text }}>
+      {p.cover && imgOk && <img src={p.cover} alt={p.title} loading="lazy" onError={() => setImgOk(false)} style={{ width:"100%", aspectRatio:"16 / 10", objectFit:"cover", display:"block" }} />}
+      <div style={{ padding:"16px 18px 20px" }}>
+        <div style={{ fontSize:12, color:C.muted, marginBottom:6 }}>{formatPostDate(p.date)} · {p.readMin} min czytania</div>
+        <h2 style={{ fontSize:18, fontWeight:600, lineHeight:1.35, margin:"0 0 8px", color:C.text }}>{p.title}</h2>
+        <p style={{ fontSize:14, color:C.muted, lineHeight:1.6, margin:0 }}>{p.intro}</p>
+      </div>
+    </a>
+  );
+}
+
+function BlogListPage({ posts }) {
+  const note = { fontSize:15, color:C.muted, textAlign:"center" };
+  return (
+    <div style={{ maxWidth:1160, margin:"0 auto", padding:"36px 16px 40px" }}>
+      <div style={{ maxWidth:720, margin:"0 auto 28px", textAlign:"center" }}>
+        <h1 style={{ fontFamily:"'Montserrat', system-ui, sans-serif", fontSize:30, fontWeight:400, lineHeight:1.25, color:C.text, margin:"0 0 12px" }}>Blog</h1>
+        <p style={{ fontSize:15, color:C.muted, lineHeight:1.7, margin:0 }}>Pomysły na eventy z warsztatami artystycznymi w Poznaniu — porady, ceny i sprawdzone miejsca.</p>
+      </div>
+      {posts === null ? <p style={note}>Wpisy chwilowo niedostępne — zajrzyj za kilka minut.</p>
+        : posts.length === 0 ? <p style={note}>Pierwszy wpis już wkrótce.</p>
+        : <div className="blog-grid">{posts.map(p => <BlogTile key={p.slug} p={p} />)}</div>}
+    </div>
+  );
+}
+
+function BlogPostPage({ post, workshops, onOccasion, onStart, onPickWorkshop, onProfile }) {
+  const o = post.occasion ? OCCASIONS.find(x => x.slug === post.occasion) : null;
+  const ws = o ? occasionWorkshops(o, workshops).slice(0, 3) : [];
+  const cta = target => track("blog_cta_click", { post: post.slug, target });
+  return (
+    <div style={{ maxWidth:1160, margin:"0 auto", padding:"36px 16px 40px" }}>
+      <article style={{ maxWidth:680, margin:"0 auto" }}>
+        <a href={BLOG_PATH} style={{ fontSize:13, color:C.muted }}>Blog</a>
+        <h1 className="blog-title" style={{ fontFamily:"'Montserrat', system-ui, sans-serif", fontSize:32, fontWeight:400, lineHeight:1.25, color:C.text, margin:"10px 0 12px" }}>{post.title}</h1>
+        <div style={{ fontSize:13, color:C.muted, marginBottom:28 }}>{formatPostDate(post.date)} · Joanna · {COPY.siteName} · {post.readMin} min czytania</div>
+        <div className="blog-body" dangerouslySetInnerHTML={{ __html: post.html }} />
+      </article>
+      <div style={{ maxWidth:680, margin:"40px auto 0", textAlign:"center" }}>
+        <h2 style={{ fontSize:20, fontWeight:400, margin:"0 0 8px", color:C.text }}>Zaplanuj taki event</h2>
+        <p style={{ fontSize:14, color:C.muted, margin:"0 0 16px", lineHeight:1.6 }}>
+          {o ? "Zobacz warsztaty i miejsca w Poznaniu, wybierz termin i wyślij zapytanie." : "Wybierz warsztat i miejsce w Poznaniu, a potem wyślij zapytanie."}
+        </p>
+        <button onClick={() => { cta(o ? o.slug : "kreator"); if (o) onOccasion(o.slug); else onStart(); }} className="hero-cta-btn" style={{ background:C.primary, color:"#FFF", border:"none", borderRadius:999, padding:"14px 32px", fontSize:14, fontWeight:600, cursor:"pointer", minHeight:44 }}>
+          {o ? o.navLabel : "Zaplanuj event"}
+        </button>
+      </div>
+      {ws.length > 0 && (
+        <>
+          <h2 style={{ fontFamily:"'Montserrat', system-ui, sans-serif", fontSize:22, fontWeight:400, color:C.text, textAlign:"center", margin:"36px 0 16px" }}>Warsztaty, które polecamy</h2>
+          <div className="wizard-list">
+            {ws.map(w => (
+              <WorkshopCard key={w.id} w={w} isSelected={false} kidsMode={!!o?.kids}
+                onToggle={() => { cta("warsztat"); onPickWorkshop(w.id, !!o?.kids); }} onProfile={() => onProfile(w, "workshop")} />
             ))}
           </div>
         </>
@@ -2565,6 +2678,11 @@ export default function App() {
   if (initialRouteRef.current === null) initialRouteRef.current = parseRoute(window.location.pathname);
   const initialRoute = initialRouteRef.current;
   const initialOccasion = initialRoute.type === "occasion" ? OCCASIONS.find(o => o.slug === initialRoute.slug) : null;
+  // /blog i /blog/<adres> — treść zawsze dokleja serwer (EMBEDDED_BLOG).
+  const initialBlog = initialRoute.type === "blogList" ? { type:"blog", slug:null, title: BLOG_TITLE }
+    : initialRoute.type === "blogPost" && EMBEDDED_BLOG?.post ? { type:"blog", slug: initialRoute.slug, title: blogPostTitle(EMBEDDED_BLOG.post.title) }
+    : initialRoute.type === "blogPost" && EMBEDDED_BLOG?.unavailable ? { type:"blog", slug: initialRoute.slug, title: BLOG_TITLE, unavailable: true }
+    : null;
   // Wejście z linku do profilu: gdy dane arkusza są już w stronie (podstrony
   // je dostają), od pierwszego rysowania pokazujemy listę + profil, a nie
   // stronę główną — inaczej przeglądarka zdążyłaby zacząć pobierać ciężki
@@ -2582,9 +2700,11 @@ export default function App() {
   const [mode,            setMode]            = useState(openPartnerTermsOnLoad ? "b2b" : (initialOccasion?.kids || initialProfileKids) ? "kids" : "client"); // "client" | "b2b" | "kids"
   // Podstrona zamiast ekranu powitalnego (gdy path === null):
   // null = zwykła strona główna | { type:"occasion", slug } | { type:"notfound" }
+  // | { type:"blog", slug (null = lista), title, unavailable? }
   const [landing,         setLanding]         = useState(
     initialOccasion ? { type:"occasion", slug: initialOccasion.slug }
-    : initialRoute.type === "notfound" ? { type:"notfound" }
+    : initialBlog ? initialBlog
+    : (initialRoute.type === "notfound" || initialRoute.type === "blogPost") ? { type:"notfound" }
     : null
   );
   const [path,            setPath]            = useState(isProfileRoute ? (initialRoute.type === "restaurant" ? "restaurant" : "workshop") : null);     // null | "workshop" | "restaurant" | "ownplace" — null = ekran powitalny
@@ -2716,6 +2836,7 @@ export default function App() {
     const url = profileItem ? profilePath(profileItem.type, profileItem.item)
       : mode === "b2b" ? (loc.pathname === "/" ? "/" + loc.search : "/")
       : path === null && landing?.type === "occasion" ? "/" + landing.slug
+      : path === null && landing?.type === "blog" ? loc.pathname + loc.search
       : path === null && landing?.type === "notfound" ? loc.pathname
       : "/";
     const atRoot = (mode === "client" || mode === "kids") && path === null && wizardStep === 1 && !submitted && !profileItem && !landing;
@@ -3021,6 +3142,27 @@ export default function App() {
         onStart={() => { setPath("workshop"); setWizardStep(1); }}
       />
     )
+    : landing?.type === "blog" ? (
+      !landing.slug ? <BlogListPage posts={EMBEDDED_BLOG ? (EMBEDDED_BLOG.list ?? null) : null} />
+      : landing.unavailable || !EMBEDDED_BLOG?.post ? (
+        <div style={{ maxWidth:460, margin:"0 auto", padding:"80px 16px", textAlign:"center" }}>
+          <h1 style={{ fontSize:24, fontWeight:400, color:C.text, margin:"0 0 12px" }}>Wpis chwilowo niedostępny</h1>
+          <p style={{ fontSize:15, color:C.muted }}>Spróbuj za kilka minut albo <a href={BLOG_PATH} style={{ color:C.primary }}>zobacz wszystkie wpisy</a>.</p>
+        </div>
+      ) : (
+        <BlogPostPage
+          post={EMBEDDED_BLOG.post}
+          workshops={workshops}
+          onOccasion={openOccasion}
+          onStart={() => { resetToHome(); setPath("workshop"); setWizardStep(1); }}
+          onPickWorkshop={(id, kids) => {
+            if (kids) { lastWizardModeRef.current = "kids"; setMode("kids"); }
+            setSelectedW(id); setPath("workshop"); setWizardStep(1);
+          }}
+          onProfile={(item, type) => setProfileItem({ item: workshops.find(x => x.id === item.id) || item, type })}
+        />
+      )
+    )
     : landing?.type === "notfound" ? <NotFoundPage onBackToHome={resetToHome} />
     : null;
 
@@ -3053,6 +3195,9 @@ export default function App() {
             Współpraca
           </button>
         </div>
+
+        {/* Blog — zwykły link (miejsce, nie tryb), w prawym górnym rogu; na telefonie osobna linijka nad logo */}
+        <a href={BLOG_PATH} className="header-blog-link" style={{ fontSize:14, fontWeight:500, color:C.primary, textDecoration:"none", padding:"10px 4px", marginRight:"clamp(4px, 3vw, 44px)" }}>Blog</a>
       </header>
 
       {/* Widok Współpraca */}

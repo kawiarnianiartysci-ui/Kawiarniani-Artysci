@@ -2,7 +2,7 @@
 
 **Date:** 2026-10-03
 **Feature:** Blog at `/blog` with posts written by Joanna in Google Docs
-**Status:** Design approved by Joanna (2026-10-03)
+**Status:** Implemented and live (2026-10-03)
 **First posts:** (1) Christmas team-building (integracja firmowa przed świętami), early October 2026 — booking season; (2) baby shower ideas ~2 weeks later; then one post a month. Claude drafts in Google Docs, Joanna edits and adds photos.
 
 ---

@@ -6,10 +6,11 @@
 // (comingSoon = TRUE, czyli szkice, są pomijane). Nowy artysta dodany w
 // arkuszu pojawia się tu sam, bez zmian w kodzie (w ciągu ok. godziny).
 import { getSheetData } from "./_sheet.js";
-import { SITE_URL, OCCASIONS, occasionPath, profilePath } from "../src/seo.js";
+import { getBlogIndex, publishedRows } from "./_blog.js";
+import { SITE_URL, OCCASIONS, occasionPath, profilePath, BLOG_PATH, blogPath } from "../src/seo.js";
 
 export default async function handler(req, res) {
-  const paths = ["/", ...OCCASIONS.map(occasionPath)];
+  const paths = ["/", ...OCCASIONS.map(occasionPath), BLOG_PATH];
   try {
     const { restaurants, workshops } = await getSheetData();
     const seen = new Set();
@@ -20,6 +21,13 @@ export default async function handler(req, res) {
     // Arkusz nie odpowiada — oddajemy chociaż stronę główną i okazje,
     // i nie zapamiętujemy tej niepełnej wersji na długo.
     console.error("Arkusz:", err);
+    res.setHeader("Cache-Control", "public, max-age=0, s-maxage=60");
+  }
+  // Wpisy bloga — osobno, żeby kłopot z zakładką Blog nie psuł reszty mapy.
+  try {
+    publishedRows(await getBlogIndex()).forEach(r => paths.push(blogPath(r.slug)));
+  } catch (err) {
+    console.error("Blog:", err);
     res.setHeader("Cache-Control", "public, max-age=0, s-maxage=60");
   }
 

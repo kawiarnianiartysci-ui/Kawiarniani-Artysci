@@ -83,6 +83,20 @@ export const occasionPath = o => `/${o.slug}`;
 // type: "workshop" | "restaurant" — tak samo jak profileItem.type w App.jsx
 export const profilePath = (type, item) => `/${type === "restaurant" ? "miejsca" : "warsztaty"}/${item.slug}`;
 
+// ══ Blog ═════════════════════════════════════════════════════
+export const BLOG_PATH = "/blog";
+export const blogPath = slug => `/blog/${slug}`;
+// Zdjęcia wpisów: /blog-img/<adres>/<nr>-<szerokość>.<webp|jpg> (api/blog-img.js)
+export const blogImgPath = (slug, n, width, ext) => `/blog-img/${slug}/${n}-${width}.${ext}`;
+export const BLOG_TITLE = `Blog — pomysły na eventy z warsztatami w Poznaniu | ${BRAND}`;
+export const BLOG_DESCRIPTION = "Pomysły na integrację firmową, baby shower, wieczór panieński i urodziny z warsztatami artystycznymi w Poznaniu: porady, ceny i sprawdzone miejsca.";
+export const blogPostTitle = title => `${title} | Blog · ${BRAND}`;
+const MONTHS_GEN = ["stycznia", "lutego", "marca", "kwietnia", "maja", "czerwca", "lipca", "sierpnia", "września", "października", "listopada", "grudnia"];
+export function formatPostDate(iso) {
+  const m = String(iso || "").match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  return m ? `${Number(m[3])} ${MONTHS_GEN[Number(m[2]) - 1]} ${m[1]}` : "";
+}
+
 // Adres z paska przeglądarki → co pokazać. Wielkość liter, końcowy ukośnik
 // i polskie znaki nie mają znaczenia (/Warsztaty/Ebru/ = /warsztaty/ebru).
 export function parseRoute(pathname) {
@@ -94,6 +108,9 @@ export function parseRoute(pathname) {
   if (m) return { type: "workshop", slug: slugify(m[1]) };
   m = p.match(/^\/miejsca\/([^/]+)$/);
   if (m) return { type: "restaurant", slug: slugify(m[1]) };
+  if (p === BLOG_PATH) return { type: "blogList" };
+  m = p.match(/^\/blog\/([^/]+)$/);
+  if (m) return { type: "blogPost", slug: slugify(m[1]) };
   const occ = OCCASIONS.find(o => p === occasionPath(o));
   if (occ) return { type: "occasion", slug: occ.slug };
   return { type: "notfound" };
@@ -154,6 +171,7 @@ export function restaurantDescription(r) {
 export function pageTitle({ profileItem, landing }) {
   if (profileItem) return profileItem.type === "restaurant" ? restaurantTitle(profileItem.item) : workshopTitle(profileItem.item);
   if (landing?.type === "occasion") return OCCASIONS.find(o => o.slug === landing.slug)?.title || HOME_TITLE;
+  if (landing?.type === "blog") return landing.title || BLOG_TITLE;
   if (landing?.type === "notfound") return `Nie znaleziono strony | ${BRAND}`;
   return HOME_TITLE;
 }

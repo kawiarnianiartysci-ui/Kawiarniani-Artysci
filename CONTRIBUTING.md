@@ -96,6 +96,18 @@ Client side, the manual history mechanism was extended rather than replaced with
 
 Share row (`ShareButtons`, bottom of `ProfileModal`, small outline icons): Facebook, Instagram, LinkedIn, copy-link, plus a system-share icon on touch devices (covers WhatsApp/Messenger/SMS). Instagram has no web share URL — on touch it opens the system share sheet, on desktop it copies the link with a hint. Fires GA4 `share` (`method`, `content_type`, `item_id`). Share links carry `data-share` so the global `contact_click` tracker ignores them. Links are clean (no UTM) on purpose.
 
+## Blog (2026-10)
+
+Posts are written by Joanna in Google Docs; nothing about a post lives in the repo. Her how-to: [`INSTRUKCJA_BLOG.md`](INSTRUKCJA_BLOG.md). Design/plan: `docs/superpowers/specs/2026-10-03-blog-design.md`, `docs/superpowers/plans/2026-10-03-blog.md`.
+
+- **Index:** Sheet tab **Blog** (published to CSV, `CSV_BLOG_URL` in `src/dane.js`), columns `link`, `data`, `adres`, `okazja`, `opublikowany`. `blogPostFromRow` extracts the doc id (a "Publish to web" `/d/e/…` link is rejected), normalises the date (`2026-10-06` or `6.10.2026`), slugifies `adres`/`okazja`. The doc must be shared "anyone with the link can view".
+- **Fetching (`api/_blog.js`):** CSV cached 5 min; each doc cached 10 min per function instance, last good version served if Google fails. Lists (`/blog`, occasion-page links, `/api/blog`) use `export?format=txt` (a few KB); only the post page fetches `export?format=html`, which carries images as base64.
+- **Parser (`api/_blogDoc.js`, pure, no deps):** whitelist only (headings, p, strong/em from Google's CSS classes, lists, links, images, br). First Heading 1 = title (dropped from body, other headings mapped to h2–h4); first paragraph ≥ 6 words after it = intro/description; `[bracketed]` lines are working notes and never become title/intro. `google.com/url?q=` links unwrapped, own-domain links made relative, externals get `target=_blank rel=noopener`. Comment/footnote anchors are skipped and the export is cut at the trailing comments section. A heading starting "Najczęstsze pytania" turns the following lower-level headings + paragraphs into `FAQPage` JSON-LD.
+- **Images:** `/blog-img/<adres>/<n>-<640|1080|1200>.<webp|jpg>` → `api/blog-img.js` decodes the base64 and resizes with `sharp`, CDN-cached 24 h (a replaced photo can take up to a day). Image 0 is the cover (list tile 640 webp, `og:image` 1200 jpg) and is `fetchpriority="high"`; the rest are lazy.
+- **Pages:** `api/page.js` renders `/blog` and `/blog/<adres>` (plain HTML in `#seo-tresc`, `BlogPosting`/`Blog`/`BreadcrumbList`/`FAQPage` JSON-LD, `og:type=article`) and embeds `window.__BLOG__` (`{list}` / `{post}` without images / `{unavailable}`). Unpublished posts 404 except with `?podglad` (then `noindex`, `no-store`). Occasion pages get `{list}` too and show "Przeczytaj na blogu".
+- **React:** blog pages are `landing = { type:"blog", slug, title }`, rendered from `window.__BLOG__` (`BlogListPage`, `BlogPostPage`). Header/footer "Blog" links and links inside posts are plain `<a href>` — a full page load into the server-rendered page, by design. GA4 event `blog_cta_click { post, target }`.
+- **Tests:** `tests/blog.test.mjs` (fixture `tests/fixtures/doc-export.html`) runs inside `npm run build`; a failure stops the Vercel deployment. There is no local Node here — check a commit with `curl -s https://api.github.com/repos/kawiarnianiartysci-ui/Kawiarniani-Artysci/commits/<sha>/status`.
+
 ## Design conventions
 
 Settled through many iteration rounds — apply by default to new UI rather than re-deriving a style:
