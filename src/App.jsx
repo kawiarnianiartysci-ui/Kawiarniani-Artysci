@@ -1592,9 +1592,10 @@ function HomeScreen({ restaurants, workshops, onStart, groupSize, setGroupSize, 
   const videoRef = useRef(null);
   const pathTilesRef = useRef(null);
   const activeRestaurants = restaurants.filter(r => !r.comingSoon);
-  // `kidsOnly` wyklucza warsztat z widoku dla dorosłych (pasek zaufania,
-  // kafelek "Mam miejsce") — patrz też compatibleWorkshops/ownPlaceWorkshops w App().
-  const activeWorkshops = workshops.filter(w => !w.comingSoon && !w.kidsOnly);
+  // Pasek zaufania liczy wszystkich aktywnych partnerów, także tylko-dla-dzieci.
+  // `kidsOnly` wyklucza warsztat tylko z kafelka "Mam miejsce" (patrz też
+  // compatibleWorkshops/ownPlaceWorkshops w App()).
+  const activeWorkshops = workshops.filter(w => !w.comingSoon);
   const adultPathWorkshops = workshops.filter(w => !w.kidsOnly);
 
   const seekToStart = () => { if (videoRef.current) videoRef.current.currentTime = HERO_VIDEO_START; };
@@ -1690,8 +1691,10 @@ function HomeScreen({ restaurants, workshops, onStart, groupSize, setGroupSize, 
 }
 
 function KidsHomeScreen({ restaurants, workshops, onStart, kidsCount, setKidsCount, adultsCount, setAdultsCount, selectedDate, setSelectedDate, selectedTime, setSelectedTime }) {
-  const kidsRestaurants = restaurants.filter(r => !r.comingSoon && r.acceptsKids && r.kidsVariants && r.kidsVariants.length > 0);
-  const kidsWorkshops = workshops.filter(w => !w.comingSoon && w.forKids);
+  // Pasek zaufania pokazuje wszystkich aktywnych partnerów (dorośli + dzieci),
+  // tak samo jak na stronie głównej dla dorosłych.
+  const partnerRestaurants = restaurants.filter(r => !r.comingSoon);
+  const partnerWorkshops = workshops.filter(w => !w.comingSoon);
 
   return (
     <div>
@@ -1726,7 +1729,7 @@ function KidsHomeScreen({ restaurants, workshops, onStart, kidsCount, setKidsCou
 
       <HowItWorksSteps steps={KIDS_HOW_IT_WORKS_STEPS} />
 
-      <PartnerLogosBar restaurants={kidsRestaurants} workshops={kidsWorkshops} />
+      <PartnerLogosBar restaurants={partnerRestaurants} workshops={partnerWorkshops} />
     </div>
   );
 }
