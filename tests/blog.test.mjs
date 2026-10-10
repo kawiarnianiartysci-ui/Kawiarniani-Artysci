@@ -55,6 +55,17 @@ test("FAQ z sekcji Najczęstsze pytania, kończy się na następnym h2", () => {
     { q: "Czy dojedziecie do biura?", a: "Tak, większość artystów dojedzie." },
   ]);
 });
+test("tabela: pierwszy wiersz = nagłówki, akapity w komórce jako linijki, linki zostają", () => {
+  const t = parseDoc(`<html><head><style>.b{font-weight:700}</style></head><body><h1 class="h">Tytuł</h1><p>Wstęp ma co najmniej sześć słów tutaj.</p>`
+    + `<table class="x"><tbody><tr class="r"><td class="c" colspan="1" rowspan="1"><p class="p"><span class="b">Restauracja</span></p></td><td><p><span>Razem od</span></p></td></tr>`
+    + `<tr><td><p><span><a href="https://www.google.com/url?q=https://www.kawiarnianiartysci.pl/miejsca/zuk&amp;sa=D">&#379;uk</a></span></p></td><td><p><span>90</span></p><p><span>z&#322;</span></p></td></tr>`
+    + `<tr><td><p><span></span></p></td><td><ul><li><span>x</span></li></ul></td></tr></tbody></table><p>Po tabeli.</p></body></html>`, { imgSrc: () => "" });
+  assert.ok(t.html.includes("<table>\n<tr>\n<th><strong>Restauracja</strong></th>\n<th>Razem od</th>\n</tr>\n"
+    + "<tr>\n<td><a href=\"/miejsca/zuk\">Żuk</a></td>\n<td>90<br>zł</td>\n</tr>\n"
+    + "<tr>\n<td></td>\n<td>x</td>\n</tr>\n</table>\n<p>Po tabeli.</p>"), t.html);
+  assert.equal(t.intro, "Wstęp ma co najmniej sześć słów tutaj.");
+  assert.ok(!t.html.includes("<p>Restauracja") && !t.html.includes("<ul>"), t.html);
+});
 test("liczba słów", () => { assert.ok(doc.words > 20 && doc.words < 80, String(doc.words)); });
 test("cleanHref: odrzuca javascript:, skraca adres strony", () => {
   assert.equal(cleanHref("javascript:alert(1)"), null);

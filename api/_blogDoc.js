@@ -4,7 +4,7 @@
 // Joanna pisze wpis w zwykłym Dokumencie Google. Google oddaje go jako HTML
 // pełen klas, stylów, czcionek i zdjęć zapisanych w base64. Tu zostawiamy
 // tylko to, co ma sens na stronie: nagłówki, akapity, pogrubienia, kursywę,
-// listy, linki i zdjęcia — wygląd nadaje już styl strony. Wszystko inne
+// listy, linki, zdjęcia i tabele — wygląd nadaje już styl strony. Wszystko inne
 // (kolory, rozmiary, komentarze, skrypty) wypada, więc nic z dokumentu nie
 // może "rozjechać" strony ani wstrzyknąć na nią czegoś obcego.
 // Czysta funkcja bez zależności — testy w tests/blog.test.mjs.
@@ -68,6 +68,9 @@ export function parseDoc(html, { imgSrc }) {
   const spans = [];            // zamknięcia otwartych <span> (np. "</strong>")
   let linkOpen = false, skipLink = false, skipDepth = 0;
   let faqLevel = 0, faqItem = null;
+  // Tabela z dokumentu: { depth, row, cell }. Pierwszy wiersz = nagłówki (<th>).
+  // Akapity z komórki trafiają do niej (rozdzielone <br>), nie jako osobne <p>.
+  let table = null;
 
   const openBlock = (tag, heading, level) => { block = { tag, heading, level, parts: [], text: "", before: [] }; };
   const closeBlock = () => {
@@ -75,6 +78,7 @@ export function parseDoc(html, { imgSrc }) {
     const b = block; block = null;
     const text = b.text.replace(/\s+/g, " ").trim();
     const inner = b.parts.join("").trim();
+    if (table?.cell) { if (inner) table.cell.parts.push(inner); words += wordCount(text); return; }
     // Zdjęcie wklejone w linijkę nagłówka — wstawiamy je przed nagłówkiem.
     out.push(...b.before.map(img => `<p>${img}</p>`));
     if (b.heading && b.level === 1 && !title && text) { title = text; return; }
@@ -93,6 +97,11 @@ export function parseDoc(html, { imgSrc }) {
     if (title && !intro && b.tag === "p" && !isNote(text) && wordCount(text) >= 6) intro = text;
     if (faqItem && text) faqItem.a = `${faqItem.a} ${text}`.trim();
   };
+  const closeCell = () => {
+    if (!table?.cell) return;
+    const c = table.cell; table.cell = null;
+    out.push(`<${c.tag}>${c.parts.join("<br>")}</${c.tag}>`);
+  };
 
   for (const m of body.matchAll(/<(\/?)([a-zA-Z0-9]+)([^>]*)>|([^<]+)/g)) {
     const [, close, rawName, attrs = "", text] = m;
@@ -107,7 +116,19 @@ export function parseDoc(html, { imgSrc }) {
     if (SKIP.has(name)) { skipDepth = Math.max(0, skipDepth + (close ? -1 : 1)); continue; }
     if (skipDepth) continue;
 
-    if (name === "p" || /^h[1-6]$/.test(name)) {
+    if (name === "table") {
+      closeBlock();
+      if (!close) {
+        if (table) table.depth++;          // tabela w tabeli — jej tekst trafia do bieżącej komórki
+        else { table = { depth: 1, row: -1, cell: null }; out.push("<table>"); }
+      } else if (table && --table.depth === 0) { closeCell(); table = null; out.push("</table>"); }
+    } else if (table?.depth === 1 && name === "tr") {
+      closeBlock(); closeCell();
+      if (!close) { table.row++; out.push("<tr>"); } else out.push("</tr>");
+    } else if (table?.depth === 1 && (name === "td" || name === "th")) {
+      closeBlock(); closeCell();
+      if (!close) table.cell = { tag: table.row === 0 ? "th" : "td", parts: [] };
+    } else if (name === "p" || /^h[1-6]$/.test(name)) {
       if (close) { closeBlock(); continue; }
       closeBlock();
       const isTitle = name === "p" && (attr(attrs, "class") || "").split(/\s+/).includes("title");
@@ -118,7 +139,8 @@ export function parseDoc(html, { imgSrc }) {
       if (!close) openBlock("li", false, 0);
     } else if (name === "ul" || name === "ol") {
       closeBlock();
-      out.push(close ? `</${name}>` : `<${name}>`);
+      // Lista w komórce tabeli: punkty trafiają do komórki jako kolejne linijki.
+      if (!table?.cell) out.push(close ? `</${name}>` : `<${name}>`);
     } else if (name === "span") {
       if (close) { const c = spans.pop() || []; if (block) block.parts.push(c.join("")); continue; }
       const cls = (attr(attrs, "class") || "").split(/\s+/);
@@ -158,9 +180,10 @@ export function parseDoc(html, { imgSrc }) {
     } else if (name === "br" && block) {
       block.parts.push("<br>");
     }
-    // Pozostałe znaczniki (div, table, sup, hr…) pomijamy, zostawiając ich tekst.
+    // Pozostałe znaczniki (div, tbody, sup, hr…) pomijamy, zostawiając ich tekst.
   }
   closeBlock();
+  if (table) { closeCell(); out.push("</table>"); }
 
   const altBase = title || "Wpis na blogu";
   const htmlOut = out.join("\n").replace(/__ALT(\d+)__/g, (_, n) => escAttr(`${altBase} — zdjęcie ${Number(n) + 1}`));
