@@ -366,7 +366,7 @@ const ShareIcon = ({ size = 20, color = C.primary }) => (
 // Link to zawsze czysty adres profilu (bez dopisków do statystyk).
 // Każde udostępnienie = zdarzenie GA4 "share". Linki mają data-share, żeby
 // licznik kliknięć w kontakty (contact_click) ich nie liczył.
-function ShareButtons({ url, title, itemId, itemType }) {
+function ShareButtons({ url, title, itemId, itemType, label = "Udostępnij profil" }) {
   const [note, setNote] = useState("");
   const canNativeShare = typeof navigator !== "undefined" && typeof navigator.share === "function"
     && typeof window !== "undefined" && window.matchMedia && window.matchMedia("(pointer: coarse)").matches;
@@ -386,7 +386,7 @@ function ShareButtons({ url, title, itemId, itemType }) {
 
   return (
     <div style={{ marginTop:26, paddingTop:18, borderTop:`1px solid ${C.border}`, textAlign:"center" }}>
-      <div style={{ fontSize:11, color:C.muted, letterSpacing:"0.08em", marginBottom:10 }}>Udostępnij profil</div>
+      <div style={{ fontSize:11, color:C.muted, letterSpacing:"0.08em", marginBottom:10 }}>{label}</div>
       <div style={{ display:"flex", gap:10, justifyContent:"center", flexWrap:"wrap" }}>
         <a data-share href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`} target="_blank" rel="noreferrer" onClick={() => log("facebook")} aria-label="Udostępnij na Facebooku" title="Facebook" style={circle}>
           <FacebookIcon size={15} color={iconColor} />
@@ -2288,6 +2288,7 @@ function BlogPostPage({ post, workshops, onOccasion, onStart, onPickWorkshop, on
         <h1 className="blog-title" style={{ fontFamily:"'Montserrat', system-ui, sans-serif", fontSize:32, fontWeight:400, lineHeight:1.25, color:C.text, margin:"10px 0 12px" }}>{post.title}</h1>
         <div style={{ fontSize:13, color:C.muted, marginBottom:28 }}>{formatPostDate(post.date)} · Joanna · {COPY.siteName} · {post.readMin} min czytania</div>
         <div className="blog-body" dangerouslySetInnerHTML={{ __html: post.html }} />
+        <ShareButtons url={SITE_URL + blogPath(post.slug)} title={post.title} itemId={post.slug} itemType="blog_post" label="Udostępnij wpis" />
       </article>
       <div style={{ maxWidth:680, margin:"40px auto 0", textAlign:"center" }}>
         <h2 style={{ fontSize:20, fontWeight:400, margin:"0 0 8px", color:C.text }}>Zaplanuj taki event</h2>
