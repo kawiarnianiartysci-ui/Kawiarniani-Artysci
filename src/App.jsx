@@ -232,6 +232,9 @@ const globalCSS = `
   .blog-body a { color:${C.primary}; text-decoration:underline; text-underline-offset:2px; }
   .blog-body img { display:block; width:auto; max-width:100%; height:auto; max-height:75vh; border-radius:14px; margin:8px auto 18px; }
   .blog-body strong { font-weight:600; }
+  .blog-body table { display:block; overflow-x:auto; max-width:100%; border-collapse:collapse; margin:8px 0 22px; font-size:14.5px; line-height:1.5; }
+  .blog-body th, .blog-body td { border:1px solid ${C.border}; padding:9px 12px; text-align:left; vertical-align:top; }
+  .blog-body th { background:${C.tagBg}; font-weight:600; }
   .header-blog-link:hover { text-decoration:underline !important; }
   @media (max-width: 640px) {
     .header-blog-link { order:-1; width:100%; text-align:right; padding:0 !important; margin:0 !important; font-size:13px !important; }

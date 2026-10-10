@@ -6,6 +6,7 @@
    - Pierwszy zwykły akapit pod tytułem to wstęp — pokaże się na liście wpisów i w Google.
    - Zdjęcia wklejaj tam, gdzie mają być. **Pierwsze zdjęcie = zdjęcie główne** (lista wpisów, podgląd linku na Facebooku/WhatsAppie). Nie musisz ich zmniejszać.
    - Sekcja „Najczęstsze pytania” (Nagłówek 2) z pytaniami jako Nagłówek 3 i odpowiedziami pod nimi — Google i czaty AI chętnie to cytują.
+   - Tabele wstawiaj zwykłą tabelą z Dokumentów Google (Wstaw → Tabela). **Pierwszy wiersz = nagłówki kolumn** (strona pogrubi go i podświetli). Nie scalaj komórek. Na telefonie szeroką tabelę da się przesuwać palcem w bok.
    - Notatki dla siebie pisz w [nawiasach kwadratowych] w osobnej linijce — strona ich nie pokaże jako tytułu ani wstępu (ale usuń je przed publikacją).
 2. **Udostępnij dokument:** Udostępnij → Ogólny dostęp → Każdy, kto ma link → Wyświetlający.
 3. **Dopisz wiersz w zakładce „Blog” arkusza:** link do dokumentu · data (np. 2026-11-03) · adres (krótko, małymi literami, z myślnikami, np. `pomysly-na-baby-shower-poznan` — potem go już nie zmieniaj) · okazja (z listy) · opublikowany: `nie`.
