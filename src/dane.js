@@ -91,7 +91,10 @@ export const parseHours = text => {
   const byDay = {};
   splitList(text).forEach(part => {
     const [day, ranges] = part.split("=");
-    if (!day || !day.trim()) return;
+    // Tylko prawdziwe klucze dni — zwykły tekst w komórce (np. "weekendy, w
+    // tygodniu po 17") jest ignorowany, czyli działa jak pusta komórka,
+    // zamiast ukrywać artystę/lokal przy każdym wybranym terminie.
+    if (!day || !DAY_KEYS.includes(day.trim())) return;
     byDay[day.trim()] = (ranges || "").split(",").map(range => {
       const [open, close] = range.split("-");
       return open && close ? { open: open.trim(), close: close.trim() } : null;

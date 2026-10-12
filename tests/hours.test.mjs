@@ -34,6 +34,10 @@ test("warsztat musi się zmieścić razem z czasem trwania", () => {
   assert.equal(fitsHours(h, THU, "17:00", 1), false); // czwartek zamknięty
   assert.equal(fitsHours(h, SAT, "15:00", 2), true);
 });
+test("zwykły tekst zamiast formatu = bez ograniczeń (nie ukrywa artysty)", () => {
+  assert.equal(fitsHours(parseHours("weekendy, w tygodniu po 17"), MON, "10:00", 2), true);
+  assert.equal(fitsHours(parseHours("13:00 - 22:00"), MON, "10:00", 2), true);
+});
 test("dzień nieopisany w komórce = niedostępny", () => {
   assert.equal(fitsHours(parseHours("pon=10:00-20:00"), SAT, "12:00", 1), false);
 });
