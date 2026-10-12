@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import {
   CSV_RESTAURANTS_URL, CSV_WORKSHOPS_URL, csvToObjects,
   restaurantFromRow, workshopFromRow,
-  parseDurationHours, timeToMinutes, dayKeyFromDate,
+  parseDurationHours, fitsHours,
 } from "./dane.js";
 import {
   OCCASIONS, SITE_URL, parseRoute, findBySlug, profilePath, occasionPath,
@@ -2971,23 +2971,21 @@ export default function App() {
   // Zgodność niezależna od jeszcze niewybranej liczby osób — sprawdza czy
   // zakresy min/max obu stron w ogóle się przecinają (a nie czy pasują do
   // aktualnej wartości groupSize, która na tym etapie może się jeszcze zmienić).
+  // Termin wybrany przez klienta (data + godzina startu) musi mieścić się
+  // W TEN KONKRETNY dzień tygodnia w godzinach dostępności artysty i w
+  // godzinach otwarcia lokalu (różne dni = różne godziny, część dni bywa
+  // zamknięta całkowicie). Czas trwania liczony jako górna granica, gdy podany
+  // jest zakres np. "2-3 godz". Sprawdzane osobno dla każdej strony, więc
+  // działa już w kroku 1, zanim klient wybierze drugą stronę. Brak daty/godziny
+  // albo pusta komórka "hours" = nie ograniczamy (patrz fitsHours w dane.js).
+  const workshopFitsTime = w => fitsHours(w.hours, selectedDate, selectedTime, parseDurationHours(w.duration));
+  const restaurantFitsTime = (r, w) => fitsHours(r.hours, selectedDate, selectedTime, w ? parseDurationHours(w.duration) : 0);
   const isCompatible = (w, r) => {
+    if (w && !workshopFitsTime(w)) return false;
+    if (r && !restaurantFitsTime(r, w)) return false;
     if (!w || !r) return true;
     if (w.requiresSeparateRoom && !r.hasSeparateRoom) return false;
     if (r.requiresInvoice && w.canInvoice === false) return false;
-    // Warsztat musi zmieścić się w godzinach otwarcia lokalu W TEN KONKRETNY
-    // dzień tygodnia (różne dni = różne godziny, część dni bywa zamknięta
-    // całkowicie). Czas trwania liczony jako górna granica, gdy podany jest
-    // zakres np. "2-3 godz". Filtrujemy tylko gdy mamy komplet danych: datę,
-    // godzinę startu i wypełnione godziny otwarcia dla tego lokalu w ogóle
-    // (lokal bez żadnych godzin w arkuszu = jeszcze nie ograniczamy).
-    if (selectedDate && selectedTime && r.hours && Object.keys(r.hours).length > 0) {
-      const today = r.hours[dayKeyFromDate(selectedDate)];
-      if (today === undefined || today === null) return false; // brak wpisu dla tego dnia lub jawnie zamknięte
-      const start = timeToMinutes(selectedTime);
-      const end = start + parseDurationHours(w.duration) * 60;
-      if (start < timeToMinutes(today.open) || end > timeToMinutes(today.close)) return false;
-    }
     return Math.max(w.minPeople, r.minPeople) <= Math.min(w.maxPeople, r.maxPeople);
   };
   // Krok 1 (nic jeszcze nie wybrane po drugiej stronie) pokazuje wszystko;
@@ -3009,6 +3007,7 @@ export default function App() {
     if (w.kidsOnly) return false;
     if (!w.comingSoon && w.travelsToClient !== true) return false;
     if (invoiceRequired && w.canInvoice !== true) return false;
+    if (!w.comingSoon && !workshopFitsTime(w)) return false;
     return true;
   });
 
@@ -3023,16 +3022,11 @@ export default function App() {
   const isKidsCompatible = (w, r) => {
     if (w && !w.forKids) return false;
     if (r && (!r.acceptsKids || !r.kidsVariants || r.kidsVariants.length === 0)) return false;
+    if (w && !workshopFitsTime(w)) return false;
+    if (r && !restaurantFitsTime(r, w)) return false;
     if (!w || !r) return true;
     if (w.requiresSeparateRoom && !r.hasSeparateRoom) return false;
     if (r.requiresInvoice && w.canInvoice === false) return false;
-    if (selectedDate && selectedTime && r.hours && Object.keys(r.hours).length > 0) {
-      const today = r.hours[dayKeyFromDate(selectedDate)];
-      if (today === undefined || today === null) return false;
-      const start = timeToMinutes(selectedTime);
-      const end = start + parseDurationHours(w.duration) * 60;
-      if (start < timeToMinutes(today.open) || end > timeToMinutes(today.close)) return false;
-    }
     if (kidsCount != null) {
       if (w.minPeople != null && kidsCount < w.minPeople) return false;
       if (w.maxPeople != null && kidsCount > w.maxPeople) return false;
@@ -3052,6 +3046,7 @@ export default function App() {
   const ownPlaceWorkshopsKids = workshops.filter(w => {
     if (!w.comingSoon && !(w.travelsToClient === true && w.forKids)) return false;
     if (invoiceRequired && w.canInvoice !== true) return false;
+    if (!w.comingSoon && !workshopFitsTime(w)) return false;
     return true;
   });
 

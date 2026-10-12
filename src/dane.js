@@ -80,22 +80,22 @@ export const parseDurationHours = text => {
 // "HH:MM" -> minuty od północy, do porównań czasu.
 export const timeToMinutes = t => { const [h, m] = t.split(":").map(Number); return h * 60 + (m || 0); };
 
-// Godziny otwarcia lokalu, różne dla każdego dnia tygodnia — jedna kolumna
-// w arkuszu ("hours"), format: "pon=15:00-21:00;wt=15:00-21:00;sr=;czw=...".
-// Pusty zakres po "=" (albo brak dnia w tekście) = lokal zamknięty w ten dzień.
-// Brak kolumny w ogóle (pusty tekst) = brak danych, filtr godzin nieaktywny.
+// Godziny otwarcia lokalu / dostępności artysty, różne dla każdego dnia
+// tygodnia — jedna kolumna w arkuszu ("hours"), w obu zakładkach ten sam
+// format: "pon=15:00-21:00;wt=15:00-21:00;sr=;czw=...".
+// Kilka przedziałów w jednym dniu po przecinku: "pon=08:00-12:00,18:00-22:00".
+// Pusty zakres po "=" (albo brak dnia w tekście) = zamknięte / niedostępny.
+// Pusta komórka = brak danych, filtr godzin nieaktywny (pokazujemy zawsze).
 export const DAY_KEYS = ["nd", "pon", "wt", "sr", "czw", "pt", "sob"]; // index = Date.getDay()
 export const parseHours = text => {
   const byDay = {};
   splitList(text).forEach(part => {
-    const [day, range] = part.split("=");
-    if (!day) return;
-    if (range) {
+    const [day, ranges] = part.split("=");
+    if (!day || !day.trim()) return;
+    byDay[day.trim()] = (ranges || "").split(",").map(range => {
       const [open, close] = range.split("-");
-      if (open && close) byDay[day.trim()] = { open: open.trim(), close: close.trim() };
-    } else {
-      byDay[day.trim()] = null; // jawnie zamknięte
-    }
+      return open && close ? { open: open.trim(), close: close.trim() } : null;
+    }).filter(Boolean); // [] = jawnie zamknięte
   });
   return byDay;
 };
@@ -104,6 +104,20 @@ export const parseHours = text => {
 export const dayKeyFromDate = dateStr => {
   const [y, m, d] = dateStr.split("-").map(Number);
   return DAY_KEYS[new Date(y, m - 1, d).getDay()];
+};
+// Czy wydarzenie od `time` trwające `durationHours` mieści się w godzinach
+// `hours` (z parseHours) w dniu `dateStr`. Brak daty/godziny albo pusta
+// komórka "hours" = nie ograniczamy (true). Z durationHours = 0 (np. lokal,
+// gdy warsztat nie jest jeszcze wybrany) sprawdzamy tylko, czy start wypada
+// przed zamknięciem.
+export const fitsHours = (hours, dateStr, time, durationHours = 0) => {
+  if (!dateStr || !time || !hours || Object.keys(hours).length === 0) return true;
+  const ranges = hours[dayKeyFromDate(dateStr)];
+  if (!ranges || ranges.length === 0) return false; // brak wpisu dla tego dnia lub jawnie zamknięte
+  const start = timeToMinutes(time);
+  const end = start + durationHours * 60;
+  return ranges.some(({ open, close }) =>
+    start >= timeToMinutes(open) && start < timeToMinutes(close) && end <= timeToMinutes(close));
 };
 
 // ══ Adresy profili ("slug") ══════════════════════════════════
@@ -166,6 +180,9 @@ export function workshopFromRow(row) {
     // artyści z travelsToClient=tak są tam wybieralni, patrz withOwnPlaceTile w App().
     travelsToClient: toTriBool(row.travelsToClient),
     travelArea: row.travelArea || undefined,
+    // Dni/godziny, w których artysta może prowadzić warsztat — ten sam
+    // format co "hours" u restauracji. Pusta komórka = bez ograniczeń.
+    hours: parseHours(row.hours),
   };
 }
 

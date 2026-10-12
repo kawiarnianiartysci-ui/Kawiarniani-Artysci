@@ -65,8 +65,8 @@ function workshopLd(w, path) {
 function restaurantLd(r, path) {
   const isCafe = /kawiarn|cafe|caf[eé]/i.test(`${r.vibe || ""} ${r.name}`);
   const hours = Object.entries(r.hours || {})
-    .filter(([day, h]) => DAY_NAMES[day] && h)
-    .map(([day, h]) => ({ "@type": "OpeningHoursSpecification", dayOfWeek: DAY_NAMES[day], opens: h.open, closes: h.close }));
+    .filter(([day, ranges]) => DAY_NAMES[day] && ranges && ranges.length)
+    .flatMap(([day, ranges]) => ranges.map(h => ({ "@type": "OpeningHoursSpecification", dayOfWeek: DAY_NAMES[day], opens: h.open, closes: h.close })));
   const sameAs = [r.website, r.instagramUrl, r.facebookUrl].filter(u => u && /^https?:\/\//.test(u));
   return {
     "@context": "https://schema.org",
