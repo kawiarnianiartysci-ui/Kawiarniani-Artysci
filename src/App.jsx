@@ -1105,16 +1105,13 @@ function Footer({ onOccasion }) {
   );
 }
 
-// Klient nie może zarezerwować terminu wcześniej niż za 14 dni roboczych
+// Klient nie może zarezerwować terminu wcześniej niż za ok. 1,5 tygodnia
+// (10 dni kalendarzowych od dziś)
+const MIN_BOOKING_DAYS = 10;
 function minBookingDateStr() {
   const d = new Date();
   d.setHours(0, 0, 0, 0);
-  let added = 0;
-  while (added < 14) {
-    d.setDate(d.getDate() + 1);
-    const day = d.getDay();
-    if (day !== 0 && day !== 6) added++;
-  }
+  d.setDate(d.getDate() + MIN_BOOKING_DAYS);
   // uwaga: toISOString() konwertuje na UTC i cofa datę o dzień w polskiej
   // strefie czasowej — budujemy string YYYY-MM-DD z lokalnych wartości
   const y = d.getFullYear();
