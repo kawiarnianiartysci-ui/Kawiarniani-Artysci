@@ -57,13 +57,13 @@ docs/superpowers/   spec + implementation plan for the "Eventy dla dzieci" (kids
 - Google Search Console shows **23 clicks from Google** (last 28 days, as of 2026-08-28)
 - Average position: **2.1** (top results)
 - Click-through rate: **62.2%** (very high — meta description is engaging)
-- Metadata: title, description, Open Graph tags, schema.org LocalBusiness all present ✓
+- Metadata: title, description, Open Graph tags, schema.org JSON-LD (homepage: Organization + WebSite + Service since 2026-10-13) all present ✓
 - **robots.txt** and **sitemap.xml** live 2026-08-28 ✓
 
 ### Recent improvements (2026-09-21)
 
 Structured data and UX enhancements to support search ranking:
-- **JSON-LD enrichment**: added `priceRange` ("50–270 zł"), `sameAs` (social profiles), `lowPrice`/`highPrice`
+- **JSON-LD enrichment**: added `sameAs` (social profiles), `lowPrice`/`highPrice` (the hardcoded "50–270 zł" range from this round went stale and was replaced 2026-10-13 — see below)
 - **Image alt text**: all gallery images now have descriptive alt text (e.g., "Galeria zdjęcia 1" not generic "Photo")
 - **Video optimization**: hero video `preload="metadata"` for faster mobile loading (Core Web Vitals)
 - **Noscript fallback**: robot-readable content block for users/bots without JavaScript
@@ -75,7 +75,15 @@ PageSpeed mobile: profile pages **88** (SEO 100, CLS 0), homepage **68** (SEO 10
 
 ### Per-page URLs and server-side meta tags (2026-09)
 
-The homepage is still a plain React SPA, but every workshop/venue now has its own URL (`/warsztaty/<slug>`, `/miejsca/<slug>`), and there are 5 occasion landing pages (`/wieczor-panienski`, `/urodziny`, `/urodziny-dla-dzieci`, `/integracja-firmowa`, `/baby-shower`). A serverless function (`api/page.js`) serves those URLs with their own title, description, canonical, Open Graph image and JSON-LD, plus plain-HTML content — because Facebook/WhatsApp/Messenger/LinkedIn link previews and most AI crawlers don't run JavaScript. `/sitemap.xml` is generated from the Sheet (`api/sitemap.js`). Details and gotchas: [CONTRIBUTING.md → Public URLs](CONTRIBUTING.md#public-urls-share-previews--seo-2026-09).
+Every workshop/venue now has its own URL (`/warsztaty/<slug>`, `/miejsca/<slug>`), and there are 5 occasion landing pages (`/wieczor-panienski`, `/urodziny`, `/urodziny-dla-dzieci`, `/integracja-firmowa`, `/baby-shower`). A serverless function (`api/page.js`) serves those URLs with their own title, description, canonical, Open Graph image and JSON-LD, plus plain-HTML content — because Facebook/WhatsApp/Messenger/LinkedIn link previews and most AI crawlers don't run JavaScript. `/sitemap.xml` is generated from the Sheet (`api/sitemap.js`). Details and gotchas: [CONTRIBUTING.md → Public URLs](CONTRIBUTING.md#public-urls-share-previews--seo-2026-09).
+
+### Homepage, titles and live prices (2026-10-13)
+
+- `/` is now served by `api/page.js` too (the build deletes `dist/index.html`): `index.html` + **prices computed live from the Sheet** (adults from / kids from / AggregateOffer low–high) + a plain-HTML crawler body listing every active workshop (with price) and venue, linked — ~480 words instead of ~90 in `<noscript>`. Edge-cached, ~60 ms.
+- Homepage JSON-LD: Organization + WebSite + Service (was LocalBusiness without an address).
+- Profile `<title>`s fitted to ≤62 chars (brand dropped first, "Poznań" always kept), descriptions ≤155 chars.
+- Verified 2026-10-13: Googlebot, Bingbot, GPTBot, OAI-SearchBot, ClaudeBot, PerplexityBot all get HTTP 200 with full content; `robots.txt` allows all.
+- Still open: occasion descriptions in `OCCASIONS` are 158–174 chars; no `llms.txt` (optional); PageSpeed not re-measured after this change.
 
 ### Blog (2026-10)
 
