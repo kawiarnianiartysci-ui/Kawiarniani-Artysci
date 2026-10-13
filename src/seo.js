@@ -135,7 +135,7 @@ export const minWorkshopPrice = workshops => {
 // ══ Ceny na stronie głównej ══════════════════════════════════
 // Strona główna to index.html, ale serwer (api/page.js) przed wysłaniem
 // podmienia w nim ceny na aktualne z arkusza: zdanie "Warsztaty od X zł za
-// osobę, a dla dzieci od Y zł." oraz priceRange/lowPrice/highPrice w JSON-LD.
+// osobę, a dla dzieci od Y zł." oraz lowPrice/highPrice w JSON-LD.
 // Liczby wpisane w index.html to tylko zapas na wypadek, gdyby arkusz nie
 // odpowiadał — przy zmianie tych tekstów w index.html trzeba zachować ich
 // układ (pilnuje tego test w tests/home.test.mjs).
@@ -154,7 +154,6 @@ export function homePrices(workshops) {
 export function applyHomePrices(html, p) {
   if (!p) return html;
   let out = html
-    .replace(/"priceRange": "[^"]*"/, () => `"priceRange": "${p.low}–${p.high} zł"`)
     .replace(/"lowPrice": "\d+"/, () => `"lowPrice": "${p.low}"`)
     .replace(/"highPrice": "\d+"/, () => `"highPrice": "${p.high}"`);
   if (p.adults) out = out.replace(/Warsztaty od \d+ zł za osobę/, () => `Warsztaty od ${p.adults} zł za osobę`);
@@ -170,9 +169,24 @@ export function shorten(text, n = 155) {
   return t.slice(0, n).replace(/\s+\S*$/, "") + "…";
 }
 
+// Google pokazuje ok. 60 znaków tytułu, resztę ucina. Bierzemy najpełniejszą
+// wersję, która się mieści — przy długich nazwach z arkusza po kolei
+// odpada: nazwa platformy (Google i tak pokazuje ją osobno nad tytułem),
+// artysta, "Warsztaty w Poznaniu".
+const TITLE_MAX = 62;
+const fitTitle = (...options) =>
+  options.find(t => t.length <= TITLE_MAX) || shorten(options[options.length - 1], TITLE_MAX - 1);
+
 export function workshopTitle(w) {
+  const name = w.name.trim();
   const who = w.artist && w.artist.trim() && !w.name.toLowerCase().includes(w.artist.trim().toLowerCase()) ? ` — ${w.artist.trim()}` : "";
-  return `${w.name.trim()}${who} | Warsztaty w Poznaniu · ${BRAND}`;
+  return fitTitle(
+    `${name}${who} | Warsztaty w Poznaniu · ${BRAND}`,
+    `${name}${who} | Warsztaty w Poznaniu`,
+    `${name} | Warsztaty w Poznaniu`,
+    `${name} | ${BRAND}`,
+    name,
+  );
 }
 // Krótsze tytuły do podglądów linków w social mediach (tam nazwa strony
 // wyświetla się osobno, nad tytułem) — np. "Ebru — malowanie na wodzie ·
@@ -186,14 +200,24 @@ export function restaurantShareTitle(r) {
   return `${String(r.name || "").trim()}, Poznań`;
 }
 export function restaurantTitle(r) {
-  return `${r.name.trim()}, Poznań — eventy z warsztatami | ${BRAND}`;
+  const name = r.name.trim();
+  return fitTitle(
+    `${name}, Poznań — eventy z warsztatami | ${BRAND}`,
+    `${name}, Poznań — eventy z warsztatami`,
+    `${name}, Poznań | ${BRAND}`,
+    `${name}, Poznań`,
+  );
 }
+// Opis dla Google — do ~155 znaków (dłuższe są ucinane w wynikach), stała
+// końcówka (cena, "Poznań") zawsze się mieści, skracany jest opis z arkusza.
+const DESC_MAX = 155;
+const fitDescription = (text, tail) => `${shorten(text, DESC_MAX - tail.length - 1)}${tail}`.trim();
 export function workshopDescription(w) {
   const price = w.pricePerPerson ? ` Cena: ${w.pricePerPerson} zł/os.` : "";
-  return shorten(`${shorten(w.description || w.bio, 125)}${price} Warsztat na eventy grupowe w Poznaniu.`, 200);
+  return fitDescription(w.description || w.bio, `${price} Warsztat na eventy grupowe w Poznaniu.`);
 }
 export function restaurantDescription(r) {
-  return shorten(`${shorten(r.description || r.fullDescription, 120)} Warsztaty artystyczne na eventy grupowe w Poznaniu.`, 200);
+  return fitDescription(r.description || r.fullDescription, " Warsztaty artystyczne na eventy grupowe w Poznaniu.");
 }
 
 // Tytuł karty przeglądarki dla aktualnego widoku (przeglądarka ustawia go

@@ -26,32 +26,54 @@
     <!-- Canonical -->
     <link rel="canonical" href="https://www.kawiarnianiartysci.pl/" />
 
-    <!-- Schema.org JSON-LD -->
+    <!-- Schema.org JSON-LD: platforma (Organization), serwis (WebSite) i usługa
+         z cenami (Service). lowPrice/highPrice serwer podmienia na aktualne
+         z arkusza (applyHomePrices w src/seo.js) — zachowaj ich zapis. -->
     <script type="application/ld+json">
     {
       "@context": "https://schema.org",
-      "@type": "LocalBusiness",
-      "name": "Kawiarniani Artyści",
-      "description": "Platforma łącząca artystów, restauracje i klientów na eventy grupowe w Poznaniu — warsztaty artystyczne i kreatywne (m.in. malowanie, ebru, ceramika, mozaika, perfumy botaniczne, improwizacja) w restauracjach i kawiarniach.",
-      "url": "https://www.kawiarnianiartysci.pl",
-      "image": "https://www.kawiarnianiartysci.pl/images/hero-photo.jpg",
-      "areaServed": {
-        "@type": "City",
-        "name": "Poznań"
-      },
-      "priceRange": "35–200 zł",
-      "serviceType": ["Warsztaty artystyczne", "Organizacja eventów grupowych"],
-      "sameAs": [
-        "https://www.instagram.com/kawiarniani_artysci/",
-        "https://www.facebook.com/profile.php?id=61552403980459"
-      ],
-      "offers": {
-        "@type": "AggregateOffer",
-        "priceCurrency": "PLN",
-        "lowPrice": "35",
-        "highPrice": "200",
-        "description": "Warsztaty artystyczne + restauracja na eventy grupowe"
-      }
+      "@graph": [
+        {
+          "@type": "Organization",
+          "@id": "https://www.kawiarnianiartysci.pl/#organizacja",
+          "name": "Kawiarniani Artyści",
+          "url": "https://www.kawiarnianiartysci.pl",
+          "logo": "https://www.kawiarnianiartysci.pl/images/logo-img.png",
+          "image": "https://www.kawiarnianiartysci.pl/images/hero-photo.jpg",
+          "email": "kawiarnianiartysci@gmail.com",
+          "description": "Platforma łącząca artystów, restauracje i klientów na eventy grupowe w Poznaniu — warsztaty artystyczne i kreatywne (m.in. malowanie, ebru, ceramika, mozaika, perfumy botaniczne, improwizacja) w restauracjach i kawiarniach.",
+          "areaServed": { "@type": "City", "name": "Poznań" },
+          "sameAs": [
+            "https://www.instagram.com/kawiarniani_artysci/",
+            "https://www.facebook.com/profile.php?id=61552403980459",
+            "https://www.tiktok.com/@kawiarniani.artyc"
+          ]
+        },
+        {
+          "@type": "WebSite",
+          "@id": "https://www.kawiarnianiartysci.pl/#serwis",
+          "name": "Kawiarniani Artyści",
+          "url": "https://www.kawiarnianiartysci.pl",
+          "inLanguage": "pl-PL",
+          "publisher": { "@id": "https://www.kawiarnianiartysci.pl/#organizacja" }
+        },
+        {
+          "@type": "Service",
+          "name": "Warsztaty artystyczne z restauracją na eventy grupowe w Poznaniu",
+          "serviceType": "Warsztaty artystyczne na eventy grupowe",
+          "description": "Warsztat artystyczny lub kreatywny połączony z posiłkiem w poznańskiej restauracji lub kawiarni — na urodziny, wieczory panieńskie, baby shower, integracje firmowe i urodziny dla dzieci.",
+          "url": "https://www.kawiarnianiartysci.pl/",
+          "areaServed": { "@type": "City", "name": "Poznań" },
+          "provider": { "@id": "https://www.kawiarnianiartysci.pl/#organizacja" },
+          "offers": {
+            "@type": "AggregateOffer",
+            "priceCurrency": "PLN",
+            "lowPrice": "35",
+            "highPrice": "200",
+            "description": "Cena warsztatu za osobę"
+          }
+        }
+      ]
     }
     </script>
     <!-- SEO:END -->

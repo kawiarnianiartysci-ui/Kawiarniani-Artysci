@@ -193,6 +193,31 @@ ${posts.length ? `<h2 style="font-size:20px;font-weight:400;">Przeczytaj na blog
 ${navOccasions()}</main>`;
 }
 
+// Strona główna — to ją roboty AI czytają najczęściej, więc oprócz opisu ma
+// pełną listę warsztatów (z cenami) i miejsc z linkami do profili.
+function homeBody(prices, ws, ps) {
+  const wItems = ws.map(w => `<li><a style="${S.link}" href="${profilePath("workshop", w)}">${esc(w.name)}</a>${w.artist ? ` — ${esc(w.artist)}` : ""}${w.pricePerPerson ? ` · ${esc(w.pricePerPerson)} zł/os.` : ""}${w.kidsOnly ? " · dla dzieci" : w.forKids ? " · także dla dzieci" : ""}</li>`).join("");
+  const pItems = ps.map(r => `<li><a style="${S.link}" href="${profilePath("restaurant", r)}">${esc(r.name)}</a>${r.vibe ? ` — ${esc(r.vibe)}` : ""}</li>`).join("");
+  const travels = ws.some(w => w.travelsToClient === true);
+  return `<main style="${S.main}">
+<h1 style="${S.h1}">${BRAND} — warsztaty artystyczne w kawiarniach i restauracjach w Poznaniu</h1>
+<p>Łączymy restauracje i kawiarnie z artystycznymi działaniami podczas spotkań rodzinnych, wieczorów panieńskich, baby shower, urodzin lub integracji firmowych.</p>
+<p>Organizujemy warsztaty artystyczne i kreatywne, m.in. malowanie, ebru, ceramikę, mozaikę, perfumy botaniczne i improwizację, połączone z posiłkami w poznańskich restauracjach i kawiarniach.</p>
+${prices && prices.adults ? `<p>Warsztaty od <strong>${prices.adults} zł</strong> za osobę${prices.kids ? `, a dla dzieci od <strong>${prices.kids} zł</strong>` : ""}.</p>` : ""}
+<h2 style="font-size:20px;font-weight:400;">Jak to działa</h2>
+<ol style="${S.list}">
+<li>Wybieracie warsztat i miejsce — w kawiarni lub restauracji, która Wam pasuje.</li>
+<li>Wysyłacie krótkie zapytanie: termin, liczba osób, kilka słów od Was.</li>
+<li>Kontaktujemy się z restauracją i artystą, ustalamy menu i finalną cenę, a potem potwierdzamy termin.</li>
+</ol>
+${travels ? "<p>Masz własne miejsce? Część artystów przyjeżdża z warsztatem do Ciebie.</p>" : ""}
+${wItems ? `<h2 style="font-size:20px;font-weight:400;">Warsztaty</h2><ul style="${S.list}">${wItems}</ul>` : ""}
+${pItems ? `<h2 style="font-size:20px;font-weight:400;">Miejsca w Poznaniu</h2><ul style="${S.list}">${pItems}</ul>` : ""}
+<h2 style="font-size:20px;font-weight:400;">Kontakt</h2>
+<p><a style="${S.link}" href="mailto:kawiarnianiartysci@gmail.com">kawiarnianiartysci@gmail.com</a> · <a style="${S.link}" href="https://www.instagram.com/kawiarniani_artysci/">Instagram</a> · <a style="${S.link}" href="https://www.facebook.com/profile.php?id=61552403980459">Facebook</a></p>
+${navOccasions()}</main>`;
+}
+
 function notFoundBody() {
   return `<main style="${S.main}">${header()}
 <h1 style="${S.h1}">Nie znaleziono tej strony</h1>
@@ -234,6 +259,12 @@ ${navOccasions()}</main>`;
 }
 
 // ══ Składanie strony ═════════════════════════════════════════
+// Treść w zwykłym HTML-u (#seo-tresc) jest dla robotów i osób bez
+// JavaScriptu. W zwykłej przeglądarce chowamy ją od razu, żeby strona nie
+// "przeskakiwała", gdy aplikacja podmienia ją na pełny widok. Gdyby
+// aplikacja z jakiegoś powodu nie wystartowała w ciągu 8 s, treść wraca.
+const HIDE_SEO_TRESC = `<script>document.documentElement.className+=" js";setTimeout(function(){var s=document.getElementById("seo-tresc");if(s)s.style.display="block"},8000)</script>\n    <style>.js #seo-tresc{display:none}</style>`;
+
 function headBlock({ title, socialTitle, description, path, image, noindex, jsonLd, ogType = "website" }) {
   // W podglądach linków (Facebook, WhatsApp, LinkedIn) nazwa strony i tak
   // wyświetla się nad tytułem — tam krótszy tytuł, pełny zostaje dla Google.
@@ -241,12 +272,7 @@ function headBlock({ title, socialTitle, description, path, image, noindex, json
   const url = path ? SITE_URL + path : null;
   const img = abs(image || DEFAULT_IMAGE);
   return [
-    // Treść w zwykłym HTML-u (#seo-tresc) jest dla robotów i osób bez
-    // JavaScriptu. W zwykłej przeglądarce chowamy ją od razu, żeby strona nie
-    // "przeskakiwała", gdy aplikacja podmienia ją na pełny widok. Gdyby
-    // aplikacja z jakiegoś powodu nie wystartowała w ciągu 8 s, treść wraca.
-    `<script>document.documentElement.className+=" js";setTimeout(function(){var s=document.getElementById("seo-tresc");if(s)s.style.display="block"},8000)</script>`,
-    `<style>.js #seo-tresc{display:none}</style>`,
+    HIDE_SEO_TRESC,
     `<title>${esc(title)}</title>`,
     `<meta name="description" content="${esc(description)}" />`,
     noindex ? `<meta name="robots" content="noindex" />` : "",
@@ -394,15 +420,23 @@ export default async function handler(req, res) {
     return;
   }
 
-  // Strona główna: index.html bez zmian, tylko z aktualnymi cenami z arkusza
-  // (homePrices w src/seo.js). Zbudowany dist/index.html jest kasowany po
+  // Strona główna: index.html z aktualnymi cenami z arkusza (homePrices w
+  // src/seo.js) i treścią dla robotów (homeBody) zamiast <noscript>. Zbudowany dist/index.html jest kasowany po
   // buildzie (vite.config.js), żeby adres "/" trafiał tutaj, a nie do pliku.
+  // Bez danych z arkusza zostaje sam index.html (z blokiem <noscript>).
   if (route.type === "home") {
-    const dataScript = data
-      ? `<script>window.__DANE_ARKUSZA__=${jsonForScript({ r: data.restText, w: data.workText })};</script>`
-      : "";
-    const html = applyHomePrices(template, data ? homePrices(data.workshops) : null)
-      .replace('<div id="root"></div>', () => `<div id="root"></div>${dataScript}`);
+    let html = template;
+    if (data) {
+      const prices = homePrices(data.workshops);
+      const body = homeBody(prices,
+        data.workshops.filter(w => !w.comingSoon),
+        data.restaurants.filter(r => !r.comingSoon));
+      const dataScript = `<script>window.__DANE_ARKUSZA__=${jsonForScript({ r: data.restText, w: data.workText })};</script>`;
+      html = applyHomePrices(template, prices)
+        .replace("<!-- SEO:END -->", () => `${HIDE_SEO_TRESC}\n    <!-- SEO:END -->`)
+        .replace(/<!-- NOSCRIPT:START -->[\s\S]*?<!-- NOSCRIPT:END -->/, () => "")
+        .replace('<div id="root"></div>', () => `<div id="root"><div id="seo-tresc">${body}</div></div>${dataScript}`);
+    }
     res.setHeader("Content-Type", "text/html; charset=utf-8");
     res.setHeader("Cache-Control", data
       ? "public, max-age=0, s-maxage=300, stale-while-revalidate=86400"
