@@ -18,7 +18,7 @@ import { getSheetData } from "./_sheet.js";
 import { escapeHtml as esc } from "./_shared.js";
 import {
   SITE_URL, BRAND, HOME_TITLE, OCCASIONS, parseRoute, findBySlug, profilePath, occasionPath,
-  occasionWorkshops, occasionPlaces, minWorkshopPrice, shorten,
+  occasionWorkshops, occasionPlaces, minWorkshopPrice, homePrices, applyHomePrices, shorten,
   workshopTitle, restaurantTitle, workshopDescription, restaurantDescription,
   workshopShareTitle, restaurantShareTitle,
   BLOG_PATH, blogPath, BLOG_TITLE, BLOG_DESCRIPTION, blogPostTitle, formatPostDate,
@@ -369,11 +369,11 @@ export default async function handler(req, res) {
   try {
     template = await getTemplate();
   } catch (err) {
-    // Brak szablonu = coś poszło nie tak przy buildzie — lepiej strona
-    // główna niż błąd.
+    // Brak szablonu = coś poszło nie tak przy buildzie. Strona główna też
+    // idzie przez tę funkcję, więc przekierowanie na "/" by się zapętliło.
     console.error("Brak api/_szablon.js:", err);
     res.setHeader("Cache-Control", "no-store");
-    res.redirect(302, "/");
+    res.status(503).send("Strona chwilowo niedostępna — spróbuj za chwilę.");
     return;
   }
 
@@ -391,6 +391,23 @@ export default async function handler(req, res) {
     res.setHeader("Content-Type", "text/html; charset=utf-8");
     res.setHeader("Cache-Control", "public, max-age=0, s-maxage=30");
     res.status(200).send(template);
+    return;
+  }
+
+  // Strona główna: index.html bez zmian, tylko z aktualnymi cenami z arkusza
+  // (homePrices w src/seo.js). Zbudowany dist/index.html jest kasowany po
+  // buildzie (vite.config.js), żeby adres "/" trafiał tutaj, a nie do pliku.
+  if (route.type === "home") {
+    const dataScript = data
+      ? `<script>window.__DANE_ARKUSZA__=${jsonForScript({ r: data.restText, w: data.workText })};</script>`
+      : "";
+    const html = applyHomePrices(template, data ? homePrices(data.workshops) : null)
+      .replace('<div id="root"></div>', () => `<div id="root"></div>${dataScript}`);
+    res.setHeader("Content-Type", "text/html; charset=utf-8");
+    res.setHeader("Cache-Control", data
+      ? "public, max-age=0, s-maxage=300, stale-while-revalidate=86400"
+      : "public, max-age=0, s-maxage=30");
+    res.status(200).send(html);
     return;
   }
 

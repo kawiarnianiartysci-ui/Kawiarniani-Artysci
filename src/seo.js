@@ -132,6 +132,36 @@ export const minWorkshopPrice = workshops => {
   return prices.length ? Math.min(...prices) : null;
 };
 
+// ══ Ceny na stronie głównej ══════════════════════════════════
+// Strona główna to index.html, ale serwer (api/page.js) przed wysłaniem
+// podmienia w nim ceny na aktualne z arkusza: zdanie "Warsztaty od X zł za
+// osobę, a dla dzieci od Y zł." oraz priceRange/lowPrice/highPrice w JSON-LD.
+// Liczby wpisane w index.html to tylko zapas na wypadek, gdyby arkusz nie
+// odpowiadał — przy zmianie tych tekstów w index.html trzeba zachować ich
+// układ (pilnuje tego test w tests/home.test.mjs).
+export function homePrices(workshops) {
+  const active = workshops.filter(w => !w.comingSoon);
+  const all = active.map(w => w.pricePerPerson).filter(n => n != null && n > 0);
+  if (!all.length) return null;
+  return {
+    adults: minWorkshopPrice(active.filter(w => !w.kidsOnly)),
+    kids: minWorkshopPrice(active.filter(w => w.forKids)),
+    low: Math.min(...all),
+    high: Math.max(...all),
+  };
+}
+
+export function applyHomePrices(html, p) {
+  if (!p) return html;
+  let out = html
+    .replace(/"priceRange": "[^"]*"/, () => `"priceRange": "${p.low}–${p.high} zł"`)
+    .replace(/"lowPrice": "\d+"/, () => `"lowPrice": "${p.low}"`)
+    .replace(/"highPrice": "\d+"/, () => `"highPrice": "${p.high}"`);
+  if (p.adults) out = out.replace(/Warsztaty od \d+ zł za osobę/, () => `Warsztaty od ${p.adults} zł za osobę`);
+  if (p.kids) out = out.replace(/a dla dzieci od \d+ zł\./, () => `a dla dzieci od ${p.kids} zł.`);
+  return out;
+}
+
 // ══ Tytuły i opisy ═══════════════════════════════════════════
 // Skraca tekst do ~n znaków na granicy słowa (opisy dla Google mają ~155).
 export function shorten(text, n = 155) {

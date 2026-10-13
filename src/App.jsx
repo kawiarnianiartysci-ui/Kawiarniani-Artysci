@@ -98,10 +98,10 @@ const optimizedImg = (src, width) => {
   };
 };
 
-// Podstrony (profile, okazje) przychodzą z serwera z danymi arkusza już
+// Strony (główna, profile, okazje) przychodzą z serwera z danymi arkusza już
 // doklejonymi do strony (window.__DANE_ARKUSZA__, patrz api/page.js) — wtedy
-// nie pobieramy arkusza drugi raz i strona startuje od razu. Strona główna
-// nadal pobiera arkusz sama, jak dotychczas.
+// nie pobieramy arkusza drugi raz i strona startuje od razu. Gdy serwer nie
+// dostał danych (arkusz nie odpowiadał), aplikacja pobiera arkusz sama.
 const EMBEDDED_SHEET = typeof window !== "undefined" ? window.__DANE_ARKUSZA__ : null;
 
 // Wpis/lista bloga doklejone przez serwer (api/page.js) — strony bloga zawsze

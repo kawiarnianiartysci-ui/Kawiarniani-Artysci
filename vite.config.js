@@ -18,6 +18,10 @@ function szablonDlaSerwera() {
       const html = fs.readFileSync(path.resolve(config.root, config.build.outDir, "index.html"), "utf-8");
       const out = `// Plik generowany automatycznie przez vite.config.js — nie edytuj.\nexport default ${JSON.stringify(html)};\n`;
       fs.writeFileSync(path.resolve(config.root, "api/_szablon.js"), out);
+      // Bez pliku dist/index.html adres "/" też trafia do api/page.js (pliki
+      // mają pierwszeństwo przed przekierowaniami z vercel.json), który wstawia
+      // do strony głównej aktualne ceny z arkusza.
+      fs.rmSync(path.resolve(config.root, config.build.outDir, "index.html"));
     },
   };
 }

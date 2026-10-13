@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "node tests/blog.test.mjs && node tests/hours.test.mjs && vite build",
+    "build": "node tests/blog.test.mjs && node tests/hours.test.mjs && node tests/home.test.mjs && vite build",
     "preview": "vite preview"
   },
   "dependencies": {
