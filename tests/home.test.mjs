@@ -46,8 +46,10 @@ test("tytuły profili mieszczą się w 62 znakach, najpierw odpada nazwa platfor
   assert.equal(workshopTitle({ name: "Ebru", artist: "Ayşe" }), "Ebru — Ayşe | Warsztaty w Poznaniu · Kawiarniani Artyści");
   const long = workshopTitle({ name: "Ślady natury - stwórz własną botaniczną dekorację z suszonych roślin", artist: "Lena Tsybulko" });
   assert.ok(long.length <= 62, long);
-  assert.ok(long.startsWith("Ślady natury"), long);
-  assert.ok(restaurantTitle({ name: "Republika Słoneczna Kawiarnia i Bistro Ogrodowe" }).length <= 62);
+  assert.ok(long.startsWith("Ślady natury") && long.endsWith(" | Poznań"), long);
+  assert.equal(workshopTitle({ name: "Ku lekkości! Warsztaty zespołowej improwizacji", artist: "Agnieszka" }), "Ku lekkości! Warsztaty zespołowej improwizacji | Poznań");
+  const longPlace = restaurantTitle({ name: "Republika Słoneczna Kawiarnia i Bistro Ogrodowe z Ogrodem Zimowym" });
+  assert.ok(longPlace.length <= 62 && longPlace.endsWith(", Poznań"), longPlace);
   assert.equal(restaurantTitle({ name: "Żuk" }), "Żuk, Poznań — eventy z warsztatami | Kawiarniani Artyści");
 });
 test("opisy profili do 155 znaków, cena zawsze zostaje", () => {

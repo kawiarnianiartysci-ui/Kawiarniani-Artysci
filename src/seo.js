@@ -172,21 +172,20 @@ export function shorten(text, n = 155) {
 // Google pokazuje ok. 60 znaków tytułu, resztę ucina. Bierzemy najpełniejszą
 // wersję, która się mieści — przy długich nazwach z arkusza po kolei
 // odpada: nazwa platformy (Google i tak pokazuje ją osobno nad tytułem),
-// artysta, "Warsztaty w Poznaniu".
+// artysta, "Warsztaty w" — a "Poznań" zostaje zawsze (w razie potrzeby
+// kosztem skrócenia samej nazwy).
 const TITLE_MAX = 62;
-const fitTitle = (...options) =>
-  options.find(t => t.length <= TITLE_MAX) || shorten(options[options.length - 1], TITLE_MAX - 1);
+const fitTitle = (name, options, tail) =>
+  options.find(t => t.length <= TITLE_MAX) || `${shorten(name, TITLE_MAX - tail.length - 1)}${tail}`;
 
 export function workshopTitle(w) {
   const name = w.name.trim();
   const who = w.artist && w.artist.trim() && !w.name.toLowerCase().includes(w.artist.trim().toLowerCase()) ? ` — ${w.artist.trim()}` : "";
-  return fitTitle(
+  return fitTitle(name, [
     `${name}${who} | Warsztaty w Poznaniu · ${BRAND}`,
     `${name}${who} | Warsztaty w Poznaniu`,
     `${name} | Warsztaty w Poznaniu`,
-    `${name} | ${BRAND}`,
-    name,
-  );
+  ], " | Poznań");
 }
 // Krótsze tytuły do podglądów linków w social mediach (tam nazwa strony
 // wyświetla się osobno, nad tytułem) — np. "Ebru — malowanie na wodzie ·
@@ -201,12 +200,11 @@ export function restaurantShareTitle(r) {
 }
 export function restaurantTitle(r) {
   const name = r.name.trim();
-  return fitTitle(
+  return fitTitle(name, [
     `${name}, Poznań — eventy z warsztatami | ${BRAND}`,
     `${name}, Poznań — eventy z warsztatami`,
     `${name}, Poznań | ${BRAND}`,
-    `${name}, Poznań`,
-  );
+  ], ", Poznań");
 }
 // Opis dla Google — do ~155 znaków (dłuższe są ucinane w wynikach), stała
 // końcówka (cena, "Poznań") zawsze się mieści, skracany jest opis z arkusza.
