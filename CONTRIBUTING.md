@@ -60,7 +60,7 @@ Three top-level modes in `App()`: `mode` = `"client" | "b2b" | "kids"`. The clie
 
 `path` (`null | "workshop" | "restaurant" | "ownplace"`) picks which flow: book a restaurant + workshop together, or — the **"Mam miejsce"** path — invite an eligible artist (`travelsToClient=tak` in the Sheet) to the client's own address, no restaurant involved at all. This is a **top-level tile**, not a nested toggle — an earlier nested-in-step-2 version tested badly (the site owner couldn't find it) and was corrected same-day.
 
-Earliest bookable date: `MIN_BOOKING_DAYS = 10` calendar days from today in `App.jsx` (changed 2026-10-12 from 14 working days). Note the client terms (`CLIENT_TERMS_SECTIONS`) still give a full deposit refund only for cancellations more than 14 days before the event — a booking made 10–14 days ahead has no free-cancellation window; confirm with Joanna whether that is intended.
+Earliest bookable date: `MIN_BOOKING_DAYS = 10` calendar days from today in `App.jsx` (changed 2026-10-12 from 14 working days). Note the client terms (`CLIENT_TERMS_SECTIONS`) still give a full deposit refund only for cancellations more than 14 days before the event — so a booking made 10–14 days ahead has no free-cancellation window. **This is intentional** (Joanna, 2026-10-13: a client who cancels then loses the deposit) — don’t "fix" either number.
 
 Compatibility between a chosen restaurant and workshop (separate room requirement, invoice capability, opening hours vs. selected date/time, headcount range) is **silent filtering** — an incompatible option simply never appears in the list, no warning message shown. This is a deliberate, repeatedly-confirmed choice, not a missing feature.
 
