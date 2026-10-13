@@ -294,12 +294,9 @@ git clone https://github.com/kawiarnianiartysci-ui/Kawiarniani-Artysci.git backu
 
 ## 📝 OSTATNIA AKTUALIZACJA
 
-- **Dokument:** 2026-08-28 (tę sesję)
-- **SEO:** robots.txt + sitemap.xml dodane
-- **Dokumentacja:** README.md updated
-- **Memory:** project_seo_status_2026_08_28.md dodany
-
-**Następna aktualizacja:** Po wdrożeniu backlinków (2026-09-??)
+- **2026-10-13 — SEO/GEO:** strona główna przechodzi przez `api/page.js` — ceny liczone na bieżąco z arkusza (od X zł / dzieci od Y zł), lista wszystkich warsztatów i miejsc dla robotów AI, nowe dane strukturalne (Organization + WebSite + Service), krótsze tytuły (≤62 znaki, zawsze z „Poznań”) i opisy profili (≤155). Szczegóły: README.md → SEO Status.
+- **2026-10-12 — godziny dostępności artystów:** nowa kolumna `hours` w zakładce `warsztaty` (format jak u restauracji, kilka przedziałów w dniu: `pon=08:00-12:00,18:00-22:00`); filtr działa już w kroku 1, w trybie dla dzieci i w „Mam miejsce”; zwykły tekst w komórce jest ignorowany (= bez ograniczeń), ale dzień brakujący w komórce = artysta niedostępny. Kalendarz: rezerwacja najwcześniej za 10 dni kalendarzowych (wcześniej 14 dni roboczych).
+- **2026-08-28:** robots.txt + sitemap.xml dodane.
 
 ---
 
