@@ -206,9 +206,13 @@ const globalCSS = `
     .wizard-nav-bar { padding:8px 10px !important; }
     .wizard-nav-bar .wiz-bar-wrap { padding:0 !important; margin:0 !important; }
     .wiz-bar { gap:6px !important; padding:4px !important; }
-    .wiz-btn { width:78px !important; font-size:12px !important; padding:6px !important; }
-    .wiz-price { font-size:16px !important; }
-    .wiz-label { font-size:12px !important; white-space:normal !important; line-height:1.25; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; }
+    .wiz-btn { width:72px !important; font-size:12px !important; padding:6px !important; }
+    /* Kwota nigdy nie jest ucinana "…": font maleje z długością kwoty,
+       a w ostateczności "zł" przechodzi do drugiej linii. */
+    .wiz-price { font-size:16px !important; white-space:normal !important; overflow:visible !important; text-overflow:clip !important; line-height:1.15; }
+    .wiz-price-sm { font-size:15px !important; }
+    .wiz-price-xs { font-size:13px !important; }
+    .wiz-label { font-size:12px !important; white-space:normal !important; overflow:hidden !important; line-height:1.25; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; }
     .wiz-sub { font-size:10px !important; white-space:normal !important; line-height:1.25; }
   }
   @media (min-width: 641px) {
@@ -2361,6 +2365,14 @@ function WizardStickyBar({ restaurant, workshop, groupSize, ppp, total, canAdvan
   const summary = priceUnavailableLabel || (restaurant || workshop
     ? [restaurant?.name, workshop?.name].filter(Boolean).join(" + ")
     : "");
+  const isPrice = total > 0 || showWorkshopOnly;
+  const priceText = total > 0 ? `${total.toLocaleString("pl-PL")} zł` : showWorkshopOnly ? `${workshopOnlyTotal.toLocaleString("pl-PL")} zł` : summary;
+  // Na telefonie font kwoty sam maleje przy dłuższych kwotach (np. "12 450 zł"),
+  // żeby cena zawsze mieściła się w całości między przyciskami (CSS: .wiz-price-*).
+  const priceClass = !isPrice ? "wiz-price wiz-label"
+    : priceText.length > 9 ? "wiz-price wiz-price-xs"
+    : priceText.length > 7 ? "wiz-price wiz-price-sm"
+    : "wiz-price";
   const navBtn = { WebkitAppearance:"none", appearance:"none", border:"none", borderRadius:999, fontWeight:600, minHeight:44, width:104, padding:"8px 10px", fontSize:13, lineHeight:1.25, textAlign:"center" };
 
   // Na desktopie ten sam pasek jest oryginalnie statyczny (nie przyklejony,
@@ -2386,8 +2398,8 @@ function WizardStickyBar({ restaurant, workshop, groupSize, ppp, total, canAdvan
     <div className="wiz-bar" style={{ display:"grid", gridTemplateColumns:"auto 1fr auto", alignItems:"center", gap:10, background:C.tagBg, borderRadius:999, padding:6 }}>
       <button className="wiz-btn" onClick={onBack} style={{ ...navBtn, background:"transparent", border:`1.5px solid ${C.primary}`, color:C.primary, cursor:"pointer" }}>Wstecz</button>
       <div style={{ textAlign:"center", minWidth:0, overflow:"hidden" }}>
-        <div className={total > 0 || showWorkshopOnly ? "wiz-price" : "wiz-price wiz-label"} style={{ fontFamily:"'Montserrat', system-ui, sans-serif", fontSize:18, color:C.text, fontWeight:600, whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis" }}>
-          {total > 0 ? `${total.toLocaleString("pl-PL")} zł` : showWorkshopOnly ? `${workshopOnlyTotal.toLocaleString("pl-PL")} zł` : summary}
+        <div className={priceClass} style={{ fontFamily:"'Montserrat', system-ui, sans-serif", fontSize:18, color:C.text, fontWeight:600, whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis" }}>
+          {priceText}
         </div>
         {total > 0 && <div className="wiz-sub" style={{ fontSize:11, color:C.muted, whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis" }}>{groupSize} × {ppp} zł</div>}
         {showWorkshopOnly && <div className="wiz-sub" style={{ fontSize:11, color:C.muted, whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis" }}>cena za warsztat · {groupSize} × {workshopOnlyPpp} zł</div>}
