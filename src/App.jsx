@@ -2392,7 +2392,7 @@ function WizardStickyBar({ restaurant, workshop, groupSize, ppp, total, canAdvan
         {total > 0 && <div className="wiz-sub" style={{ fontSize:11, color:C.muted, whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis" }}>{groupSize} × {ppp} zł</div>}
         {showWorkshopOnly && <div className="wiz-sub" style={{ fontSize:11, color:C.muted, whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis" }}>cena za warsztat · {groupSize} × {workshopOnlyPpp} zł</div>}
       </div>
-      <button onClick={onNext} disabled={!canAdvance} style={{ ...navBtn, background: canAdvance ? C.primary : "#DDD9D2", color: canAdvance ? "#FFF" : "#9A968D", cursor: canAdvance ? "pointer" : "default" }}>
+      <button className="wiz-btn" onClick={onNext} disabled={!canAdvance} style={{ ...navBtn, background: canAdvance ? C.primary : "#DDD9D2", color: canAdvance ? "#FFF" : "#9A968D", cursor: canAdvance ? "pointer" : "default" }}>
         {nextLabel}
       </button>
     </div>
