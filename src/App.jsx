@@ -199,6 +199,17 @@ const globalCSS = `
   @media (max-width: 640px) {
     .wizard-nav-bar { position:fixed; left:0; right:0; bottom:0; top:auto; max-width:none !important; margin:0 !important; padding:10px 28px !important; background:${C.bg}; box-shadow:0 -6px 20px rgba(0,0,0,0.14); z-index:200; }
     .wizard-nav-spacer { display:block; height:76px; }
+    /* Na telefonie cena między przyciskami była ucinana — podwójny margines
+       boczny (28px paska + 16px wewnętrznego wrappera) i przyciski po 104px
+       zostawiały na środek ok. 45px. Węższe marginesy, mniejsze przyciski
+       i fonty, a dopisek pod ceną może się złamać do dwóch linii. */
+    .wizard-nav-bar { padding:8px 10px !important; }
+    .wizard-nav-bar .wiz-bar-wrap { padding:0 !important; margin:0 !important; }
+    .wiz-bar { gap:6px !important; padding:4px !important; }
+    .wiz-btn { width:78px !important; font-size:12px !important; padding:6px !important; }
+    .wiz-price { font-size:16px !important; }
+    .wiz-label { font-size:12px !important; white-space:normal !important; line-height:1.25; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; }
+    .wiz-sub { font-size:10px !important; white-space:normal !important; line-height:1.25; }
   }
   @media (min-width: 641px) {
     /* Powiększenie filmu o 15% (punkt zaczepienia 70% / 68%) przez rozmiar i
@@ -2372,14 +2383,14 @@ function WizardStickyBar({ restaurant, workshop, groupSize, ppp, total, canAdvan
   }, []);
 
   const barInner = (
-    <div style={{ display:"grid", gridTemplateColumns:"auto 1fr auto", alignItems:"center", gap:10, background:C.tagBg, borderRadius:999, padding:6 }}>
-      <button onClick={onBack} style={{ ...navBtn, background:"transparent", border:`1.5px solid ${C.primary}`, color:C.primary, cursor:"pointer" }}>Wstecz</button>
+    <div className="wiz-bar" style={{ display:"grid", gridTemplateColumns:"auto 1fr auto", alignItems:"center", gap:10, background:C.tagBg, borderRadius:999, padding:6 }}>
+      <button className="wiz-btn" onClick={onBack} style={{ ...navBtn, background:"transparent", border:`1.5px solid ${C.primary}`, color:C.primary, cursor:"pointer" }}>Wstecz</button>
       <div style={{ textAlign:"center", minWidth:0, overflow:"hidden" }}>
-        <div style={{ fontFamily:"'Montserrat', system-ui, sans-serif", fontSize:18, color:C.text, fontWeight:600, whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis" }}>
+        <div className={total > 0 || showWorkshopOnly ? "wiz-price" : "wiz-price wiz-label"} style={{ fontFamily:"'Montserrat', system-ui, sans-serif", fontSize:18, color:C.text, fontWeight:600, whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis" }}>
           {total > 0 ? `${total.toLocaleString("pl-PL")} zł` : showWorkshopOnly ? `${workshopOnlyTotal.toLocaleString("pl-PL")} zł` : summary}
         </div>
-        {total > 0 && <div style={{ fontSize:11, color:C.muted, whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis" }}>{groupSize} × {ppp} zł</div>}
-        {showWorkshopOnly && <div style={{ fontSize:11, color:C.muted, whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis" }}>cena za warsztat · {groupSize} × {workshopOnlyPpp} zł</div>}
+        {total > 0 && <div className="wiz-sub" style={{ fontSize:11, color:C.muted, whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis" }}>{groupSize} × {ppp} zł</div>}
+        {showWorkshopOnly && <div className="wiz-sub" style={{ fontSize:11, color:C.muted, whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis" }}>cena za warsztat · {groupSize} × {workshopOnlyPpp} zł</div>}
       </div>
       <button onClick={onNext} disabled={!canAdvance} style={{ ...navBtn, background: canAdvance ? C.primary : "#DDD9D2", color: canAdvance ? "#FFF" : "#9A968D", cursor: canAdvance ? "pointer" : "default" }}>
         {nextLabel}
@@ -2389,7 +2400,7 @@ function WizardStickyBar({ restaurant, workshop, groupSize, ppp, total, canAdvan
 
   return (
     <>
-      <div ref={topBarRef} style={{ maxWidth:1160, margin:"0 auto 20px", padding:"0 16px" }}>
+      <div ref={topBarRef} className="wiz-bar-wrap" style={{ maxWidth:1160, margin:"0 auto 20px", padding:"0 16px" }}>
         {barInner}
       </div>
       {floatingVisible && (
