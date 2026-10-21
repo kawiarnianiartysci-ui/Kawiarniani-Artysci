@@ -57,6 +57,26 @@ export function cleanHref(raw) {
   return null;
 }
 
+// Gdy zaznaczony link w dokumencie zaczyna się od spacji, Google eksportuje
+// go jako DWA linki pod ten sam adres: pierwszy z samą twardą spacją, drugi
+// z tekstem ("zorganizować<a> </a><a>wieczór panieński</a>"). Czytniki
+// (Google, AI) widziały wtedy sklejone słowa i pusty link z gołym adresem.
+// Sklejamy sąsiednie linki pod ten sam adres, spacje z brzegów linku
+// wyjmujemy przed/za link, a puste linki usuwamy.
+const SPACE = "[\\s\\u00a0]";
+export function tidyLinks(html) {
+  let out = html, prev;
+  do {
+    prev = out;
+    out = out.replace(/<a ([^>]*)>((?:(?!<\/?a[ >])[\s\S])*)<\/a><a \1>/g, "<a $1>$2");
+  } while (out !== prev);
+  return out
+    .replace(new RegExp(`(<a [^>]*>)((?:<[a-z]+>)*)${SPACE}+`, "g"), " $1$2")
+    .replace(new RegExp(`${SPACE}+((?:</[a-z]+>)*)</a>`, "g"), "$1</a> ")
+    .replace(/<a [^>]*>((?:<[a-z]+>)*)((?:<\/[a-z]+>)*)<\/a>/g, "$1$2")
+    .trim();
+}
+
 const SKIP = new Set(["head", "style", "script", "title"]);
 
 export function parseDoc(html, { imgSrc }) {
@@ -77,7 +97,7 @@ export function parseDoc(html, { imgSrc }) {
     if (!block) return;
     const b = block; block = null;
     const text = b.text.replace(/\s+/g, " ").trim();
-    const inner = b.parts.join("").trim();
+    const inner = tidyLinks(b.parts.join("").trim());
     if (table?.cell) { if (inner) table.cell.parts.push(inner); words += wordCount(text); return; }
     // Zdjęcie wklejone w linijkę nagłówka — wstawiamy je przed nagłówkiem.
     out.push(...b.before.map(img => `<p>${img}</p>`));

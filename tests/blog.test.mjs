@@ -2,7 +2,7 @@
 // Nieudany test zatrzymuje wdrożenie, więc zepsuty parser nie trafi na stronę.
 import assert from "node:assert/strict";
 import fs from "node:fs";
-import { parseDoc, parseDocText, cleanHref, decodeEntities, imgHash } from "../api/_blogDoc.js";
+import { parseDoc, parseDocText, cleanHref, decodeEntities, imgHash, tidyLinks } from "../api/_blogDoc.js";
 import { blogPostFromRow } from "../src/dane.js";
 import { parseRoute, formatPostDate, blogImgPath, pageTitle, BLOG_TITLE } from "../src/seo.js";
 
@@ -65,6 +65,21 @@ test("tabela: pierwszy wiersz = nagłówki, akapity w komórce jako linijki, lin
     + "<tr>\n<td></td>\n<td>x</td>\n</tr>\n</table>\n<p>Po tabeli.</p>"), t.html);
   assert.equal(t.intro, "Wstęp ma co najmniej sześć słów tutaj.");
   assert.ok(!t.html.includes("<p>Restauracja") && !t.html.includes("<ul>"), t.html);
+});
+test("link zaczynający się od spacji: jeden link, spacja przed nim (eksport Google rozbija go na dwa)", () => {
+  const g = u => `https://www.google.com/url?q=https://www.kawiarnianiartysci.pl${u}&amp;sa=D`;
+  const t = parseDoc(`<html><body><h1>Tytuł</h1>`
+    + `<p><span>Niedawno pisaliśmy, jak zorganizowa&#263;</span><span><a href="${g("/blog/wieczor")}">&nbsp;</a></span><span><a href="${g("/blog/wieczor")}">wiecz&oacute;r panie&#324;ski</a></span><span>. Dalej.</span></p>`
+    + `<p><span>Na</span><span><a href="${g("/warsztaty/naszyjniki")}"> warsztatach naszyjnik&oacute;w </a></span><span>ka&#380;da</span></p>`
+    + `<p><span>Przez</span><span><a href="${g("/")}">&nbsp;</a></span><span><a href="${g("/")}">kawiarnianiartysci.pl</a></span></p></body></html>`, { imgSrc: () => "" });
+  assert.ok(t.html.includes('<p>Niedawno pisaliśmy, jak zorganizować <a href="/blog/wieczor">wieczór panieński</a>. Dalej.</p>'), t.html);
+  assert.ok(t.html.includes('<p>Na <a href="/warsztaty/naszyjniki">warsztatach naszyjników</a> każda</p>'), t.html);
+  assert.ok(t.html.includes('<p>Przez <a href="/">kawiarnianiartysci.pl</a></p>'), t.html);
+});
+test("tidyLinks: różne adresy obok siebie zostają osobno, pusty link znika", () => {
+  assert.equal(tidyLinks('<a href="/a">x</a> i <a href="/b">y</a><a href="/a">z</a>'), '<a href="/a">x</a> i <a href="/b">y</a><a href="/a">z</a>');
+  assert.equal(tidyLinks('a<a href="/a"><strong> b</strong></a>'), 'a <a href="/a"><strong>b</strong></a>');
+  assert.equal(tidyLinks('a<a href="/a"> </a>b'), "a b");
 });
 test("liczba słów", () => { assert.ok(doc.words > 20 && doc.words < 80, String(doc.words)); });
 test("cleanHref: odrzuca javascript:, skraca adres strony", () => {

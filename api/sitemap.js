@@ -5,12 +5,15 @@
 // podstrony okazji i profile wszystkich AKTYWNYCH warsztatów i miejsc
 // (comingSoon = TRUE, czyli szkice, są pomijane). Nowy artysta dodany w
 // arkuszu pojawia się tu sam, bez zmian w kodzie (w ciągu ok. godziny).
+// Wpisy bloga mają <lastmod> = data z kolumny "data" w zakładce Blog, a sam
+// /blog — data najnowszego wpisu (Google szybciej zauważa nowe wpisy).
 import { getSheetData } from "./_sheet.js";
 import { getBlogIndex, publishedRows } from "./_blog.js";
 import { SITE_URL, OCCASIONS, occasionPath, profilePath, BLOG_PATH, blogPath } from "../src/seo.js";
 
 export default async function handler(req, res) {
   const paths = ["/", ...OCCASIONS.map(occasionPath), BLOG_PATH];
+  const lastmod = {};             // adres → data RRRR-MM-DD
   try {
     const { restaurants, workshops } = await getSheetData();
     const seen = new Set();
@@ -25,7 +28,13 @@ export default async function handler(req, res) {
   }
   // Wpisy bloga — osobno, żeby kłopot z zakładką Blog nie psuł reszty mapy.
   try {
-    publishedRows(await getBlogIndex()).forEach(r => paths.push(blogPath(r.slug)));
+    const posts = publishedRows(await getBlogIndex());
+    posts.forEach(r => {
+      const p = blogPath(r.slug);
+      paths.push(p);
+      if (r.date) lastmod[p] = r.date;
+    });
+    if (posts[0]?.date) lastmod[BLOG_PATH] = posts[0].date;   // posortowane od najnowszego
   } catch (err) {
     console.error("Blog:", err);
     res.setHeader("Cache-Control", "public, max-age=0, s-maxage=60");
@@ -33,7 +42,7 @@ export default async function handler(req, res) {
 
   const xml = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-${paths.map(p => `  <url><loc>${SITE_URL}${p}</loc></url>`).join("\n")}
+${paths.map(p => `  <url><loc>${SITE_URL}${p}</loc>${lastmod[p] ? `<lastmod>${lastmod[p]}</lastmod>` : ""}</url>`).join("\n")}
 </urlset>
 `;
   res.setHeader("Content-Type", "application/xml; charset=utf-8");
