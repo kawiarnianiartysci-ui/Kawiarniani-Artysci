@@ -3,6 +3,8 @@ import crypto from "crypto";
 export const FROM_EMAIL = process.env.RESEND_FROM_EMAIL || "zapytania@kawiarnianiartysci.pl";
 export const OWNER_EMAIL = process.env.OWNER_EMAIL || "kawiarnianiartysci@gmail.com";
 
+const NO_REPLY_FOOTER = `<hr style="border:none;border-top:1px solid #E0DDD6;margin:28px 0 14px;"><p style="font-size:13px;color:#6B6862;margin:0;">To wiadomość wysłana automatycznie — prosimy nie odpowiadać na ten adres. W sprawie rezerwacji (zmiana terminu, odwołanie, pytania) napisz do nas na <a href="mailto:${OWNER_EMAIL}" style="color:#432A16;">${OWNER_EMAIL}</a>.</p>`;
+
 // ══ Tryb testowy ═══════════════════════════════════════════════
 // Vercel ustawia VERCEL_ENV = "production" tylko na żywej stronie
 // (kawiarnianiartysci.pl). Wszędzie indziej (wersje podglądowe z innych
@@ -54,14 +56,21 @@ export function verifyAndDecode(data, sig) {
 // literówka w adresie partnera w arkuszu) jest logowany, ale nie wywraca
 // całej wysyłki — pozostałe maile, w tym kopia do Joanny, i tak wychodzą.
 // Zwraca true, gdy mail faktycznie został przyjęty do wysyłki.
-export async function sendEmail(resend, { to, subject: rawSubject, html, ...rest }) {
+//
+// Adres nadawcy (zapytania@...) NIE ma skrzynki — odpowiedź na niego przepada
+// (tak zginęło odwołanie warsztatu w Ptasim Radiu, 10.2026). Dlatego każdy mail
+// ma "Odpowiedz do" ustawione na skrzynkę Joanny, a maile do klientów/partnerów
+// dostają na dole dopisek, gdzie pisać.
+export async function sendEmail(resend, { to, subject: rawSubject, html: rawHtml, replyTo = OWNER_EMAIL, ...rest }) {
   // Temat maila to zwykły tekst, nie HTML — nazwy trzymane "bezpiecznie dla
   // HTML" (np. "Bar &amp; Restaurant") zamieniamy z powrotem na zwykłe znaki.
   const subject = String(rawSubject).replace(/&(amp|lt|gt|quot|#39);/g, (_, e) => ({ amp:"&", lt:"<", gt:">", quot:'"', "#39":"'" }[e]));
+  const html = to === OWNER_EMAIL ? rawHtml : rawHtml.replace(/<\/body>/, `${NO_REPLY_FOOTER}</body>`);
   const msg = IS_PRODUCTION
-    ? { to, subject, html, ...rest }
+    ? { to, subject, html, replyTo, ...rest }
     : {
         ...rest,
+        replyTo,
         to: OWNER_EMAIL,
         subject: `[TEST → ${to}] ${subject}`,
         html: html.replace(/<body[^>]*>/, bodyTag => `${bodyTag}<p style="background:#FFF3CD;padding:10px 14px;border-radius:8px;font-size:13px;">🧪 Mail testowy z wersji podglądowej. Na żywej stronie trafiłby do: <strong>${escapeHtml(to)}</strong></p>`),

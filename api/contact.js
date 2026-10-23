@@ -30,6 +30,7 @@ export default async function handler(req, res) {
   const ok = await sendEmail(resend, {
     from: FROM_EMAIL,
     to: OWNER_EMAIL,
+    replyTo: String(email).slice(0, 200),
     subject: 'Nowa wiadomość ze strony — kontakt',
     html: emailHtml(`
       <p><strong>Nowa wiadomość ze strony kawiarnianiartysci.pl</strong></p>
