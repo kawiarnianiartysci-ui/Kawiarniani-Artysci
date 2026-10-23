@@ -28,6 +28,7 @@ The frontend works locally with **no environment variables** — it only needs t
 | `INQUIRY_SIGNING_SECRET` | HMAC secret signing the accept/decline/confirm links emailed to artists & restaurants |
 | `OWNER_EMAIL` | Address that gets a copy of every inquiry/status change |
 | `SITE_URL` | `https://www.kawiarnianiartysci.pl` — used to build absolute links in emails |
+| `CSV_CONTACTS_URL` | Published-CSV link of the separate private "Kawiarniani – kontakty (prywatne)" sheet (`id,typ,name,email`) — partner emails live there, not in the public main sheet (since 2026-10-23) |
 
 ⚠️ Changing an env var's value in the Vercel dashboard does **not** affect already-deployed functions — trigger a new deployment (any push) afterward.
 

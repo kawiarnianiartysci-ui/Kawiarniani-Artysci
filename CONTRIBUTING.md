@@ -21,6 +21,8 @@ Both constants (plus the CSV parser and `restaurantFromRow`/`workshopFromRow`) l
 ### Column reference (warsztaty)
 `id,comingSoon,name,logo,photo,photos,artist,bio,duration,pricePerPerson,minPeople,maxPeople,description,includes,website,instagram,instagramUrl,facebookUrl,email,gradientBg,gradientText,requiresSeparateRoom,invoicing,requirements,canInvoice,forKids,kidsMinAge,travelsToClient,travelArea,hours`
 
+**Since 2026-10-23 the `email` column in both live tabs is left empty** — partner addresses live in the private contacts sheet (`CSV_CONTACTS_URL`, see README). The main sheet is published for only `restauracje`, `warsztaty`, `Blog`; the "do weryfikacji" staging tabs are private. Profile-gallery thumbnails (4:3) can be re-framed per file in `GALLERY_POSITION_OVERRIDES` (`src/App.jsx`, next to `COVER_POSITION_OVERRIDES`).
+
 Notes:
 - **Column headers are matched by exact name**, case-sensitive (`csvToObjects` maps CSV headers straight to object keys) — order in the sheet doesn't matter, a typo'd header silently parses as `undefined` with no error. If a field "isn't working," check the exact header spelling first via a raw `curl` of the published CSV URL before assuming a code bug.
 - `slug` (optional, both tabs, added 2026-09): the ending of the item's public profile URL (`/warsztaty/<slug>`, `/miejsca/<slug>`). Blank → auto-generated from `id` via `slugify()` in `src/dane.js` (lowercase, Polish chars stripped, anything else → `-`). Whatever is typed is also run through `slugify`, so a capital letter or space can't break a URL. **Changing a slug later breaks links already shared** — old id-based URLs redirect (301) to the slug, but an old *slug* does not.
