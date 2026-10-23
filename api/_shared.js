@@ -11,6 +11,31 @@ export function parseEmails(value) {
   return String(value || "").split(/[,;\s]+/).map(s => s.trim()).filter(s => s.length <= 200 && EMAIL_RE.test(s)).join(", ");
 }
 
+// ══ Ochrona formularzy przed spamem ════════════════════════════
+// Bez tego ktoś mógłby zasypać artystów/restauracje fałszywymi zapytaniami
+// albo wysyłać przez nas maile na cudze adresy. Trzy proste sita:
+//  1. zapytanie musi przyjść z naszej strony (nagłówek Origin),
+//  2. ukryte pole "website" (człowiek go nie widzi, bot je wypełnia) albo
+//     wysłanie formularza w mniej niż 3 s od otwarcia = bot,
+//  3. limit wysyłek z jednego adresu IP (w pamięci funkcji — nie idealny,
+//     bo Vercel ma kilka kopii funkcji, ale zatrzymuje zalew z jednego miejsca).
+// Zwraca: null (w porządku), "silent" (bot — udajemy sukces, nic nie
+// wysyłamy, żeby nie wiedział, że go złapaliśmy) albo { status, error }.
+const ALLOWED_ORIGIN = /^https:\/\/((www\.)?kawiarnianiartysci\.(pl|com)|[a-z0-9-]+\.vercel\.app)$/;
+const hits = new Map(); // ip -> [czasy wysyłek]
+export function spamCheck(req, body, { limit = 5, windowMs = 60 * 60 * 1000 } = {}) {
+  const origin = req.headers.origin || "";
+  if (IS_PRODUCTION && !ALLOWED_ORIGIN.test(origin)) return { status: 403, error: "Niedozwolone źródło zapytania." };
+  if (body && (String(body.website || "").trim() || (typeof body.formMs === "number" && body.formMs < 3000))) return "silent";
+  const ip = String(req.headers["x-forwarded-for"] || "").split(",")[0].trim() || "?";
+  const now = Date.now();
+  const recent = (hits.get(ip) || []).filter(t => now - t < windowMs);
+  if (recent.length >= limit) return { status: 429, error: "Wysłano zbyt wiele wiadomości. Spróbuj ponownie za godzinę albo napisz na " + OWNER_EMAIL + "." };
+  recent.push(now);
+  hits.set(ip, recent);
+  return null;
+}
+
 // Wspólny tekst dla klienta: ile się czeka i gdzie pisać, gdy cisza.
 export const CLIENT_WAIT_INFO = `<p>Zwykle każda strona odpowiada w ciągu 48 godzin. Jeśli w tym czasie nic od nas nie dostaniesz albo chcesz coś zmienić lub odwołać, napisz do nas na <a href="mailto:${OWNER_EMAIL}" style="color:#432A16;">${OWNER_EMAIL}</a> — zajmiemy się tym.</p>`;
 

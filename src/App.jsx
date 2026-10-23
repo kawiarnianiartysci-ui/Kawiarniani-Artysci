@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import {
-  CSV_RESTAURANTS_URL, CSV_WORKSHOPS_URL, csvToObjects,
+  csvToObjects,
   restaurantFromRow, workshopFromRow,
   parseDurationHours, fitsHours,
 } from "./dane.js";
@@ -128,11 +128,11 @@ function useSheetData() {
 
   useEffect(() => {
     if (EMBEDDED_SHEET) return;
-    Promise.all([
-      fetch(CSV_RESTAURANTS_URL).then(r => r.text()),
-      fetch(CSV_WORKSHOPS_URL).then(r => r.text()),
-    ])
-      .then(([restText, workText]) => {
+    // Przez nasz serwer, nie prosto z arkusza — serwer wycina adresy email
+    // partnerów (patrz api/_sheet.js).
+    fetch("/api/dane")
+      .then(r => { if (!r.ok) throw new Error(); return r.json(); })
+      .then(({ r: restText, w: workText }) => {
         setRestaurants(csvToObjects(restText).map(restaurantFromRow));
         setWorkshops(csvToObjects(workText).map(workshopFromRow));
       })
@@ -1952,7 +1952,10 @@ function track(eventName, params = {}) {
 }
 
 function Step4ContactForm({ restaurant, variant, workshop, groupSize, selectedDate, onDateChange, selectedTime, onTimeChange, ppp, total, workshopOnlyTotal, onEditStep, onSubmitted, kidsMode = false, kidsCount, adultsCount, ownPlace = false, placeInfo, workshopStep = 1, placeStep = 2, requesterType, invoiceRequired }) {
-  const [form, setForm] = useState({ name:"", email:"", phone:"", message:"" });
+  const [form, setForm] = useState({ name:"", email:"", phone:"", message:"", website:"" });
+  // Ochrona przed spamem (patrz spamCheck w api/_shared.js): czas od otwarcia
+  // formularza + ukryte pole "website", którego człowiek nie widzi.
+  const [openedAt] = useState(() => Date.now());
   const [consent, setConsent] = useState(false);
   const [termsAccepted, setTermsAccepted] = useState(false);
   const [showPrivacy, setShowPrivacy] = useState(false);
@@ -1996,6 +1999,8 @@ function Step4ContactForm({ restaurant, variant, workshop, groupSize, selectedDa
         groupSize: kidsMode ? kidsCount : groupSize,
         date: selectedTime ? `${selectedDate}, ${selectedTime}` : selectedDate,
         message: form.message,
+        website: form.website,
+        formMs: Date.now() - openedAt,
         isKidsEvent: kidsMode || undefined,
         kidsCount: kidsMode ? kidsCount : undefined,
         adultsCount: kidsMode ? adultsCount : undefined,
@@ -2171,6 +2176,7 @@ function Step4ContactForm({ restaurant, variant, workshop, groupSize, selectedDa
         <label style={lbl}>Dodatkowe uwagi</label>
         <textarea rows={3} placeholder="Okazja, szczególne wymagania, pytania..." value={form.message} onChange={set("message")} style={{ ...inp, resize:"vertical", minHeight:70 }} />
       </div>
+      <input type="text" name="website" tabIndex={-1} autoComplete="off" aria-hidden="true" value={form.website} onChange={set("website")} style={HONEYPOT_STYLE} />
       <label style={{ display:"flex", gap:9, alignItems:"flex-start", fontSize:11, color:C.muted, lineHeight:1.5, marginBottom:6, cursor:"pointer" }}>
         <input type="checkbox" checked={consent} onChange={e => setConsent(e.target.checked)} style={{ marginTop:2, flexShrink:0, width:18, height:18 }} />
         <span>Wyrażam zgodę na przetwarzanie moich danych osobowych w celu obsługi zapytania. Więcej informacji w{" "}
@@ -2500,9 +2506,16 @@ function PartnersView({ openTermsOnMount }) {
   );
 }
 
+// Ukryte pole-pułapka na boty (formularz zapytania i kontaktowy) — poza
+// ekranem, niewidoczne i pomijane klawiszem Tab, więc człowiek go nie wypełni.
+const HONEYPOT_STYLE = { position:"absolute", left:-9999, width:1, height:1, opacity:0, pointerEvents:"none" };
+
 // ══ Formularz kontaktowy (ContactModal) ═════════════════════
 const ContactModal = ({ isOpen, onClose, onSubmit }) => {
   const [email, setEmail] = useState('');
+  const [website, setWebsite] = useState('');
+  const [openedAt, setOpenedAt] = useState(() => Date.now());
+  useEffect(() => { if (isOpen) setOpenedAt(Date.now()); }, [isOpen]);
   const [message, setMessage] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -2529,7 +2542,7 @@ const ContactModal = ({ isOpen, onClose, onSubmit }) => {
       const response = await fetch('/api/contact', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, message }),
+        body: JSON.stringify({ email, message, website, formMs: Date.now() - openedAt }),
       });
 
       const data = await response.json();
@@ -2608,6 +2621,7 @@ const ContactModal = ({ isOpen, onClose, onSubmit }) => {
           </div>
         ) : (
           <form onSubmit={handleSubmit}>
+            <input type="text" name="website" tabIndex={-1} autoComplete="off" aria-hidden="true" value={website} onChange={(e) => setWebsite(e.target.value)} style={HONEYPOT_STYLE} />
             <div style={{ marginBottom: '16px' }}>
               <label style={{ display: 'block', marginBottom: '6px', fontSize: '14px' }}>
                 Email

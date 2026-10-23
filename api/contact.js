@@ -1,5 +1,5 @@
 import { Resend } from 'resend';
-import { FROM_EMAIL, OWNER_EMAIL, emailHtml, escapeHtml, nl2br, sendEmail } from './_shared.js';
+import { FROM_EMAIL, OWNER_EMAIL, emailHtml, escapeHtml, nl2br, sendEmail, spamCheck } from './_shared.js';
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
@@ -18,6 +18,10 @@ export default async function handler(req, res) {
   if (!message || !String(message).trim()) {
     return res.status(400).json({ success: false, error: 'Message is required' });
   }
+
+  const spam = spamCheck(req, req.body);
+  if (spam === 'silent') return res.status(200).json({ success: true, message: 'Message received' });
+  if (spam) return res.status(spam.status).json({ success: false, error: spam.error });
 
   // Basic email format validation
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;

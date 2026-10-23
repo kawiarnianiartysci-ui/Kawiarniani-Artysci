@@ -1,5 +1,5 @@
 import { Resend } from "resend";
-import { FROM_EMAIL, OWNER_EMAIL, IS_PRODUCTION, SITE_URL, signPayload, emailHtml, escapeHtml, nl2br, sendEmail, parseEmails, CLIENT_WAIT_INFO } from "./_shared.js";
+import { FROM_EMAIL, OWNER_EMAIL, IS_PRODUCTION, SITE_URL, signPayload, emailHtml, escapeHtml, nl2br, sendEmail, parseEmails, CLIENT_WAIT_INFO, spamCheck } from "./_shared.js";
 import { getSheetData } from "./_sheet.js";
 
 // Prosty test formatu adresu — celowo odrzuca też znaki, które mogłyby
@@ -27,6 +27,10 @@ export default async function handler(req, res) {
       res.status(400).json({ error: "Brak imienia lub poprawnego adresu email klienta." });
       return;
     }
+
+    const spam = spamCheck(req, body);
+    if (spam === "silent") { res.status(200).json({ ok: true }); return; }
+    if (spam) { res.status(spam.status).json({ error: spam.error }); return; }
 
     // Brak klucza = źle ustawione zmienne środowiskowe w Vercelu (np. wersja
     // podglądowa bez zaznaczonego środowiska "Preview") — wyraźny wpis w
