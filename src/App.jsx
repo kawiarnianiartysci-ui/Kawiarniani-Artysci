@@ -2346,7 +2346,8 @@ function ConfirmationScreen({ onBackToHome }) {
     <div style={{ maxWidth:420, margin:"0 auto", padding:"80px 16px", textAlign:"center" }}>
       <div style={{ width:64, height:64, borderRadius:"50%", background:C.primary, color:"#FFF", fontSize:30, display:"flex", alignItems:"center", justifyContent:"center", margin:"0 auto 20px" }}>✓</div>
       <div style={{ fontFamily:"'Montserrat', system-ui, sans-serif", fontSize:28, fontWeight:400, marginBottom:12, color:C.text }}>Zapytanie wysłane!</div>
-      <p style={{ color:C.muted, fontSize:14, lineHeight:1.65, margin:"0 0 28px" }}>Odpiszemy w ciągu 24 godzin.</p>
+      <p style={{ color:C.muted, fontSize:14, lineHeight:1.65, margin:"0 0 12px" }}>Artysta i restauracja odpowiadają zwykle w ciągu 48 godzin. O każdym kroku poinformujemy Cię mailowo.</p>
+      <p style={{ color:C.muted, fontSize:14, lineHeight:1.65, margin:"0 0 28px" }}>Brak odpowiedzi albo chcesz coś zmienić lub odwołać? Napisz do nas: <a href={`mailto:${COPY.contactEmail}`} style={{ color:C.primary }}>{COPY.contactEmail}</a></p>
       <button onClick={onBackToHome} style={{ background:C.primary, color:"#FFF", border:"none", borderRadius:9, padding:"14px 28px", fontSize:14, fontWeight:600, cursor:"pointer", minHeight:44 }}>
         Wróć na stronę główną
       </button>

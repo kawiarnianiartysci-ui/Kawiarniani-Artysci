@@ -1,5 +1,5 @@
 import { Resend } from "resend";
-import { FROM_EMAIL, OWNER_EMAIL, IS_PRODUCTION, SITE_URL, signPayload, emailHtml, escapeHtml, nl2br, sendEmail } from "./_shared.js";
+import { FROM_EMAIL, OWNER_EMAIL, IS_PRODUCTION, SITE_URL, signPayload, emailHtml, escapeHtml, nl2br, sendEmail, parseEmails, CLIENT_WAIT_INFO } from "./_shared.js";
 import { getSheetData } from "./_sheet.js";
 
 // Prosty test formatu adresu — celowo odrzuca też znaki, które mogłyby
@@ -84,8 +84,8 @@ export default async function handler(req, res) {
     const workshopName   = w ? escapeHtml(w.name) : txt(body.workshopName, 200);
     const artistName     = w ? escapeHtml(w.artist) : txt(body.artistName, 200);
     const restaurantName = isOwnPlace ? "" : (r ? escapeHtml(r.name) : txt(body.restaurantName, 200));
-    const artistEmail     = w && !w.comingSoon && isEmail(w.email) ? w.email.trim() : "";
-    const restaurantEmail = r && !r.comingSoon && isEmail(r.email) ? r.email.trim() : "";
+    const artistEmail     = w && !w.comingSoon ? parseEmails(w.email) : "";
+    const restaurantEmail = r && !r.comingSoon ? parseEmails(r.email) : "";
     const artistInvoicing    = w ? escapeHtml(w.invoicing) : "";
     const artistRequirements = w ? escapeHtml(w.requirements) : "";
 
@@ -230,6 +230,30 @@ export default async function handler(req, res) {
           <p>Cześć ${clientName}!</p>
           <p>Zapytanie o warsztat „${workshopName || ""}" trafiło do artysty <strong>${artistName || ""}</strong>. Ponieważ wybraliście opcję „Mam miejsce", Twoje dane kontaktowe i adres eventu zostały przekazane bezpośrednio wybranemu artyście, żeby mógł ocenić dojazd i przygotować się do warsztatu.</p>
           <p>Damy Ci znać mailowo, jak tylko artysta odpowie.</p>
+          ${CLIENT_WAIT_INFO}
+          <p>Pozdrawiamy,<br>Kawiarniani Artyści</p>
+        `),
+      }));
+    }
+
+    // Ścieżka z restauracją: klient od razu dostaje potwierdzenie, jak
+    // wygląda proces i ile się czeka — bez tego czekał w ciszy na artystę
+    // i restaurację, a przy dłuższej ciszy nie wiedział, do kogo się zwrócić.
+    if (!isOwnPlace) {
+      sends.push(sendEmail(resend, {
+        from: FROM_EMAIL,
+        to: clientEmail,
+        subject: `Zapytanie wysłane — ${restaurantName || "restauracja"} + ${workshopName || "warsztat"}`,
+        html: emailHtml(`
+          <p>Cześć ${clientName}!</p>
+          <p>Dziękujemy za zapytanie. Oto, co się teraz dzieje:</p>
+          ${kidsEventBlock}
+          <ol>
+            <li><strong>Artysta</strong> (${workshopName || "warsztat"}) potwierdza termin ${date || ""}.</li>
+            <li><strong>Restauracja ${restaurantName || ""}</strong> kontaktuje się z Tobą w sprawie szczegółów (np. menu) i ostatecznie potwierdza rezerwację.</li>
+          </ol>
+          <p>O każdym kroku poinformujemy Cię mailowo.</p>
+          ${CLIENT_WAIT_INFO}
           <p>Pozdrawiamy,<br>Kawiarniani Artyści</p>
         `),
       }));

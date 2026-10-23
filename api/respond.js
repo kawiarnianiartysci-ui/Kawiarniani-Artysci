@@ -1,5 +1,5 @@
 import { Resend } from "resend";
-import { FROM_EMAIL, OWNER_EMAIL, IS_PRODUCTION, escapeHtml, SITE_URL, htmlPage, verifyAndDecode, signPayload, emailHtml, nl2br, sendEmail } from "./_shared.js";
+import { FROM_EMAIL, OWNER_EMAIL, IS_PRODUCTION, escapeHtml, SITE_URL, htmlPage, verifyAndDecode, signPayload, emailHtml, nl2br, sendEmail, CLIENT_WAIT_INFO } from "./_shared.js";
 
 async function obsluz(req, res) {
   const { action, data, sig, confirm, dates } = req.query;
@@ -206,6 +206,7 @@ async function obsluz(req, res) {
         const confirmUrl = `${SITE_URL}/api/confirm?action=confirm&data=${cData}&sig=${cSig}`;
         const cancelUrl = `${SITE_URL}/api/confirm?action=cancel&data=${cData}&sig=${cSig}`;
         finalizeButtons = `
+          <p><strong>Prosimy o kontakt z klientem w ciągu 48 godzin</strong> — klient czeka na Waszą odpowiedź, a przy dłuższej ciszy często rezygnuje. Jeśli maile czyta u Was jedna osoba, przekażcie proszę tę wiadomość dalej, gdy jej nie ma.</p>
           <p>Gdy dogadacie się z klientem co do ostatnich szczegółów, dajcie nam znać:</p>
           <p>
             <a href="${confirmUrl}" style="background:#432A16;color:#fff;padding:12px 20px;border-radius:8px;text-decoration:none;margin-right:10px;display:inline-block;">Potwierdzam — wszystko ustalone</a>
@@ -242,7 +243,7 @@ async function obsluz(req, res) {
         subject: accepted ? "Twój termin został potwierdzony!" : "Aktualizacja Twojego zapytania",
         html: emailHtml(accepted
           ? (isClassic
-              ? `<p>Cześć ${clientName || ""}!</p>${kidsEventBlock}<p>Świetna wiadomość — artysta potwierdził Wasz termin (${date || ""}) w ${restaurantName || ""}. Do zobaczenia na evencie!</p><p>Pozdrawiamy,<br>Kawiarniani Artyści</p>`
+              ? `<p>Cześć ${clientName || ""}!</p>${kidsEventBlock}<p>Świetna wiadomość — artysta potwierdził Wasz termin (${date || ""}) w ${restaurantName || ""}.</p><p>Teraz restauracja odezwie się do Ciebie w sprawie szczegółów (np. menu) i ostatecznie potwierdzi rezerwację — dostaniesz od nas osobny mail, gdy to zrobi.</p>${CLIENT_WAIT_INFO}<p>Pozdrawiamy,<br>Kawiarniani Artyści</p>`
               : `<p>Cześć ${clientName || ""}!</p>${kidsEventBlock}<p>Świetna wiadomość — artysta <strong>${artistName || workshopName || ""}</strong> przyjął Twoje zapytanie na termin ${date || "do ustalenia"} i skontaktuje się z Tobą wkrótce, żeby ustalić ostatnie szczegóły (np. dojazd).</p><p>Kontakt do artysty: ${artistName || ""}${artistEmail ? ` · ${artistEmail}` : ""}</p><p>Pozdrawiamy,<br>Kawiarniani Artyści</p>`)
           : `<p>Cześć ${clientName || ""},</p>${kidsEventBlock}<p>Niestety artysta nie może w zaproponowanym terminie. Odezwiemy się wkrótce z propozycją innego terminu.</p><p>Pozdrawiamy,<br>Kawiarniani Artyści</p>`),
       }));

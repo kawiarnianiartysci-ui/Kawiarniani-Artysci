@@ -3,7 +3,18 @@ import crypto from "crypto";
 export const FROM_EMAIL = process.env.RESEND_FROM_EMAIL || "zapytania@kawiarnianiartysci.pl";
 export const OWNER_EMAIL = process.env.OWNER_EMAIL || "kawiarnianiartysci@gmail.com";
 
-const NO_REPLY_FOOTER = `<hr style="border:none;border-top:1px solid #E0DDD6;margin:28px 0 14px;"><p style="font-size:13px;color:#6B6862;margin:0;">To wiadomość wysłana automatycznie — prosimy nie odpowiadać na ten adres. W sprawie rezerwacji (zmiana terminu, odwołanie, pytania) napisz do nas na <a href="mailto:${OWNER_EMAIL}" style="color:#432A16;">${OWNER_EMAIL}</a>.</p>`;
+// Komórka "email" w arkuszu może mieć kilka adresów (np. menadżerka + ogólny
+// adres lokalu), rozdzielonych przecinkiem, średnikiem lub spacją — mail idzie
+// na wszystkie. Zwraca je połączone ", " (pusty string, gdy żaden nie pasuje).
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+export function parseEmails(value) {
+  return String(value || "").split(/[,;\s]+/).map(s => s.trim()).filter(s => s.length <= 200 && EMAIL_RE.test(s)).join(", ");
+}
+
+// Wspólny tekst dla klienta: ile się czeka i gdzie pisać, gdy cisza.
+export const CLIENT_WAIT_INFO = `<p>Zwykle każda strona odpowiada w ciągu 48 godzin. Jeśli w tym czasie nic od nas nie dostaniesz albo chcesz coś zmienić lub odwołać, napisz do nas na <a href="mailto:${OWNER_EMAIL}" style="color:#432A16;">${OWNER_EMAIL}</a> — zajmiemy się tym.</p>`;
+
+const NO_REPLY_FOOTER =`<hr style="border:none;border-top:1px solid #E0DDD6;margin:28px 0 14px;"><p style="font-size:13px;color:#6B6862;margin:0;">To wiadomość wysłana automatycznie — prosimy nie odpowiadać na ten adres. W sprawie rezerwacji (zmiana terminu, odwołanie, pytania) napisz do nas na <a href="mailto:${OWNER_EMAIL}" style="color:#432A16;">${OWNER_EMAIL}</a>.</p>`;
 
 // ══ Tryb testowy ═══════════════════════════════════════════════
 // Vercel ustawia VERCEL_ENV = "production" tylko na żywej stronie
@@ -61,7 +72,10 @@ export function verifyAndDecode(data, sig) {
 // (tak zginęło odwołanie warsztatu w Ptasim Radiu, 10.2026). Dlatego każdy mail
 // ma "Odpowiedz do" ustawione na skrzynkę Joanny, a maile do klientów/partnerów
 // dostają na dole dopisek, gdzie pisać.
-export async function sendEmail(resend, { to, subject: rawSubject, html: rawHtml, replyTo = OWNER_EMAIL, ...rest }) {
+export async function sendEmail(resend, { to: rawTo, subject: rawSubject, html: rawHtml, replyTo = OWNER_EMAIL, ...rest }) {
+  // "a@x.pl, b@y.pl" (kilka adresów z arkusza, patrz parseEmails) → lista.
+  const toList = String(rawTo).split(/\s*,\s*/).filter(Boolean);
+  const to = toList.length > 1 ? toList : rawTo;
   // Temat maila to zwykły tekst, nie HTML — nazwy trzymane "bezpiecznie dla
   // HTML" (np. "Bar &amp; Restaurant") zamieniamy z powrotem na zwykłe znaki.
   const subject = String(rawSubject).replace(/&(amp|lt|gt|quot|#39);/g, (_, e) => ({ amp:"&", lt:"<", gt:">", quot:'"', "#39":"'" }[e]));
