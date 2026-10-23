@@ -74,6 +74,14 @@ const COVER_POSITION_OVERRIDES = {
   "isabelsue-photo": "center 62%",
   "derwich-photo": "center 32%",
 };
+// To samo dla miniatur galerii w profilu (kadr 4:3) — gdy portretowe zdjęcie
+// ucina twarz. Działa bez zmian w arkuszu; dopisek "@position=" przy pliku
+// w kolumnie photos nadal ma pierwszeństwo.
+const GALLERY_POSITION_OVERRIDES = {
+  "annakrzywda-gallery-1": "center 15%",
+  "annakrzywda-gallery-2": "center 30%",
+  "isabelsue-gallery-2": "center 8%",
+};
 const coverPosition = filename => {
   const key = Object.keys(COVER_POSITION_OVERRIDES).find(k => filename.includes(k));
   return key ? COVER_POSITION_OVERRIDES[key] : "center";
@@ -275,7 +283,11 @@ function PhotoGallery({ photos }) {
   if (!photos || photos.length === 0) return null;
 
   const getSrc = p => typeof p === "string" ? p : p.src;
-  const getPosition = p => typeof p === "string" ? "center" : (p.position || "center");
+  const galleryPosition = src => {
+    const key = Object.keys(GALLERY_POSITION_OVERRIDES).find(k => (src || "").includes(k));
+    return key ? GALLERY_POSITION_OVERRIDES[key] : "center";
+  };
+  const getPosition = p => typeof p === "string" ? galleryPosition(p) : (p.position || galleryPosition(p.src));
   const getFit = p => typeof p === "string" ? "cover" : (p.fit || "cover");
 
   if (expandedIdx === null) {
