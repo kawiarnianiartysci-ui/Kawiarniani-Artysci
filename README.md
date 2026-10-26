@@ -46,7 +46,7 @@ api/                Vercel serverless functions (inquiry email chain + SEO pages
   _shared.js        HMAC payload signing/verification, shared HTML email templates
   inquiry.js        POST — client submits the booking form → emails artist/restaurant/owner
   respond.js        GET  — artist clicks accept/decline/propose-other-dates link
-  confirm.js        GET  — restaurant clicks its own confirm/cancel link (after artist accepts)
+  confirm.js        GET  — restaurant accepts / proposes another date / declines with a reason (after artist accepts)
 public/images/      all photos/logos (see CONTRIBUTING.md for size conventions)
 public/fonts/       self-hosted webfont
 docs/superpowers/   spec + implementation plan for the "Eventy dla dzieci" (kids mode) feature — a real worked example of the planning docs this codebase uses for larger features

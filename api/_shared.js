@@ -39,6 +39,9 @@ export function spamCheck(req, body, { limit = 5, windowMs = 60 * 60 * 1000 } = 
 // Wspólny tekst dla klienta: ile się czeka i gdzie pisać, gdy cisza.
 export const CLIENT_WAIT_INFO = `<p>Zwykle każda strona odpowiada w ciągu 48 godzin. Jeśli w tym czasie nic od nas nie dostaniesz albo chcesz coś zmienić lub odwołać, napisz do nas na <a href="mailto:${OWNER_EMAIL}" style="color:#432A16;">${OWNER_EMAIL}</a> — zajmiemy się tym.</p>`;
 
+// Ta sama informacja krótko na samej górze — na dole łatwo ją przeoczyć.
+const NO_REPLY_HEADER = `<p style="font-size:12px;color:#6B6862;margin:0 0 18px;">Wiadomość automatyczna — prosimy na nią nie odpowiadać. Kontakt z nami: <a href="mailto:${OWNER_EMAIL}" style="color:#432A16;">${OWNER_EMAIL}</a></p>`;
+
 const NO_REPLY_FOOTER =`<hr style="border:none;border-top:1px solid #E0DDD6;margin:28px 0 14px;"><p style="font-size:13px;color:#6B6862;margin:0;">To wiadomość wysłana automatycznie — prosimy nie odpowiadać na ten adres. W sprawie rezerwacji (zmiana terminu, odwołanie, pytania) napisz do nas na <a href="mailto:${OWNER_EMAIL}" style="color:#432A16;">${OWNER_EMAIL}</a>.</p>`;
 
 // ══ Tryb testowy ═══════════════════════════════════════════════
@@ -104,7 +107,7 @@ export async function sendEmail(resend, { to: rawTo, subject: rawSubject, html: 
   // Temat maila to zwykły tekst, nie HTML — nazwy trzymane "bezpiecznie dla
   // HTML" (np. "Bar &amp; Restaurant") zamieniamy z powrotem na zwykłe znaki.
   const subject = String(rawSubject).replace(/&(amp|lt|gt|quot|#39);/g, (_, e) => ({ amp:"&", lt:"<", gt:">", quot:'"', "#39":"'" }[e]));
-  const html = to === OWNER_EMAIL ? rawHtml : rawHtml.replace(/<\/body>/, `${NO_REPLY_FOOTER}</body>`);
+  const html = to === OWNER_EMAIL ? rawHtml : rawHtml.replace(/<body[^>]*>/, bodyTag => `${bodyTag}${NO_REPLY_HEADER}`).replace(/<\/body>/, `${NO_REPLY_FOOTER}</body>`);
   const msg = IS_PRODUCTION
     ? { to, subject, html, replyTo, ...rest }
     : {

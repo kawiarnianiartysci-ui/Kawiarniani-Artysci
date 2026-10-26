@@ -180,14 +180,15 @@ async function obsluz(req, res) {
 
     if (restaurantEmail) {
       const detailsList = accepted && (artistInvoicing || artistRequirements)
-        ? `<ul>${artistInvoicing ? `<li>${artistInvoicing}</li>` : ""}${artistRequirements ? `<li>${artistRequirements}</li>` : ""}</ul>`
+        ? `<p>Informacje od artysty:</p><ul>${artistInvoicing ? `<li>${artistInvoicing}</li>` : ""}${artistRequirements ? `<li>${artistRequirements}</li>` : ""}</ul>`
         : "";
       const clientContact = accepted
         ? `<p>Kontakt do klienta (np. w sprawie menu):<br>${clientName || ""}${clientEmail ? ` · ${clientEmail}` : ""}${clientPhone ? ` · ${clientPhone}` : ""}</p>`
         : "";
-      // Gdy artysta zaakceptował, restauracja musi jeszcze dogadać szczegóły
-      // z klientem — ten drugi, osobno podpisany link daje jej możliwość
-      // ostatecznego potwierdzenia lub zgłoszenia, że jednak się nie udało.
+      // Gdy artysta zaakceptował, restauracja od razu odpowiada jednym
+      // kliknięciem, czy ma wolny termin (akceptuję / proponuję inny / odrzucam).
+      // Menu i cenę ustala z klientem dopiero PO akceptacji — wcześniej prosiliśmy
+      // o kliknięcie "gdy wszystko ustalone", co myliło (Ptasie Radio, 10.2026).
       let finalizeButtons = "";
       if (accepted) {
         const confirmPayload = {
@@ -203,26 +204,26 @@ async function obsluz(req, res) {
           ts: Date.now(),
         };
         const { data: cData, sig: cSig } = signPayload(confirmPayload);
-        const confirmUrl = `${SITE_URL}/api/confirm?action=confirm&data=${cData}&sig=${cSig}`;
-        const cancelUrl = `${SITE_URL}/api/confirm?action=cancel&data=${cData}&sig=${cSig}`;
+        const linkFor = a => `${SITE_URL}/api/confirm?action=${a}&data=${cData}&sig=${cSig}`;
         finalizeButtons = `
-          <p><strong>Prosimy o kontakt z klientem w ciągu 48 godzin</strong> — klient czeka na Waszą odpowiedź, a przy dłuższej ciszy często rezygnuje. Jeśli maile czyta u Was jedna osoba, przekażcie proszę tę wiadomość dalej, gdy jej nie ma.</p>
-          <p>Gdy dogadacie się z klientem co do ostatnich szczegółów, dajcie nam znać:</p>
+          <p><strong>Prosimy o odpowiedź od razu — jednym kliknięciem:</strong></p>
           <p>
-            <a href="${confirmUrl}" style="background:#432A16;color:#fff;padding:12px 20px;border-radius:8px;text-decoration:none;margin-right:10px;display:inline-block;">Potwierdzam — wszystko ustalone</a>
-            <a href="${cancelUrl}" style="background:#999;color:#fff;padding:12px 20px;border-radius:8px;text-decoration:none;display:inline-block;">Nieaktualne — nie udało się dogadać</a>
+            <a href="${linkFor("confirm")}" style="background:#432A16;color:#fff;padding:12px 20px;border-radius:8px;text-decoration:none;margin:0 10px 10px 0;display:inline-block;">Akceptuję datę — rezerwuję</a>
+            <a href="${linkFor("propose")}" style="background:#fff;color:#432A16;border:2px solid #432A16;padding:10px 20px;border-radius:8px;text-decoration:none;margin:0 10px 10px 0;display:inline-block;">Proponuję inny termin</a>
+            <a href="${linkFor("decline")}" style="background:#999;color:#fff;padding:12px 20px;border-radius:8px;text-decoration:none;margin:0 0 10px 0;display:inline-block;">Odrzucam</a>
           </p>
+          <p>Kliknięcie „Akceptuję" oznacza tylko, że termin jest u Was wolny i go rezerwujecie — nie trzeba mieć jeszcze ustalonego menu ani ceny. Po akceptacji <strong>prosimy o kontakt z klientem w ciągu 48 godzin</strong> w sprawie menu i ostatecznej ceny. Jeśli maile czyta u Was jedna osoba, przekażcie proszę tę wiadomość dalej, gdy jej nie ma.</p>
         `;
       }
       sends.push(sendEmail(resend,{
         from: FROM_EMAIL,
         to: restaurantEmail,
         subject: accepted
-          ? `Potwierdzone! ${workshopName || ""} — ${date || ""}`
+          ? `Prosimy o potwierdzenie terminu: ${workshopName || ""} — ${date || ""}`
           : `Artysta nie może w tym terminie — ${workshopName || ""}`,
         html: emailHtml(accepted
-          ? `<p>Dobra wiadomość! <strong>${artistName || workshopName || ""}</strong> potwierdził termin <strong>${date || ""}</strong> dla ${groupSize || "-"} osób — event jest ustalony z obu stron.</p>${kidsEventBlock}${detailsList}${clientContact}${finalizeButtons}<p>Pozdrawiamy,<br>Kawiarniani Artyści</p>`
-          : `<p>Niestety <strong>${artistName || workshopName || ""}</strong> nie może w zaproponowanym terminie. Skontaktujemy się z klientem w sprawie innego terminu i damy Wam znać.</p>${kidsEventBlock}<p>Pozdrawiamy,<br>Kawiarniani Artyści</p>`),
+          ? `<p>Cześć!</p><p>Artysta <strong>${artistName || workshopName || ""}</strong> ma wolny termin <strong>${date || ""}</strong> na event dla ${groupSize || "-"} osób. Teraz czekamy na Waszą odpowiedź, czy ten termin pasuje restauracji.</p>${finalizeButtons}${kidsEventBlock}${detailsList}${clientContact}<p>Pozdrawiamy,<br>Kawiarniani Artyści</p>`
+          : `<p>Cześć!</p><p>Niestety artysta <strong>${artistName || workshopName || ""}</strong> nie może w terminie ${date || ""}. Poprosiliśmy klienta o wybranie innego terminu albo innego artysty — jeśli wyśle nowe zapytanie, dostaniecie od nas osobnego maila. Z Waszej strony nic nie trzeba robić.</p>${kidsEventBlock}<p>Pozdrawiamy,<br>Kawiarniani Artyści</p>`),
       }));
     }
 
@@ -240,12 +241,14 @@ async function obsluz(req, res) {
       sends.push(sendEmail(resend,{
         from: FROM_EMAIL,
         to: clientEmail,
-        subject: accepted ? "Twój termin został potwierdzony!" : "Aktualizacja Twojego zapytania",
+        subject: accepted
+          ? (isClassic ? "Artysta potwierdził termin — czekamy na restaurację" : "Twój termin został potwierdzony!")
+          : "Artyście nie pasuje ten termin",
         html: emailHtml(accepted
           ? (isClassic
-              ? `<p>Cześć ${clientName || ""}!</p>${kidsEventBlock}<p>Świetna wiadomość — artysta potwierdził Wasz termin (${date || ""}) w ${restaurantName || ""}.</p><p>Teraz restauracja odezwie się do Ciebie w sprawie szczegółów (np. menu) i ostatecznie potwierdzi rezerwację — dostaniesz od nas osobny mail, gdy to zrobi.</p>${CLIENT_WAIT_INFO}<p>Pozdrawiamy,<br>Kawiarniani Artyści</p>`
+              ? `<p>Cześć ${clientName || ""}!</p>${kidsEventBlock}<p>Świetna wiadomość — artysta potwierdził Wasz termin (${date || ""}).</p><p>Teraz restauracja <strong>${restaurantName || ""}</strong> potwierdza, że ma wolny termin — dostaniesz od nas osobny mail, gdy to zrobi.</p>${CLIENT_WAIT_INFO}<p>Pozdrawiamy,<br>Kawiarniani Artyści</p>`
               : `<p>Cześć ${clientName || ""}!</p>${kidsEventBlock}<p>Świetna wiadomość — artysta <strong>${artistName || workshopName || ""}</strong> przyjął Twoje zapytanie na termin ${date || "do ustalenia"} i skontaktuje się z Tobą wkrótce, żeby ustalić ostatnie szczegóły (np. dojazd).</p><p>Kontakt do artysty: ${artistName || ""}${artistEmail ? ` · ${artistEmail}` : ""}</p><p>Pozdrawiamy,<br>Kawiarniani Artyści</p>`)
-          : `<p>Cześć ${clientName || ""},</p>${kidsEventBlock}<p>Niestety artysta nie może w zaproponowanym terminie. Odezwiemy się wkrótce z propozycją innego terminu.</p><p>Pozdrawiamy,<br>Kawiarniani Artyści</p>`),
+          : `<p>Cześć ${clientName || ""},</p>${kidsEventBlock}<p>Niestety artyście (${workshopName || "wybrany warsztat"}) nie pasuje termin ${date || ""}. Prosimy o wybranie innego terminu lub zmianę artysty — wystarczy wysłać nowe zapytanie na stronie <a href="${SITE_URL}" style="color:#432A16;">kawiarnianiartysci.pl</a>.</p><p>Pozdrawiamy,<br>Kawiarniani Artyści</p>`),
       }));
     }
 

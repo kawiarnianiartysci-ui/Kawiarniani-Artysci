@@ -193,7 +193,7 @@ export default async function handler(req, res) {
             <li>Liczba osób: ${groupSize ?? "-"}</li>
             <li>Klient: ${clientName}</li>
           </ul>
-          <p>Czekamy teraz na potwierdzenie terminu przez artystę — damy znać mailowo, jak tylko odpowie.</p>
+          <p>Czekamy teraz na potwierdzenie terminu przez artystę. Gdy potwierdzi, dostaniecie od nas maila z prośbą o odpowiedź jednym kliknięciem: <strong>akceptuję datę / proponuję inny termin / odrzucam</strong>. Prosimy wtedy o szybką odpowiedź — klient czeka.</p>
           <p>Pozdrawiamy,<br>Kawiarniani Artyści</p>
         `),
       }));
@@ -240,6 +240,23 @@ export default async function handler(req, res) {
       }));
     }
 
+    // "Mam miejsce", ale artysta nie ma maila w arkuszu (albo wpis nie
+    // znaleziony) — klient i tak dostaje potwierdzenie, a Joanna ostrzeżenie
+    // w swojej kopii i przekazuje zapytanie ręcznie.
+    if (isOwnPlace && !artistEmail) {
+      sends.push(sendEmail(resend, {
+        from: FROM_EMAIL,
+        to: clientEmail,
+        subject: `Zapytanie wysłane — ${workshopName || "warsztat"}`,
+        html: emailHtml(`
+          <p>Cześć ${clientName}!</p>
+          <p>Dziękujemy za zapytanie o warsztat „${workshopName || ""}". Przekażemy je artyście i damy Ci znać mailowo, jak tylko odpowie.</p>
+          ${CLIENT_WAIT_INFO}
+          <p>Pozdrawiamy,<br>Kawiarniani Artyści</p>
+        `),
+      }));
+    }
+
     // Ścieżka z restauracją: klient od razu dostaje potwierdzenie, jak
     // wygląda proces i ile się czeka — bez tego czekał w ciszy na artystę
     // i restaurację, a przy dłuższej ciszy nie wiedział, do kogo się zwrócić.
@@ -254,7 +271,8 @@ export default async function handler(req, res) {
           ${kidsEventBlock}
           <ol>
             <li><strong>Artysta</strong> (${workshopName || "warsztat"}) potwierdza termin ${date || ""}.</li>
-            <li><strong>Restauracja ${restaurantName || ""}</strong> kontaktuje się z Tobą w sprawie szczegółów (np. menu) i ostatecznie potwierdza rezerwację.</li>
+            <li><strong>Restauracja ${restaurantName || ""}</strong> potwierdza, że ma wolny termin, i rezerwuje go.</li>
+            <li>Restauracja odzywa się do Ciebie w ciągu 48 godzin, żeby ustalić menu i ostateczną cenę.</li>
           </ol>
           <p>O każdym kroku poinformujemy Cię mailowo.</p>
           ${CLIENT_WAIT_INFO}
