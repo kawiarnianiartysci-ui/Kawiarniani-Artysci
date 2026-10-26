@@ -161,3 +161,7 @@ export function htmlPage(title, message) {
 </style>
 </head><body><div class="box"><h1>${title}</h1><p>${message}</p></div></body></html>`;
 }
+
+// Po propozycji innego terminu strony dogadują się same — ta prośba daje
+// Joannie szansę dowiedzieć się, czy event jednak się odbędzie.
+export const NEW_DATE_INFO = `<p>Gdy ustalicie nowy termin, dajcie nam proszę znać na <a href="mailto:${OWNER_EMAIL}" style="color:#432A16;">${OWNER_EMAIL}</a> — żebyśmy wiedzieli, że event się odbędzie.</p>`;

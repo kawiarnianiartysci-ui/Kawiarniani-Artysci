@@ -1,5 +1,5 @@
 import { Resend } from "resend";
-import { FROM_EMAIL, OWNER_EMAIL, IS_PRODUCTION, SITE_URL, escapeHtml, nl2br, htmlPage, verifyAndDecode, emailHtml, sendEmail } from "./_shared.js";
+import { FROM_EMAIL, OWNER_EMAIL, IS_PRODUCTION, SITE_URL, escapeHtml, nl2br, htmlPage, verifyAndDecode, emailHtml, sendEmail, NEW_DATE_INFO } from "./_shared.js";
 
 // Restauracja może potrzebować kilku dni na odpowiedź, więc ten link żyje
 // wyraźnie dłużej niż typowy link akceptacji/odrzucenia — około tygodnia.
@@ -85,6 +85,7 @@ async function obsluz(req, res) {
   ${options}
   <p class="hint">Wybrany powód przekażemy klientowi w uprzejmym mailu.</p>
   <textarea name="note" placeholder="Inny powód lub dodatkowa informacja dla klienta (opcjonalnie)"></textarea>
+  <p class="hint"><strong>Uwaga:</strong> to, co tu wpiszesz, trafi do klienta dokładnie w tej formie.</p>
   <button type="submit">Wyślij odpowiedź</button>
 </form>`));
     return;
@@ -125,7 +126,9 @@ async function obsluz(req, res) {
         sends.push(sendEmail(resend,{
           from: FROM_EMAIL,
           to: clientEmail,
-          subject: "Twoja rezerwacja jest potwierdzona!",
+          // "Termin zarezerwowany", nie "rezerwacja potwierdzona" — wg regulaminu
+          // do umowy dochodzi dopiero po ustaleniu menu i ceny z restauracją.
+          subject: "Termin zarezerwowany!",
           html: emailHtml(`
             <p>Cześć ${clientName || ""}!</p>
             ${kidsEventBlock}
@@ -136,7 +139,7 @@ async function obsluz(req, res) {
               <li>Termin: ${date || "do ustalenia"}</li>
               <li>Liczba osób: ${groupSize || "-"}</li>
             </ul>
-            <p>Pozostałe szczegóły — takie jak menu i ostateczna cena — ustalicie z restauracją w dalszej kolejności. <strong>Restauracja ${restaurantName || ""} odezwie się do Ciebie w ciągu 48 godzin.</strong></p>
+            <p>Pozostałe szczegóły — takie jak menu, ostateczna cena i zadatek (30%) — ustalicie z restauracją w dalszej kolejności. <strong>Restauracja ${restaurantName || ""} odezwie się do Ciebie w ciągu 48 godzin.</strong></p>
             <p>Jeśli w tym czasie nikt się nie odezwie albo chcesz coś zmienić lub odwołać, napisz do nas na <a href="mailto:${OWNER_EMAIL}" style="color:#432A16;">${OWNER_EMAIL}</a> — zajmiemy się tym.</p>
             <p>Do zobaczenia na evencie!</p>
             <p>Pozdrawiamy,<br>Kawiarniani Artyści</p>
@@ -154,7 +157,7 @@ async function obsluz(req, res) {
             <p>Cześć!</p>
             ${kidsEventBlock}
             <p>Dziękujemy za potwierdzenie terminu <strong>${date || ""}</strong> (${workshopName || "warsztat"}, ${groupSize || "-"} os.). Klient i artysta już o tym wiedzą.</p>
-            <p><strong>Następny krok: w ciągu 48 godzin odezwijcie się proszę do klienta</strong> w sprawie menu i ostatecznej ceny:<br>${clientContact}</p>
+            <p><strong>Następny krok: w ciągu 48 godzin odezwijcie się proszę do klienta</strong> w sprawie menu i ostatecznej ceny oraz poinformujcie go o zadatku (30%, zgodnie z regulaminem):<br>${clientContact}</p>
             <p>Jeśli artysta będzie potrzebował informacji logistycznych, odezwie się do Was bezpośrednio: ${artistContact}</p>
             <p>Pozdrawiamy,<br>Kawiarniani Artyści</p>
           `),
@@ -185,6 +188,7 @@ async function obsluz(req, res) {
               <li>Restauracja: ${restaurantContact}</li>
               <li>Artysta: ${artistContact}</li>
             </ul>
+            ${NEW_DATE_INFO}
             <p>Pozdrawiamy,<br>Kawiarniani Artyści</p>
           `),
         }));
@@ -205,6 +209,7 @@ async function obsluz(req, res) {
               <li>Klient: ${clientContact}</li>
               <li>Restauracja: ${restaurantContact}</li>
             </ul>
+            ${NEW_DATE_INFO}
             <p>Pozdrawiamy,<br>Kawiarniani Artyści</p>
           `),
         }));
@@ -225,6 +230,7 @@ async function obsluz(req, res) {
               <li>Klient: ${clientContact}</li>
               <li>Artysta: ${artistContact}</li>
             </ul>
+            ${NEW_DATE_INFO}
             <p>Pozdrawiamy,<br>Kawiarniani Artyści</p>
           `),
         }));

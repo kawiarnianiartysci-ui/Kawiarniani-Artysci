@@ -1,5 +1,5 @@
 import { Resend } from "resend";
-import { FROM_EMAIL, OWNER_EMAIL, IS_PRODUCTION, escapeHtml, SITE_URL, htmlPage, verifyAndDecode, signPayload, emailHtml, nl2br, sendEmail, CLIENT_WAIT_INFO } from "./_shared.js";
+import { FROM_EMAIL, OWNER_EMAIL, IS_PRODUCTION, escapeHtml, SITE_URL, htmlPage, verifyAndDecode, signPayload, emailHtml, nl2br, sendEmail, CLIENT_WAIT_INFO, NEW_DATE_INFO } from "./_shared.js";
 
 async function obsluz(req, res) {
   const { action, data, sig, confirm, dates } = req.query;
@@ -87,6 +87,7 @@ async function obsluz(req, res) {
               <li>Artysta: ${artistContact}</li>
               ${isClassic ? `<li>Restauracja: ${restaurantContact}</li>` : ""}
             </ul>
+            ${NEW_DATE_INFO}
             <p>Pozdrawiamy,<br>Kawiarniani Artyści</p>
           `),
         }));
@@ -109,6 +110,7 @@ async function obsluz(req, res) {
               <li>Klient: ${clientContact}</li>
               <li>Artysta: ${artistContact}</li>
             </ul>
+            ${NEW_DATE_INFO}
             <p>Pozdrawiamy,<br>Kawiarniani Artyści</p>
           `),
         }));
@@ -131,6 +133,7 @@ async function obsluz(req, res) {
               <li>Klient: ${clientContact}</li>
               ${isClassic ? `<li>Restauracja: ${restaurantContact}</li>` : ""}
             </ul>
+            ${NEW_DATE_INFO}
             <p>Pozdrawiamy,<br>Kawiarniani Artyści</p>
           `),
         }));

@@ -2462,7 +2462,7 @@ function PartnersView({ openTermsOnMount }) {
   const steps = [
     { n:"1", t:"Klient wybiera lokal i artystę", d:"Na stronie klient wybiera restaurację/kawiarnię oraz warsztat, który chce zorganizować u siebie." },
     { n:"2", t:"Artysta akceptuje termin", d:"Artysta dostaje zapytanie z proponowaną datą i liczbą osób — potwierdza je lub proponuje zmianę." },
-    { n:"3", t:"Restauracja czeka na potwierdzenie", d:"Lokal od razu widzi zapytanie klienta i czeka na akceptację ze strony artysty, zanim event zostanie ostatecznie ustalony." },
+    { n:"3", t:"Restauracja rezerwuje termin", d:"Po akceptacji artysty lokal jednym kliknięciem w mailu rezerwuje termin, proponuje inny albo odrzuca zapytanie — a potem w ciągu 48 godzin ustala z klientem menu i cenę." },
   ];
 
   return (
