@@ -40,9 +40,11 @@ export function spamCheck(req, body, { limit = 5, windowMs = 60 * 60 * 1000 } = 
 export const CLIENT_WAIT_INFO = `<p>Zwykle każda strona odpowiada w ciągu 48 godzin. Jeśli w tym czasie nic od nas nie dostaniesz albo chcesz coś zmienić lub odwołać, napisz do nas na <a href="mailto:${OWNER_EMAIL}" style="color:#432A16;">${OWNER_EMAIL}</a> — zajmiemy się tym.</p>`;
 
 // Ta sama informacja krótko na samej górze — na dole łatwo ją przeoczyć.
-const NO_REPLY_HEADER = `<p style="font-size:12px;color:#6B6862;margin:0 0 18px;">Wiadomość automatyczna — prosimy na nią nie odpowiadać. Kontakt z nami: <a href="mailto:${OWNER_EMAIL}" style="color:#432A16;">${OWNER_EMAIL}</a></p>`;
+// Odpowiedź na mail systemowy trafia do Joanny (replyTo w sendEmail), więc
+// zachęcamy do odpisywania — tak chciała Joanna (26.10), zamiast „nie odpowiadaj".
+const NO_REPLY_HEADER = `<p style="font-size:12px;color:#6B6862;margin:0 0 18px;">To wiadomość systemowa z platformy Kawiarniani Artyści. Prosimy o odpowiedź — przyciskiem w mailu (jeśli jest) albo po prostu odpisz na tę wiadomość, a trafi do Joanny.</p>`;
 
-const NO_REPLY_FOOTER =`<hr style="border:none;border-top:1px solid #E0DDD6;margin:28px 0 14px;"><p style="font-size:13px;color:#6B6862;margin:0;">To wiadomość wysłana automatycznie — prosimy nie odpowiadać na ten adres. W sprawie rezerwacji (zmiana terminu, odwołanie, pytania) napisz do nas na <a href="mailto:${OWNER_EMAIL}" style="color:#432A16;">${OWNER_EMAIL}</a>.</p>`;
+const NO_REPLY_FOOTER =`<hr style="border:none;border-top:1px solid #E0DDD6;margin:28px 0 14px;"><p style="font-size:13px;color:#6B6862;margin:0;">To wiadomość systemowa, wysłana automatycznie przez platformę Kawiarniani Artyści. Masz pytanie, chcesz coś zmienić lub odwołać? Odpisz na tego maila albo napisz na <a href="mailto:${OWNER_EMAIL}" style="color:#432A16;">${OWNER_EMAIL}</a> — wiadomość trafi do Joanny.</p>`;
 
 // ══ Tryb testowy ═══════════════════════════════════════════════
 // Vercel ustawia VERCEL_ENV = "production" tylko na żywej stronie

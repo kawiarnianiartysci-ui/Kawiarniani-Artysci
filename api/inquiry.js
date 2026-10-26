@@ -95,6 +95,10 @@ export default async function handler(req, res) {
     // ostrzeżenia zapytanie cicho nie docierało do partnera (wykryte w teście 26.10).
     if (w && !w.comingSoon && !artistEmail) warnings.push(`Warsztat „${escapeHtml(w.name)}" nie ma adresu email (arkusz kontaktów) — mail do artysty NIE został wysłany. Prześlij zapytanie ręcznie.`);
     if (r && !r.comingSoon && !restaurantEmail) warnings.push(`Restauracja „${escapeHtml(r.name)}" nie ma adresu email (arkusz kontaktów) — mail do restauracji NIE został wysłany. Prześlij zapytanie ręcznie.`);
+    // Klient wybrał sam warsztat, bez restauracji i bez „Mam miejsce" — miejsce
+    // dobiera Joanna (ma kontakt do restauracji), nie artysta. Wcześniej maile
+    // pisały wtedy „Restauracja dostała zapytanie" albo „mam miejsce" (26.10).
+    const isNoPlace = !isOwnPlace && !restaurantName;
     const artistInvoicing    = w ? escapeHtml(w.invoicing) : "";
     const artistRequirements = w ? escapeHtml(w.requirements) : "";
 
@@ -141,6 +145,7 @@ export default async function handler(req, res) {
       groupSize: groupSize ?? "", date, message,
       isKidsEvent: isKidsEvent || undefined,
       kidsCount, adultsCount, kidsPackageName, kidsAmountLabel,
+      place: isOwnPlace ? "own" : isNoPlace ? "none" : undefined,
       ts: Date.now(),
     };
     const { data, sig } = signPayload(payload);
@@ -156,12 +161,16 @@ export default async function handler(req, res) {
         to: artistEmail,
         subject: isOwnPlace
           ? `Nowe zapytanie: dojazd do klienta — ${workshopName || "warsztat"}`
-          : `Nowe zapytanie: ${restaurantName || "restauracja"} — ${workshopName || "warsztat"}`,
+          : isNoPlace
+            ? `Nowe zapytanie: ${workshopName || "warsztat"} (miejsce dobierze Joanna)`
+            : `Nowe zapytanie: ${restaurantName} — ${workshopName || "warsztat"}`,
         html: emailHtml(`
           <p>Cześć ${artistName || ""}!</p>
           <p>${isOwnPlace
             ? `Klient chce zaprosić Cię do siebie na warsztat „${workshopName || ""}" — bez restauracji, na własnym miejscu. Oto szczegóły:`
-            : `Restauracja <strong>${restaurantName || ""}</strong> dostała zapytanie o Twój warsztat „${workshopName || ""}". Oto szczegóły:`}</p>
+            : isNoPlace
+              ? `Klient wysłał zapytanie o Twój warsztat „${workshopName || ""}", ale nie wybrał jeszcze restauracji ani kawiarni. <strong>Miejsce dobierze Joanna z Kawiarnianych Artystów</strong> — nie musisz go szukać. Potwierdź tylko, czy pasuje Ci termin. Oto szczegóły:`
+              : `Restauracja <strong>${restaurantName}</strong> dostała zapytanie o Twój warsztat „${workshopName || ""}". Oto szczegóły:`}</p>
           ${requesterLine}
           ${invoiceLine}
           ${kidsEventBlock}
@@ -208,9 +217,10 @@ export default async function handler(req, res) {
     const ownerSend = sendEmail(resend, {
       from: FROM_EMAIL,
       to: OWNER_EMAIL,
-      subject: `${warnings.length ? "⚠️ " : ""}Nowe zapytanie: ${restaurantName || (isOwnPlace ? "bez restauracji (mam miejsce)" : "-")} + ${workshopName || "-"}`,
+      subject: `${warnings.length ? "⚠️ " : ""}Nowe zapytanie: ${restaurantName || (isOwnPlace ? "bez restauracji (mam miejsce)" : "BEZ MIEJSCA — do dobrania")} + ${workshopName || "-"}`,
       html: emailHtml(`
         ${warnings.length ? `<div style="background:#FDECEA;padding:10px 14px;border-radius:8px;"><strong>Uwaga:</strong><ul>${warnings.map(x => `<li>${x}</li>`).join("")}</ul></div>` : ""}
+        ${isNoPlace ? `<div style="background:#FFF3CD;padding:10px 14px;border-radius:8px;margin-top:10px;"><strong>📍 Klient nie wybrał restauracji ani „Mam miejsce" — trzeba dobrać miejsce.</strong> Artysta i klient dostali informację, że miejsce dobierzesz Ty.</div>` : ""}
         <p>Nowe zapytanie na stronie:</p>
         ${requesterLine}
         ${invoiceLine}
@@ -218,7 +228,7 @@ export default async function handler(req, res) {
         ${placeInfoBlock}
         <ul>
           <li>Klient: ${clientName} (${clientEmail}${clientPhone ? ", " + clientPhone : ""})</li>
-          <li>Restauracja: ${isOwnPlace ? "brak — klient ma własne miejsce" : `${restaurantName || "-"} ${restaurantEmail ? `(${restaurantEmail})` : "(mail nie wysłany — brak adresu w arkuszu albo patrz uwagi wyżej)"}`}</li>
+          <li>Restauracja: ${isOwnPlace ? "brak — klient ma własne miejsce" : isNoPlace ? "nie wybrana — do dobrania przez Ciebie" : `${restaurantName} ${restaurantEmail ? `(${restaurantEmail})` : "(mail nie wysłany — brak adresu w arkuszu albo patrz uwagi wyżej)"}`}</li>
           <li>Warsztat: ${workshopName || "-"} ${artistName ? `(${artistName})` : ""} ${artistEmail ? `(${artistEmail})` : "(mail nie wysłany — brak adresu w arkuszu albo patrz uwagi wyżej)"}</li>
           <li>Termin: ${date || "do ustalenia"}</li>
           <li>Liczba osób: ${groupSize ?? "-"}</li>
@@ -265,7 +275,25 @@ export default async function handler(req, res) {
     // Ścieżka z restauracją: klient od razu dostaje potwierdzenie, jak
     // wygląda proces i ile się czeka — bez tego czekał w ciszy na artystę
     // i restaurację, a przy dłuższej ciszy nie wiedział, do kogo się zwrócić.
-    if (!isOwnPlace) {
+    if (isNoPlace) {
+      sends.push(sendEmail(resend, {
+        from: FROM_EMAIL,
+        to: clientEmail,
+        subject: `Zapytanie wysłane — ${workshopName || "warsztat"}`,
+        html: emailHtml(`
+          <p>Cześć ${clientName}!</p>
+          <p>Dziękujemy za zapytanie. Oto, co się teraz dzieje:</p>
+          ${kidsEventBlock}
+          <ol>
+            <li><strong>Artysta</strong> (${workshopName || "warsztat"}) potwierdza termin ${date || ""}.</li>
+            <li><strong>Joanna z Kawiarnianych Artystów</strong> dobiera dla Was restaurację lub kawiarnię i odzywa się z propozycją miejsca.</li>
+          </ol>
+          <p>O każdym kroku poinformujemy Cię mailowo.</p>
+          ${CLIENT_WAIT_INFO}
+          <p>Pozdrawiamy,<br>Kawiarniani Artyści</p>
+        `),
+      }));
+    } else if (!isOwnPlace) {
       sends.push(sendEmail(resend, {
         from: FROM_EMAIL,
         to: clientEmail,

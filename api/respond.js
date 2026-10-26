@@ -16,6 +16,10 @@ async function obsluz(req, res) {
   }
 
   const { clientName, restaurantName, workshopName, date, groupSize, isKidsEvent, kidsCount, adultsCount, kidsPackageName, kidsAmountLabel } = payload;
+  // place: "own" = „Mam miejsce", "none" = sam warsztat, miejsce dobiera Joanna.
+  // Linki sprzed 26.10 nie mają tego pola — wtedy bez restauracji = „Mam miejsce".
+  const isNoPlace = payload.place === "none";
+  const placeLabel = restaurantName || (isNoPlace ? "miejsce do dobrania przez Joannę" : "bez restauracji — mam miejsce");
 
   // Sekcja doklejana do maili, tylko gdy zapytanie dotyczy eventu dla dzieci —
   // całkowicie nieobecna (pusty string) dla zwykłych zapytań, więc istniejące
@@ -40,7 +44,7 @@ async function obsluz(req, res) {
     const isClassic = !!restaurantEmail;
 
     if (!proposedDates) {
-      const details = `<strong>${workshopName || ""}</strong> — ${restaurantName || ""}<br>Pierwotny termin: ${date || "do ustalenia"} · ${isKidsEvent ? `${kidsCount ?? "-"} dzieci + ${adultsCount ?? "-"} dorosłych` : `${groupSize || "-"} os.`} · Klient: ${clientName || ""}`;
+      const details = `<strong>${workshopName || ""}</strong> — ${placeLabel}<br>Pierwotny termin: ${date || "do ustalenia"} · ${isKidsEvent ? `${kidsCount ?? "-"} dzieci + ${adultsCount ?? "-"} dorosłych` : `${groupSize || "-"} os.`} · Klient: ${clientName || ""}`;
       res.status(200).send(`<!doctype html><html lang="pl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Zaproponuj inne terminy</title>
 <style>
   body{font-family:system-ui,-apple-system,sans-serif;background:#EDEBE6;display:flex;align-items:center;justify-content:center;min-height:100vh;margin:0;padding:16px;}
@@ -87,6 +91,7 @@ async function obsluz(req, res) {
               <li>Artysta: ${artistContact}</li>
               ${isClassic ? `<li>Restauracja: ${restaurantContact}</li>` : ""}
             </ul>
+            ${isNoPlace ? `<p>Restaurację lub kawiarnię dobierze dla Was Joanna — odezwie się, gdy ustalicie nowy termin.</p>` : ""}
             ${NEW_DATE_INFO}
             <p>Pozdrawiamy,<br>Kawiarniani Artyści</p>
           `),
@@ -142,8 +147,8 @@ async function obsluz(req, res) {
       sends.push(sendEmail(resend,{
         from: FROM_EMAIL,
         to: OWNER_EMAIL,
-        subject: `Artysta proponuje inny termin: ${restaurantName || ""} + ${workshopName || ""}`,
-        html: emailHtml(`<p>Artysta ${artistName || workshopName || ""} zaproponował inne terminy dla zapytania od ${clientName || ""} (${restaurantName || "bez restauracji"}, pierwotny termin: ${date || "-"}).</p><p>Zaproponowane terminy:<br>${datesHtml}</p>${kidsEventBlock}`),
+        subject: `Artysta proponuje inny termin: ${placeLabel} + ${workshopName || ""}`,
+        html: emailHtml(`<p>Artysta ${artistName || workshopName || ""} zaproponował inne terminy dla zapytania od ${clientName || ""} (${placeLabel}, pierwotny termin: ${date || "-"}).</p><p>Zaproponowane terminy:<br>${datesHtml}</p>${kidsEventBlock}`),
       }));
 
       await Promise.all(sends);
@@ -163,7 +168,7 @@ async function obsluz(req, res) {
   if (confirm !== "1") {
     const confirmUrl = `/api/respond?action=${action}&data=${encodeURIComponent(data)}&sig=${encodeURIComponent(sig)}&confirm=1`;
     const title = accepted ? "Potwierdź akceptację terminu" : "Potwierdź, że nie możesz";
-    const details = `<strong>${workshopName || ""}</strong> — ${restaurantName || ""}<br>Termin: ${date || "do ustalenia"} · ${isKidsEvent ? `${kidsCount ?? "-"} dzieci + ${adultsCount ?? "-"} dorosłych` : `${groupSize || "-"} os.`} · Klient: ${clientName || ""}`;
+    const details = `<strong>${workshopName || ""}</strong> — ${placeLabel}<br>Termin: ${date || "do ustalenia"} · ${isKidsEvent ? `${kidsCount ?? "-"} dzieci + ${adultsCount ?? "-"} dorosłych` : `${groupSize || "-"} os.`} · Klient: ${clientName || ""}`;
     res.status(200).send(`<!doctype html><html lang="pl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>${title}</title>
 <style>
   body{font-family:system-ui,-apple-system,sans-serif;background:#EDEBE6;display:flex;align-items:center;justify-content:center;min-height:100vh;margin:0;padding:16px;}
@@ -245,11 +250,13 @@ async function obsluz(req, res) {
         from: FROM_EMAIL,
         to: clientEmail,
         subject: accepted
-          ? (isClassic ? "Artysta potwierdził termin — czekamy na restaurację" : "Twój termin został potwierdzony!")
+          ? (isClassic ? "Artysta potwierdził termin — czekamy na restaurację" : isNoPlace ? "Artysta potwierdził termin — dobieramy miejsce" : "Twój termin został potwierdzony!")
           : "Artyście nie pasuje ten termin",
         html: emailHtml(accepted
           ? (isClassic
               ? `<p>Cześć ${clientName || ""}!</p>${kidsEventBlock}<p>Świetna wiadomość — artysta potwierdził Wasz termin (${date || ""}).</p><p>Teraz restauracja <strong>${restaurantName || ""}</strong> potwierdza, że ma wolny termin — dostaniesz od nas osobny mail, gdy to zrobi.</p>${CLIENT_WAIT_INFO}<p>Pozdrawiamy,<br>Kawiarniani Artyści</p>`
+              : isNoPlace
+              ? `<p>Cześć ${clientName || ""}!</p>${kidsEventBlock}<p>Świetna wiadomość — artysta <strong>${artistName || workshopName || ""}</strong> potwierdził termin ${date || ""}.</p><p>Teraz <strong>Joanna z Kawiarnianych Artystów</strong> dobiera dla Was restaurację lub kawiarnię i odezwie się do Ciebie z propozycją miejsca.</p>${CLIENT_WAIT_INFO}<p>Pozdrawiamy,<br>Kawiarniani Artyści</p>`
               : `<p>Cześć ${clientName || ""}!</p>${kidsEventBlock}<p>Świetna wiadomość — artysta <strong>${artistName || workshopName || ""}</strong> przyjął Twoje zapytanie na termin ${date || "do ustalenia"} i skontaktuje się z Tobą wkrótce, żeby ustalić ostatnie szczegóły (np. dojazd).</p><p>Kontakt do artysty: ${artistName || ""}${artistEmail ? ` · ${artistEmail}` : ""}</p><p>Pozdrawiamy,<br>Kawiarniani Artyści</p>`)
           : `<p>Cześć ${clientName || ""},</p>${kidsEventBlock}<p>Niestety artyście (${workshopName || "wybrany warsztat"}) nie pasuje termin ${date || ""}. Prosimy o wybranie innego terminu lub zmianę artysty — wystarczy wysłać nowe zapytanie na stronie <a href="${SITE_URL}" style="color:#432A16;">kawiarnianiartysci.pl</a>.</p><p>Pozdrawiamy,<br>Kawiarniani Artyści</p>`),
       }));
@@ -258,15 +265,15 @@ async function obsluz(req, res) {
     sends.push(sendEmail(resend,{
       from: FROM_EMAIL,
       to: OWNER_EMAIL,
-      subject: `${accepted ? "Zaakceptowano" : "Odrzucono"}: ${restaurantName || (isClassic ? "" : "bez restauracji (mam miejsce)")} + ${workshopName || ""}`,
-      html: emailHtml(`<p>Artysta ${accepted ? "zaakceptował" : "odrzucił"} zapytanie od ${clientName || ""} (${isClassic ? restaurantName || "" : "bez restauracji — mam miejsce"}, ${date || ""}).</p>${kidsEventBlock}`),
+      subject: `${accepted ? "Zaakceptowano" : "Odrzucono"}: ${placeLabel} + ${workshopName || ""}`,
+      html: emailHtml(`<p>Artysta ${accepted ? "zaakceptował" : "odrzucił"} zapytanie od ${clientName || ""} (${placeLabel}, ${date || ""}).</p>${accepted && isNoPlace ? `<p><strong>📍 Teraz Twoja kolej: dobierz restaurację lub kawiarnię i odezwij się do klienta${clientEmail ? ` (${escapeHtml(clientEmail)}${clientPhone ? `, ${clientPhone}` : ""})` : ""}.</strong></p>` : ""}${kidsEventBlock}`),
     }));
 
     await Promise.all(sends);
 
     res.status(200).send(
       accepted
-        ? htmlPage("Dziękujemy!", isClassic ? "Potwierdziłeś/aś termin. Restauracja i klient zostali poinformowani mailowo." : "Potwierdziłeś/aś termin. Klient został poinformowany mailowo i dostał Twój kontakt.")
+        ? htmlPage("Dziękujemy!", isClassic ? "Potwierdziłeś/aś termin. Restauracja i klient zostali poinformowani mailowo." : isNoPlace ? "Potwierdziłeś/aś termin. Klient został poinformowany mailowo. Miejsce dobierze Joanna i da Ci znać." : "Potwierdziłeś/aś termin. Klient został poinformowany mailowo i dostał Twój kontakt.")
         : htmlPage("Zapisano", isClassic ? "Poinformowaliśmy restaurację i klienta, że nie możesz w tym terminie." : "Poinformowaliśmy klienta, że nie możesz w tym terminie.")
     );
   } catch (err) {
