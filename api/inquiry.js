@@ -90,6 +90,11 @@ export default async function handler(req, res) {
     const restaurantName = isOwnPlace ? "" : (r ? escapeHtml(r.name) : txt(body.restaurantName, 200));
     const artistEmail     = w && !w.comingSoon ? parseEmails(w.email) : "";
     const restaurantEmail = r && !r.comingSoon ? parseEmails(r.email) : "";
+    // Partner jest w arkuszu, ale bez adresu — np. nie wpisany do prywatnego
+    // arkusza kontaktów albo ten arkusz chwilowo nie odpowiada. Bez tego
+    // ostrzeżenia zapytanie cicho nie docierało do partnera (wykryte w teście 26.10).
+    if (w && !w.comingSoon && !artistEmail) warnings.push(`Warsztat „${escapeHtml(w.name)}" nie ma adresu email (arkusz kontaktów) — mail do artysty NIE został wysłany. Prześlij zapytanie ręcznie.`);
+    if (r && !r.comingSoon && !restaurantEmail) warnings.push(`Restauracja „${escapeHtml(r.name)}" nie ma adresu email (arkusz kontaktów) — mail do restauracji NIE został wysłany. Prześlij zapytanie ręcznie.`);
     const artistInvoicing    = w ? escapeHtml(w.invoicing) : "";
     const artistRequirements = w ? escapeHtml(w.requirements) : "";
 
