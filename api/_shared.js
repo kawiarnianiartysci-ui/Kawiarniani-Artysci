@@ -117,13 +117,21 @@ export async function sendEmail(resend, { to: rawTo, subject: rawSubject, html: 
         subject: `[TEST → ${to}] ${subject}`,
         html: html.replace(/<body[^>]*>/, bodyTag => `${bodyTag}<p style="background:#FFF3CD;padding:10px 14px;border-radius:8px;font-size:13px;">🧪 Mail testowy z wersji podglądowej. Na żywej stronie trafiłby do: <strong>${escapeHtml(to)}</strong></p>`),
       };
-  try {
-    const result = await resend.emails.send(msg);
-    if (!result || result.error) { console.error("Resend:", msg.to, result && result.error); return false; }
-    return true;
-  } catch (err) {
-    console.error("Resend:", msg.to, err);
-    return false;
+  // Resend odrzuca zbyt wiele maili naraz ("rate_limit_exceeded", 429) — w teście
+  // 26.10 przy ~11 mailach w sekundę jeden przepadł. Wtedy chwilę czekamy
+  // i próbujemy ponownie (do 3 razy), zamiast gubić mail.
+  for (let attempt = 1; ; attempt++) {
+    try {
+      const result = await resend.emails.send(msg);
+      const err = result && result.error;
+      const rateLimited = err && (err.statusCode === 429 || err.name === "rate_limit_exceeded");
+      if (rateLimited && attempt < 3) { await new Promise(r => setTimeout(r, 800 * attempt)); continue; }
+      if (!result || err) { console.error("Resend:", msg.to, err); return false; }
+      return true;
+    } catch (err) {
+      console.error("Resend:", msg.to, err);
+      return false;
+    }
   }
 }
 
