@@ -1270,6 +1270,8 @@ function TimeOptionsList({ value, onChange }) {
 // Domyślna liczba osób — podpowiadana w pasku na stronie głównej i używana
 // w wyliczeniach, dopóki klient sam nie wybierze liczby.
 const DEFAULT_GROUP_SIZE = 8;
+// To samo dla trybu "Eventy dla dzieci" (liczba dzieci).
+const DEFAULT_KIDS_COUNT = 8;
 
 function HomeFilterBar({ groupSize, setGroupSize, selectedDate, setSelectedDate, selectedTime, setSelectedTime }) {
   const [openField, setOpenField] = useState(null);
@@ -1357,7 +1359,7 @@ function KidsFilterBar({ kidsCount, setKidsCount, adultsCount, setAdultsCount, s
     return () => document.removeEventListener("mousedown", onOutside);
   }, [openField]);
 
-  const openKids = () => { if (kidsCount == null) setKidsCount(8); toggle("kids"); };
+  const openKids = () => { if (kidsCount == null) setKidsCount(DEFAULT_KIDS_COUNT); toggle("kids"); };
   const openAdults = () => { if (adultsCount == null) setAdultsCount(0); toggle("adults"); };
 
   const segStyle = active => ({ flex:1, minWidth:0, padding:"10px 16px", cursor:"pointer", position:"relative", borderRadius:999, border:`1px solid ${active ? C.primary : "transparent"}` });
@@ -1380,7 +1382,7 @@ function KidsFilterBar({ kidsCount, setKidsCount, adultsCount, setAdultsCount, s
         <div onClick={openKids} style={segStyle(!!kidsCount)}>
           <div style={segLabel(!!kidsCount)}>LICZBA DZIECI</div>
           <div style={segValue(!!kidsCount)}>{kidsCount ? `${kidsCount}` : ""}</div>
-          {openField === "kids" && stepper(kidsCount ?? 8, setKidsCount, 1, 30)}
+          {openField === "kids" && stepper(kidsCount ?? DEFAULT_KIDS_COUNT, setKidsCount, 1, 30)}
         </div>
         <div className="search-divider" style={{ background:C.border }} />
         <div onClick={openAdults} style={segStyle(adultsCount != null)}>
@@ -3085,19 +3087,20 @@ export default function App() {
   // Zasady jak isCompatible dla dorosłych (osobna sala / faktura / godziny),
   // plus wymóg forKids+acceptsKids+kidsVariants, plus liczebność liczona
   // względem KONKRETNEJ wpisanej liczby dzieci/dorosłych, nie zakresu.
+  // Liczba wybrana przez klienta działa jak filtr (osobno dla każdego
+  // warsztatu/restauracji, już w kroku 1) i nigdy nie jest tu zmieniana.
+  const workshopFitsKids = w => kidsCount == null || ((w.minPeople == null || kidsCount >= w.minPeople) && (w.maxPeople == null || kidsCount <= w.maxPeople));
+  const restaurantFitsKids = r => kidsCount == null || r.maxPeople == null || (kidsCount + (adultsCount || 0)) <= r.maxPeople;
   const isKidsCompatible = (w, r) => {
     if (w && !w.forKids) return false;
     if (r && (!r.acceptsKids || !r.kidsVariants || r.kidsVariants.length === 0)) return false;
     if (w && !workshopFitsTime(w)) return false;
     if (r && !restaurantFitsTime(r, w)) return false;
+    if (w && !workshopFitsKids(w)) return false;
+    if (r && !restaurantFitsKids(r)) return false;
     if (!w || !r) return true;
     if (w.requiresSeparateRoom && !r.hasSeparateRoom) return false;
     if (r.requiresInvoice && w.canInvoice === false) return false;
-    if (kidsCount != null) {
-      if (w.minPeople != null && kidsCount < w.minPeople) return false;
-      if (w.maxPeople != null && kidsCount > w.maxPeople) return false;
-      if (r.maxPeople != null && (kidsCount + (adultsCount || 0)) > r.maxPeople) return false;
-    }
     return true;
   };
   // Widokowe obiekty restauracji dla trybu dzieci: `variants` podmienione na
@@ -3113,33 +3116,24 @@ export default function App() {
     if (!w.comingSoon && !(w.travelsToClient === true && w.forKids)) return false;
     if (invoiceRequired && w.canInvoice !== true) return false;
     if (!w.comingSoon && !workshopFitsTime(w)) return false;
+    if (!w.comingSoon && !workshopFitsKids(w)) return false;
     return true;
   });
 
+  // Gdy klient nie wybrał liczby dzieci — domyślne 8, dopasowane do zakresu
+  // wybranego warsztatu/restauracji. Wartość wyliczana, nie zapisywana
+  // (jak effectiveGroupSize wyżej), więc nie zmienia się przy przeklikiwaniu.
+  const effectiveKidsCount = kidsCount ?? Math.min(peopleHi, Math.max(peopleLo, DEFAULT_KIDS_COUNT));
   const kidsVariant = restaurant?.kidsVariants?.find(v => v.id === selectedVariant);
   const kidsPriceKnown = kidsVariant && kidsVariant.price != null;
   const kidsPpp   = kidsPriceKnown ? kidsVariant.price + (workshop?.pricePerPerson ?? 0) : null;
-  const kidsTotal = kidsPpp != null && kidsCount != null ? kidsPpp * kidsCount : null;
+  const kidsTotal = kidsPpp != null ? kidsPpp * effectiveKidsCount : null;
   // Cena samego warsztatu — pokazywana osobno, dopóki nie znamy ceny
   // restauracji (jeszcze nie wybrana, albo pakiet "ustalane indywidualnie").
   // Gdy restauracja poda swoją cenę, kidsTotal > 0 i to przestaje być używane
   // — wraca "normalne sumowanie".
   const kidsWorkshopPpp   = workshop?.pricePerPerson ?? null;
-  const kidsWorkshopTotal = kidsWorkshopPpp != null && kidsCount != null ? kidsWorkshopPpp * kidsCount : null;
-
-  // Odpowiednik powyższego dla trybu "Eventy dla dzieci" — automatycznie
-  // ustawia `kidsCount` na sensowną wartość, gdy wybrano zarówno warsztat,
-  // jak i restaurację, nawet jeśli klient nie dotknął jeszcze stepper'a na
-  // ekranie głównym. Bez tego pakiet z realną ceną pokazywał "cena do
-  // ustalenia" tylko dlatego, że `kidsCount` było wciąż `null`.
-  useEffect(() => {
-    if (mode !== "kids") return;
-    if (!workshop && !restaurant) return;
-    const lo = Math.max(workshop?.minPeople ?? 1, restaurant?.minPeople ?? 1);
-    const hi = Math.min(workshop?.maxPeople ?? Infinity, restaurant?.maxPeople ?? Infinity);
-    setKidsCount(kc => Math.min(hi, Math.max(lo, kc)));
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [workshop?.id, restaurant?.id, mode]);
+  const kidsWorkshopTotal = kidsWorkshopPpp != null ? kidsWorkshopPpp * effectiveKidsCount : null;
 
   if (dataLoading) {
     return (
@@ -3284,7 +3278,7 @@ export default function App() {
                 <div className="wizard-nav-bar" style={{ marginTop:20 }}>
                   <WizardStickyBar
                     restaurant={restaurant} workshop={workshop}
-                    groupSize={kidsCount}
+                    groupSize={effectiveKidsCount}
                     ppp={ownPlace ? (kidsWorkshopPpp ?? 0) : (kidsPpp ?? 0)}
                     total={ownPlace ? (kidsWorkshopTotal ?? 0) : (kidsTotal ?? 0)}
                     workshopOnlyPpp={kidsWorkshopPpp ?? 0} workshopOnlyTotal={kidsWorkshopTotal ?? 0}
@@ -3379,7 +3373,7 @@ export default function App() {
                 {wizardStep === 3 && (
                   <Step4ContactForm
                     restaurant={ownPlace ? undefined : restaurant} variant={kidsVariant} workshop={workshop}
-                    groupSize={kidsCount}
+                    groupSize={effectiveKidsCount}
                     selectedDate={selectedDate} onDateChange={setSelectedDate}
                     selectedTime={selectedTime} onTimeChange={setSelectedTime}
                     ppp={ownPlace ? (kidsWorkshopPpp ?? 0) : (kidsPpp ?? 0)}
@@ -3387,7 +3381,7 @@ export default function App() {
                     workshopOnlyTotal={kidsWorkshopTotal ?? 0}
                     onEditStep={n => setWizardStep(n)}
                     onSubmitted={() => setSubmitted(true)}
-                    kidsMode kidsCount={kidsCount} adultsCount={adultsCount}
+                    kidsMode kidsCount={effectiveKidsCount} adultsCount={adultsCount}
                     ownPlace={ownPlace} placeInfo={placeInfo}
                     workshopStep={step1Kind === "workshop" ? 1 : 2} placeStep={step1Kind === "workshop" ? 2 : 1}
                     requesterType={ownPlace ? requesterType : undefined}
