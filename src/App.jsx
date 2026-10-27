@@ -1267,6 +1267,10 @@ function TimeOptionsList({ value, onChange }) {
 // Godzina wybierana tu (nie dopiero w podsumowaniu), żeby filtr godzin
 // zamknięcia restauracji mógł zawężać listę miejsc w kroku 2. Miejsce
 // zostaje pominięte (patrz brief reorganizacji).
+// Domyślna liczba osób — podpowiadana w pasku na stronie głównej i używana
+// w wyliczeniach, dopóki klient sam nie wybierze liczby.
+const DEFAULT_GROUP_SIZE = 5;
+
 function HomeFilterBar({ groupSize, setGroupSize, selectedDate, setSelectedDate, selectedTime, setSelectedTime }) {
   const [openField, setOpenField] = useState(null);
   const barRef = useRef(null);
@@ -1279,7 +1283,7 @@ function HomeFilterBar({ groupSize, setGroupSize, selectedDate, setSelectedDate,
     return () => document.removeEventListener("mousedown", onOutside);
   }, [openField]);
 
-  const openPeople = () => { if (groupSize == null) setGroupSize(10); toggle("people"); };
+  const openPeople = () => { if (groupSize == null) setGroupSize(DEFAULT_GROUP_SIZE); toggle("people"); };
 
   const segStyle = active => ({
     flex:1, minWidth:0, padding:"10px 18px", cursor:"pointer", position:"relative",
@@ -1299,9 +1303,9 @@ function HomeFilterBar({ groupSize, setGroupSize, selectedDate, setSelectedDate,
           {openField === "people" && (
             <div className="modal-fade" onClick={e => e.stopPropagation()} style={{ position:"absolute", top:"calc(100% + 8px)", left:0, background:"#FFF", border:`1px solid ${C.border}`, borderRadius:14, boxShadow:"0 10px 32px rgba(0,0,0,0.14)", padding:20, minWidth:200, zIndex:50, cursor:"default" }}>
               <div style={{ display:"flex", alignItems:"center", gap:16, justifyContent:"center" }}>
-                <button onClick={() => setGroupSize(Math.max(5, (groupSize ?? 10) - 1))} style={{ width:36, height:36, borderRadius:"50%", border:`1px solid ${C.border}`, background:"transparent", cursor:"pointer", fontSize:18, color:C.primary }}>−</button>
-                <span style={{ fontSize:22, fontWeight:600, color:C.primary, minWidth:30, textAlign:"center" }}>{groupSize ?? 10}</span>
-                <button onClick={() => setGroupSize(Math.min(20, (groupSize ?? 10) + 1))} style={{ width:36, height:36, borderRadius:"50%", border:`1px solid ${C.border}`, background:"transparent", cursor:"pointer", fontSize:18, color:C.primary }}>+</button>
+                <button onClick={() => setGroupSize(Math.max(5, (groupSize ?? DEFAULT_GROUP_SIZE) - 1))} style={{ width:36, height:36, borderRadius:"50%", border:`1px solid ${C.border}`, background:"transparent", cursor:"pointer", fontSize:18, color:C.primary }}>−</button>
+                <span style={{ fontSize:22, fontWeight:600, color:C.primary, minWidth:30, textAlign:"center" }}>{groupSize ?? DEFAULT_GROUP_SIZE}</span>
+                <button onClick={() => setGroupSize(Math.min(20, (groupSize ?? DEFAULT_GROUP_SIZE) + 1))} style={{ width:36, height:36, borderRadius:"50%", border:`1px solid ${C.border}`, background:"transparent", cursor:"pointer", fontSize:18, color:C.primary }}>+</button>
               </div>
             </div>
           )}
@@ -3038,6 +3042,11 @@ export default function App() {
     if (r.requiresInvoice && w.canInvoice === false) return false;
     return Math.max(w.minPeople, r.minPeople) <= Math.min(w.maxPeople, r.maxPeople);
   };
+  // Liczba osób wybrana przez klienta na stronie głównej działa jak filtr:
+  // pokazujemy tylko warsztaty/restauracje, które ją przyjmą. Sama liczba
+  // nigdy nie jest tu zmieniana — zostaje taka, jaką klient wybrał, także
+  // przy przeklikiwaniu się między restauracjami i warsztatami.
+  const fitsGroupSize = x => groupSize == null || ((x.minPeople ?? 1) <= groupSize && groupSize <= (x.maxPeople ?? Infinity));
   // Krok 1 (nic jeszcze nie wybrane po drugiej stronie) pokazuje wszystko;
   // krok 2 zawęża do pozycji zgodnych z tym, co wybrano w kroku 1.
   // Restauracja bez wypełnionych `variants` (pakietów "dla dorosłych") nie ma
@@ -3045,10 +3054,10 @@ export default function App() {
   // sygnał "tylko tryb dla dzieci" (np. Latająca Filiżanka ma tylko
   // kidsVariants) i nie pokazujemy jej tutaj. "Wkrótce" nadal pokazujemy
   // zawsze, tak jak dotychczas.
-  const compatibleRestaurants = restaurants.filter(r => r.comingSoon || (r.variants.length > 0 && isCompatible(workshop, r)));
+  const compatibleRestaurants = restaurants.filter(r => r.comingSoon || (r.variants.length > 0 && fitsGroupSize(r) && isCompatible(workshop, r)));
   // `kidsOnly` wyklucza warsztat z całej ścieżki dla dorosłych, analogicznie
   // do pustych `variants` u restauracji tylko-dla-dzieci powyżej.
-  const compatibleWorkshops   = workshops.filter(w => !w.kidsOnly && (w.comingSoon || isCompatible(w, restaurant)));
+  const compatibleWorkshops   = workshops.filter(w => !w.kidsOnly && (w.comingSoon || (fitsGroupSize(w) && isCompatible(w, restaurant))));
 
   // Krok 1 ścieżki "Mam miejsce" — tylko artyści z travelsToClient=tak
   // (żadnego dopasowania do restauracji, bo jej tu w ogóle nie ma).
@@ -3058,12 +3067,19 @@ export default function App() {
     if (!w.comingSoon && w.travelsToClient !== true) return false;
     if (invoiceRequired && w.canInvoice !== true) return false;
     if (!w.comingSoon && !workshopFitsTime(w)) return false;
+    if (!w.comingSoon && !fitsGroupSize(w)) return false;
     return true;
   });
 
   const variant    = restaurant?.variants.find(v => v.id === selectedVariant);
   const ppp        = (variant?.price ?? 0) + (workshop?.pricePerPerson ?? 0);
-  const total      = ppp * groupSize;
+  // Gdy klient nie wybrał liczby osób — domyślne 5, dopasowane do zakresu
+  // wybranego warsztatu/restauracji. Wartość wyliczana, nie zapisywana,
+  // więc nie "przykleja się" przy zmianie restauracji czy warsztatu.
+  const peopleLo   = Math.max(workshop?.minPeople ?? 1, restaurant?.minPeople ?? 1);
+  const peopleHi   = Math.min(workshop?.maxPeople ?? Infinity, restaurant?.maxPeople ?? Infinity);
+  const effectiveGroupSize = groupSize ?? Math.min(peopleHi, Math.max(peopleLo, DEFAULT_GROUP_SIZE));
+  const total      = ppp * effectiveGroupSize;
 
   // ── Tryb "Eventy dla dzieci" ──────────────────────────────────
   // Zasady jak isCompatible dla dorosłych (osobna sala / faktura / godziny),
@@ -3110,19 +3126,6 @@ export default function App() {
   // — wraca "normalne sumowanie".
   const kidsWorkshopPpp   = workshop?.pricePerPerson ?? null;
   const kidsWorkshopTotal = kidsWorkshopPpp != null && kidsCount != null ? kidsWorkshopPpp * kidsCount : null;
-
-  // Liczba osób jest wybierana raz, na samym początku (pasek na stronie
-  // głównej) — tu tylko dopilnowujemy, żeby mieściła się w zakresie
-  // wspólnym dla wybranego warsztatu i restauracji, bez nadpisywania
-  // wyboru klienta, jeśli już się mieści.
-  useEffect(() => {
-    if (mode === "kids") return;
-    if (!workshop && !restaurant) return;
-    const lo = Math.max(workshop?.minPeople ?? 1, restaurant?.minPeople ?? 1);
-    const hi = Math.min(workshop?.maxPeople ?? Infinity, restaurant?.maxPeople ?? Infinity);
-    setGroupSize(gs => Math.min(hi, Math.max(lo, gs)));
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [workshop?.id, restaurant?.id, mode]);
 
   // Odpowiednik powyższego dla trybu "Eventy dla dzieci" — automatycznie
   // ustawia `kidsCount` na sensowną wartość, gdy wybrano zarówno warsztat,
@@ -3425,7 +3428,7 @@ export default function App() {
                 <div className="wizard-nav-bar" style={{ marginTop:20 }}>
                   <WizardStickyBar
                     restaurant={restaurant} workshop={workshop}
-                    groupSize={groupSize} ppp={ppp} total={total}
+                    groupSize={effectiveGroupSize} ppp={ppp} total={total}
                     canAdvance={wizardStep === 1 ? step1Selected : (ownPlace ? true : step2Selected)}
                     nextLabel="Dalej"
                     onNext={() => {
@@ -3520,7 +3523,7 @@ export default function App() {
                 {wizardStep === 3 && (
                   <Step4ContactForm
                     restaurant={ownPlace ? undefined : restaurant} variant={variant} workshop={workshop}
-                    groupSize={groupSize}
+                    groupSize={effectiveGroupSize}
                     selectedDate={selectedDate} onDateChange={setSelectedDate}
                     selectedTime={selectedTime} onTimeChange={setSelectedTime}
                     ppp={ppp} total={total}
