@@ -1269,7 +1269,7 @@ function TimeOptionsList({ value, onChange }) {
 // zostaje pominięte (patrz brief reorganizacji).
 // Domyślna liczba osób — podpowiadana w pasku na stronie głównej i używana
 // w wyliczeniach, dopóki klient sam nie wybierze liczby.
-const DEFAULT_GROUP_SIZE = 5;
+const DEFAULT_GROUP_SIZE = 8;
 
 function HomeFilterBar({ groupSize, setGroupSize, selectedDate, setSelectedDate, selectedTime, setSelectedTime }) {
   const [openField, setOpenField] = useState(null);
@@ -3073,7 +3073,7 @@ export default function App() {
 
   const variant    = restaurant?.variants.find(v => v.id === selectedVariant);
   const ppp        = (variant?.price ?? 0) + (workshop?.pricePerPerson ?? 0);
-  // Gdy klient nie wybrał liczby osób — domyślne 5, dopasowane do zakresu
+  // Gdy klient nie wybrał liczby osób — domyślne 8, dopasowane do zakresu
   // wybranego warsztatu/restauracji. Wartość wyliczana, nie zapisywana,
   // więc nie "przykleja się" przy zmianie restauracji czy warsztatu.
   const peopleLo   = Math.max(workshop?.minPeople ?? 1, restaurant?.minPeople ?? 1);
