@@ -74,8 +74,11 @@ pliku z Dysku (`download_file_content`) bywa zapisywany do pliku — szukaj
        i proponowana rola (okładka / galeria / logo / nie nadaje się — dlaczego),
      - pytania / uwagi artysty z formularza, na które Joanna powinna odpisać,
      - **co dalej**: „Odpisz mi w aplikacji Claude → Code → rozmowa Zenona
-       (link: <LINK_ZENONA>): **tak** (możesz od razu wskazać okładkę),
-       **nie** albo pytanie.”
+       (link): **tak** (możesz od razu wskazać okładkę), **nie** albo pytanie.”
+       Link: najlepiej bezpośrednio do tej rozmowy — sprawdź
+       `env | grep -i session`; jeśli jest identyfikator sesji (np.
+       `cse_…` / `session_…`), podaj `https://claude.ai/code/session_<reszta id>`;
+       inaczej `<LINK_ZENONA>`.
    - na końcu: `ID zgłoszenia: <sygnatura>`.
 6. Brak nowych zgłoszeń → **nie wysyłaj żadnego maila**, zakończ jednym zdaniem.
 7. Na koniec rozmowy wypisz to samo podsumowanie i czekaj na odpowiedź Joanny.
