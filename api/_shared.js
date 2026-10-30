@@ -39,10 +39,14 @@ export function spamCheck(req, body, { limit = 5, windowMs = 60 * 60 * 1000 } = 
 // Wspólny tekst dla klienta: ile się czeka i gdzie pisać, gdy cisza.
 export const CLIENT_WAIT_INFO = `<p>Zwykle każda strona odpowiada w ciągu 48 godzin. Jeśli w tym czasie nic od nas nie dostaniesz albo chcesz coś zmienić lub odwołać, napisz do nas na <a href="mailto:${OWNER_EMAIL}" style="color:#432A16;">${OWNER_EMAIL}</a> — zajmiemy się tym.</p>`;
 
-// Ta sama informacja krótko na samej górze — na dole łatwo ją przeoczyć.
-// Odpowiedź na mail systemowy trafia do Joanny (replyTo w sendEmail), więc
-// zachęcamy do odpisywania — tak chciała Joanna (26.10), zamiast „nie odpowiadaj".
-const NO_REPLY_HEADER = `<p style="font-size:12px;color:#6B6862;margin:0 0 18px;">To wiadomość systemowa z platformy Kawiarniani Artyści. Prosimy o odpowiedź — przyciskiem w mailu (jeśli jest) albo po prostu odpisz na tę wiadomość, a trafi do Joanny.</p>`;
+// Ścieżka „bez miejsca" (lokal dobiera Joanna): klient płaci osobno artyście
+// i lokalowi — decyzja Joanny z 30.10, powtarzana klientowi i artyście.
+export const NO_PLACE_BILLING_INFO = `<p>Miejsce dobierzemy dla Ciebie my, ale rozliczenie jest osobne: za warsztat płacisz bezpośrednio artyście, a za menu — lokalowi, który dla Ciebie znajdziemy.</p>`;
+
+// Krótki nagłówek na górze. Wcześniej prosił „o odpowiedź" także w mailach
+// czysto informacyjnych, co myliło (przegląd tekstów 30.10) — gdzie pisać,
+// mówi stopka na dole.
+const NO_REPLY_HEADER = `<p style="font-size:12px;color:#6B6862;margin:0 0 18px;">Wiadomość z platformy Kawiarniani Artyści.</p>`;
 
 const NO_REPLY_FOOTER =`<hr style="border:none;border-top:1px solid #E0DDD6;margin:28px 0 14px;"><p style="font-size:13px;color:#6B6862;margin:0;">To wiadomość systemowa, wysłana automatycznie przez platformę Kawiarniani Artyści. Masz pytanie, chcesz coś zmienić lub odwołać? Odpisz na tego maila albo napisz na <a href="mailto:${OWNER_EMAIL}" style="color:#432A16;">${OWNER_EMAIL}</a> — wiadomość trafi do Joanny.</p>`;
 
@@ -98,10 +102,11 @@ export function verifyAndDecode(data, sig) {
 // całej wysyłki — pozostałe maile, w tym kopia do Joanny, i tak wychodzą.
 // Zwraca true, gdy mail faktycznie został przyjęty do wysyłki.
 //
-// Adres nadawcy (zapytania@...) NIE ma skrzynki — odpowiedź na niego przepada
-// (tak zginęło odwołanie warsztatu w Ptasim Radiu, 10.2026). Dlatego każdy mail
-// ma "Odpowiedz do" ustawione na skrzynkę Joanny, a maile do klientów/partnerów
-// dostają na dole dopisek, gdzie pisać.
+// Adres nadawcy (zapytania@...) do 30.10.2026 nie miał skrzynki — odpowiedź
+// przepadała (tak zginęło odwołanie warsztatu w Ptasim Radiu). Dziś poczta
+// domeny idzie przez ImprovMX do Gmaila Joanny, ale "Odpowiedz do" i tak
+// wskazuje jej skrzynkę, a maile do klientów/partnerów mają na dole dopisek,
+// gdzie pisać.
 export async function sendEmail(resend, { to: rawTo, subject: rawSubject, html: rawHtml, replyTo = OWNER_EMAIL, ...rest }) {
   // "a@x.pl, b@y.pl" (kilka adresów z arkusza, patrz parseEmails) → lista.
   const toList = String(rawTo).split(/\s*,\s*/).filter(Boolean);

@@ -1,5 +1,5 @@
 import { Resend } from "resend";
-import { FROM_EMAIL, OWNER_EMAIL, IS_PRODUCTION, SITE_URL, signPayload, emailHtml, escapeHtml, nl2br, sendEmail, parseEmails, CLIENT_WAIT_INFO, spamCheck } from "./_shared.js";
+import { FROM_EMAIL, OWNER_EMAIL, IS_PRODUCTION, SITE_URL, signPayload, emailHtml, escapeHtml, nl2br, sendEmail, parseEmails, CLIENT_WAIT_INFO, NO_PLACE_BILLING_INFO, spamCheck } from "./_shared.js";
 import { getSheetData } from "./_sheet.js";
 
 // Prosty test formatu adresu — celowo odrzuca też znaki, które mogłyby
@@ -170,7 +170,7 @@ export default async function handler(req, res) {
             ? `Klient chce zaprosić Cię do siebie na warsztat „${workshopName || ""}" — bez restauracji, na własnym miejscu. Oto szczegóły:`
             : isNoPlace
               ? `Klient wysłał zapytanie o Twój warsztat „${workshopName || ""}", ale nie wybrał jeszcze restauracji ani kawiarni. <strong>Miejsce dobierze Joanna z Kawiarnianych Artystów</strong> — nie musisz go szukać. Potwierdź tylko, czy pasuje Ci termin. Oto szczegóły:`
-              : `Restauracja <strong>${restaurantName}</strong> dostała zapytanie o Twój warsztat „${workshopName || ""}". Oto szczegóły:`}</p>
+              : `Klient chce zorganizować event z Twoim warsztatem „${workshopName || ""}" w restauracji <strong>${restaurantName}</strong>. Oto szczegóły:`}</p>
           ${requesterLine}
           ${invoiceLine}
           ${kidsEventBlock}
@@ -181,6 +181,11 @@ export default async function handler(req, res) {
             <li>Kontakt do klienta: ${clientName} — ${clientEmail}${clientPhone ? `, ${clientPhone}` : ""}</li>
             ${message ? `<li>Wiadomość od klienta: ${message}</li>` : ""}
           </ul>
+          ${isOwnPlace
+            ? `<p><strong>Jeśli zaakceptujesz, odezwij się proszę bezpośrednio do klienta w ciągu 48 godzin</strong>, żeby ustalić szczegóły (godzina, dojazd, przygotowanie miejsca). Kontakt do klienta masz wyżej.</p>`
+            : isNoPlace
+              ? `<p>Po Twojej akceptacji Joanna dobierze miejsce i da Ci znać, gdzie odbędzie się warsztat. Za warsztat rozliczasz się bezpośrednio z klientem — lokal klient opłaca osobno.</p>`
+              : `<p>Po Twojej akceptacji termin potwierdza jeszcze restauracja — dostaniesz od nas maila, gdy to zrobi.</p>`}
           <p>Daj nam znać, czy ten termin Ci pasuje:</p>
           <p>
             <a href="${acceptUrl}" style="background:#432A16;color:#fff;padding:12px 20px;border-radius:8px;text-decoration:none;margin-right:10px;display:inline-block;">Mogę — akceptuję</a>
@@ -288,6 +293,7 @@ export default async function handler(req, res) {
             <li><strong>Artysta</strong> (${workshopName || "warsztat"}) potwierdza termin ${date || ""}.</li>
             <li><strong>Joanna z Kawiarnianych Artystów</strong> dobiera dla Was restaurację lub kawiarnię i odzywa się z propozycją miejsca.</li>
           </ol>
+          ${NO_PLACE_BILLING_INFO}
           <p>O każdym kroku poinformujemy Cię mailowo.</p>
           ${CLIENT_WAIT_INFO}
           <p>Pozdrawiamy,<br>Kawiarniani Artyści</p>
@@ -305,7 +311,7 @@ export default async function handler(req, res) {
           <ol>
             <li><strong>Artysta</strong> (${workshopName || "warsztat"}) potwierdza termin ${date || ""}.</li>
             <li><strong>Restauracja ${restaurantName || ""}</strong> potwierdza, że ma wolny termin, i rezerwuje go.</li>
-            <li>Restauracja odzywa się do Ciebie w ciągu 48 godzin, żeby ustalić menu i ostateczną cenę.</li>
+            <li>Po potwierdzeniu restauracja odzywa się do Ciebie w ciągu 48 godzin, żeby ustalić menu i ostateczną cenę.</li>
           </ol>
           <p>O każdym kroku poinformujemy Cię mailowo.</p>
           ${CLIENT_WAIT_INFO}

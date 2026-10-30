@@ -258,7 +258,7 @@ async function obsluz(req, res) {
             ${kidsEventBlock}
             <p>Bardzo nam przykro — restauracja <strong>${restaurantName || ""}</strong> nie może przyjąć rezerwacji w terminie ${date || ""}.</p>
             ${reasonBlock}
-            <p>Artysta (${workshopName || "wybrany warsztat"}) miał ten termin wolny, więc możesz wybrać inną restaurację na ten sam dzień albo inny termin — wystarczy wysłać nowe zapytanie na stronie ${newInquiryLink}.</p>
+            <p>Artysta (${workshopName || "wybrany warsztat"}) miał ten termin wolny, więc możesz wybrać inną restaurację na ten sam dzień albo inny termin — wystarczy wysłać nowe zapytanie na stronie ${newInquiryLink}. Możesz też napisać do nas na <a href="mailto:${OWNER_EMAIL}" style="color:#432A16;">${OWNER_EMAIL}</a> — pomożemy dobrać inne miejsce na ten sam termin.</p>
             <p>Pozdrawiamy,<br>Kawiarniani Artyści</p>
           `),
         }));
@@ -309,6 +309,6 @@ export default async function handler(req, res) {
     await obsluz(req, res);
   } catch (err) {
     console.error(err);
-    if (!res.headersSent) res.status(500).send(htmlPage("Błąd", IS_PRODUCTION ? "Coś poszło nie tak. Spróbuj ponownie za chwilę lub napisz do Joanny." : `Błąd (wersja testowa): ${escapeHtml(err && err.message)}`));
+    if (!res.headersSent) res.status(500).send(htmlPage("Błąd", IS_PRODUCTION ? `Coś poszło nie tak. Spróbuj ponownie za chwilę lub napisz do nas na ${OWNER_EMAIL}.` : `Błąd (wersja testowa): ${escapeHtml(err && err.message)}`));
   }
 }

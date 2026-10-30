@@ -1,5 +1,5 @@
 import { Resend } from "resend";
-import { FROM_EMAIL, OWNER_EMAIL, IS_PRODUCTION, escapeHtml, SITE_URL, htmlPage, verifyAndDecode, signPayload, emailHtml, nl2br, sendEmail, CLIENT_WAIT_INFO, NEW_DATE_INFO } from "./_shared.js";
+import { FROM_EMAIL, OWNER_EMAIL, IS_PRODUCTION, escapeHtml, SITE_URL, htmlPage, verifyAndDecode, signPayload, emailHtml, nl2br, sendEmail, CLIENT_WAIT_INFO, NEW_DATE_INFO, NO_PLACE_BILLING_INFO } from "./_shared.js";
 
 async function obsluz(req, res) {
   const { action, data, sig, confirm, dates } = req.query;
@@ -11,7 +11,7 @@ async function obsluz(req, res) {
 
   const payload = verifyAndDecode(data, sig);
   if (!payload) {
-    res.status(400).send(htmlPage("Nieprawidłowy link", "Ten link jest nieprawidłowy lub wygasł. Skontaktuj się z Joanną, jeśli to się powtarza."));
+    res.status(400).send(htmlPage("Nieprawidłowy link", `Ten link jest nieprawidłowy lub wygasł. Jeśli to się powtarza, napisz do nas na ${OWNER_EMAIL}.`));
     return;
   }
 
@@ -156,7 +156,7 @@ async function obsluz(req, res) {
       res.status(200).send(htmlPage("Wysłano!", "Przekazaliśmy Twoją propozycję terminów. Dalsze ustalenia są teraz bezpośrednio między Wami."));
     } catch (err) {
       console.error(err);
-      res.status(500).send(htmlPage("Błąd", "Coś poszło nie tak przy wysyłce propozycji. Spróbuj ponownie za chwilę lub napisz do Joanny."));
+      res.status(500).send(htmlPage("Błąd", `Coś poszło nie tak przy wysyłce propozycji. Spróbuj ponownie za chwilę lub napisz do nas na ${OWNER_EMAIL}.`));
     }
     return;
   }
@@ -230,7 +230,7 @@ async function obsluz(req, res) {
           ? `Prosimy o potwierdzenie terminu: ${workshopName || ""} — ${date || ""}`
           : `Artysta nie może w tym terminie — ${workshopName || ""}`,
         html: emailHtml(accepted
-          ? `<p>Cześć!</p><p>Artysta <strong>${artistName || workshopName || ""}</strong> ma wolny termin <strong>${date || ""}</strong> na event dla ${groupSize || "-"} osób. Teraz czekamy na Waszą odpowiedź, czy ten termin pasuje restauracji.</p>${finalizeButtons}${kidsEventBlock}${detailsList}${clientContact}<p>Pozdrawiamy,<br>Kawiarniani Artyści</p>`
+          ? `<p>Cześć!</p><p>Artysta <strong>${artistName || workshopName || ""}</strong> ma wolny termin <strong>${date || ""}</strong> na event dla ${groupSize || "-"} osób. Teraz czekamy na Waszą odpowiedź, czy ten termin pasuje restauracji.</p>${kidsEventBlock}${detailsList}${finalizeButtons}${clientContact}<p>Pozdrawiamy,<br>Kawiarniani Artyści</p>`
           : `<p>Cześć!</p><p>Niestety artysta <strong>${artistName || workshopName || ""}</strong> nie może w terminie ${date || ""}. Poprosiliśmy klienta o wybranie innego terminu albo innego artysty — jeśli wyśle nowe zapytanie, dostaniecie od nas osobnego maila. Z Waszej strony nic nie trzeba robić.</p>${kidsEventBlock}<p>Pozdrawiamy,<br>Kawiarniani Artyści</p>`),
       }));
     }
@@ -256,7 +256,7 @@ async function obsluz(req, res) {
           ? (isClassic
               ? `<p>Cześć ${clientName || ""}!</p>${kidsEventBlock}<p>Świetna wiadomość — artysta potwierdził Wasz termin (${date || ""}).</p><p>Teraz restauracja <strong>${restaurantName || ""}</strong> potwierdza, że ma wolny termin — dostaniesz od nas osobny mail, gdy to zrobi.</p>${CLIENT_WAIT_INFO}<p>Pozdrawiamy,<br>Kawiarniani Artyści</p>`
               : isNoPlace
-              ? `<p>Cześć ${clientName || ""}!</p>${kidsEventBlock}<p>Świetna wiadomość — artysta <strong>${artistName || workshopName || ""}</strong> potwierdził termin ${date || ""}.</p><p>Teraz <strong>Joanna z Kawiarnianych Artystów</strong> dobiera dla Was restaurację lub kawiarnię i odezwie się do Ciebie z propozycją miejsca.</p>${CLIENT_WAIT_INFO}<p>Pozdrawiamy,<br>Kawiarniani Artyści</p>`
+              ? `<p>Cześć ${clientName || ""}!</p>${kidsEventBlock}<p>Świetna wiadomość — artysta <strong>${artistName || workshopName || ""}</strong> potwierdził termin ${date || ""}.</p><p>Teraz <strong>Joanna z Kawiarnianych Artystów</strong> dobiera dla Was restaurację lub kawiarnię i odezwie się do Ciebie z propozycją miejsca.</p>${NO_PLACE_BILLING_INFO}${CLIENT_WAIT_INFO}<p>Pozdrawiamy,<br>Kawiarniani Artyści</p>`
               : `<p>Cześć ${clientName || ""}!</p>${kidsEventBlock}<p>Świetna wiadomość — artysta <strong>${artistName || workshopName || ""}</strong> przyjął Twoje zapytanie na termin ${date || "do ustalenia"} i skontaktuje się z Tobą wkrótce, żeby ustalić ostatnie szczegóły (np. dojazd).</p><p>Kontakt do artysty: ${artistName || ""}${artistEmail ? ` · ${artistEmail}` : ""}</p><p>Pozdrawiamy,<br>Kawiarniani Artyści</p>`)
           : `<p>Cześć ${clientName || ""},</p>${kidsEventBlock}<p>Niestety artyście (${workshopName || "wybrany warsztat"}) nie pasuje termin ${date || ""}. Prosimy o wybranie innego terminu lub zmianę artysty — wystarczy wysłać nowe zapytanie na stronie <a href="${SITE_URL}" style="color:#432A16;">kawiarnianiartysci.pl</a>.</p><p>Pozdrawiamy,<br>Kawiarniani Artyści</p>`),
       }));
@@ -273,12 +273,12 @@ async function obsluz(req, res) {
 
     res.status(200).send(
       accepted
-        ? htmlPage("Dziękujemy!", isClassic ? "Potwierdziłeś/aś termin. Restauracja i klient zostali poinformowani mailowo." : isNoPlace ? "Potwierdziłeś/aś termin. Klient został poinformowany mailowo. Miejsce dobierze Joanna i da Ci znać." : "Potwierdziłeś/aś termin. Klient został poinformowany mailowo i dostał Twój kontakt.")
+        ? htmlPage("Dziękujemy!", isClassic ? "Potwierdziłeś/aś termin. Restauracja i klient zostali poinformowani mailowo." : isNoPlace ? "Potwierdziłeś/aś termin. Klient został poinformowany mailowo. Miejsce dobierze Joanna i da Ci znać." : `Potwierdziłeś/aś termin. Klient został poinformowany mailowo i dostał Twój kontakt.<br><br><strong>Teraz odezwij się proszę do klienta w ciągu 48 godzin</strong>, żeby ustalić szczegóły:<br>${clientName || ""}${clientEmail ? ` · ${escapeHtml(clientEmail)}` : ""}${clientPhone ? ` · ${clientPhone}` : ""}`)
         : htmlPage("Zapisano", isClassic ? "Poinformowaliśmy restaurację i klienta, że nie możesz w tym terminie." : "Poinformowaliśmy klienta, że nie możesz w tym terminie.")
     );
   } catch (err) {
     console.error(err);
-    res.status(500).send(htmlPage("Błąd", "Coś poszło nie tak przy wysyłce potwierdzenia. Spróbuj ponownie za chwilę lub napisz do Joanny."));
+    res.status(500).send(htmlPage("Błąd", `Coś poszło nie tak przy wysyłce potwierdzenia. Spróbuj ponownie za chwilę lub napisz do nas na ${OWNER_EMAIL}.`));
   }
 }
 
@@ -290,6 +290,6 @@ export default async function handler(req, res) {
     await obsluz(req, res);
   } catch (err) {
     console.error(err);
-    if (!res.headersSent) res.status(500).send(htmlPage("Błąd", IS_PRODUCTION ? "Coś poszło nie tak. Spróbuj ponownie za chwilę lub napisz do Joanny." : `Błąd (wersja testowa): ${escapeHtml(err && err.message)}`));
+    if (!res.headersSent) res.status(500).send(htmlPage("Błąd", IS_PRODUCTION ? `Coś poszło nie tak. Spróbuj ponownie za chwilę lub napisz do nas na ${OWNER_EMAIL}.` : `Błąd (wersja testowa): ${escapeHtml(err && err.message)}`));
   }
 }
